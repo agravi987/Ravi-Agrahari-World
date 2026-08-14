@@ -1,0 +1,23 @@
+name: CI — lint & typecheck
+
+# Lint + build on every push to main and every PR. The deploy badge in
+# the footer is NOT written here — it comes from Vercel's build env at
+# build time (VERCEL_GIT_COMMIT_SHA via scripts/write-deploy-meta.mjs,
+# plan S10) because a workflow cannot write into a live deploy.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build

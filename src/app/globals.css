@@ -1,0 +1,267 @@
+@import "tailwindcss";
+
+/* ============================================================
+   globals.css — "Orbital" design tokens (plan §4 / §4.1)
+   Light theme first: warm paper bg, one indigo accent, muted
+   per-topic hues for the Learning Galaxy. ONE gradient
+   (indigo → cyan) reserved for hero ring + galaxy sun.
+   ============================================================ */
+
+@theme {
+  /* --- Core palette --- */
+  --color-paper: #faf9f6;        /* warm off-white page background */
+  --color-paper-deep: #f3f1ec;   /* slightly deeper paper (cards-on-paper, footer) */
+  --color-ink: #1c1917;          /* near-black warm text (stone-900) */
+  --color-ink-soft: #57534e;     /* secondary text (stone-600) */
+  --color-ink-faint: #a8a29e;    /* tertiary text (stone-400) */
+
+  /* One brand accent: indigo */
+  --color-accent: #4f46e5;       /* indigo-600 — buttons, links, focus rings */
+  --color-accent-soft: #eef2ff;  /* indigo-50 — soft accent fills */
+  --color-accent-strong: #4338ca;/* indigo-700 — hover states */
+  --color-accent-cyan: #06b6d4;  /* cyan-500 — ONLY for the hero-ring/gradient */
+
+  /* --- Per-topic hues (galaxy planets, muted not neon) --- */
+  --color-topic-cloud: #0ea5e9;  /* sky blue — Cloud */
+  --color-topic-devops: #14b8a6; /* teal — DevOps */
+  --color-topic-ai: #8b5cf6;     /* violet — AI */
+  --color-topic-linux: #f59e0b;  /* amber — Linux */
+  --color-topic-mars: #f87171;   /* soft mars-red — networking/systems */
+  --color-topic-ice: #38bdf8;    /* ice blue — misc topics */
+
+  /* Moon type tints (plan §3.1) */
+  --color-moon-notes: #3b82f6;   /* blue — 🗒️ notes */
+  --color-moon-hands: #22c55e;   /* green — 🛠️ hands-on */
+  --color-moon-project: #8b5cf6; /* purple — 🚀 projects */
+
+  /* --- Card surfaces --- */
+  --color-card: #ffffff;
+  --color-card-border: #e7e5e4;  /* stone-200 */
+
+  /* --- Typography --- */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace; /* terminal eyebrows (plan §4.1) */
+
+  /* --- Radius scale (one consistent scale everywhere) --- */
+  --radius-card: 0.75rem;   /* 12px — cards */
+  --radius-pill: 9999px;    /* pills, badges, buttons */
+
+  /* --- Shadow scale (one consistent scale) --- */
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.05), 0 4px 16px rgb(28 25 23 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(28 25 23 / 0.06), 0 10px 28px rgb(28 25 23 / 0.1);
+  --shadow-orbital: 0 0 0 1px rgb(79 70 229 / 0.08), 0 8px 40px rgb(79 70 229 / 0.12);
+
+  /* --- Animations (plan §4: orbital ring, slow + calm) --- */
+  --animate-spin-slow: spin 24s linear infinite;
+  /* Breathing glow on the galaxy sun (ui-ux-design.md orbit rework) */
+  --animate-sun-pulse: sun-pulse 6s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sun-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+/* ============================================================
+   Base styles
+   ============================================================ */
+
+html {
+  /* Smooth anchor scrolling for section nav; reduced-motion
+     users get instant jumps via the media query below. */
+  scroll-behavior: smooth;
+  scroll-padding-top: 5rem; /* offset for sticky header */
+}
+
+body {
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Subtle dotted-grid texture on the whole page (very light) —
+     keeps the "paper" feel without decoration. */
+  background-image: radial-gradient(circle, rgb(28 25 23 / 0.04) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Accent-colored text selection (plan §4.1 polish) --- */
+::selection {
+  background-color: var(--color-accent);
+  color: #ffffff;
+}
+
+/* --- Styled scrollbar (plan §4.1 polish) --- */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-paper-deep);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-card-border);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--color-paper-deep);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-faint);
+}
+
+/* --- Focus rings (a11y — plan §3: semantic + focus states) --- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ============================================================
+   Dark mode (plan §4: optional toggle via CSS variables)
+   Light is default; html[data-theme="dark"] overrides tokens.
+   ThemeToggle + a no-flash inline script set the attribute.
+   ============================================================ */
+
+html[data-theme="dark"] {
+  --color-paper: #0c0a09;        /* stone-950 warm dark */
+  --color-paper-deep: #1c1917;
+  --color-ink: #e7e5e4;          /* stone-200 */
+  --color-ink-soft: #a8a29e;
+  --color-ink-faint: #57534e;
+  --color-accent: #818cf8;       /* indigo-400 — brighter for dark bg */
+  --color-accent-soft: rgb(99 102 241 / 0.15);
+  --color-accent-strong: #a5b4fc;
+  --color-accent-cyan: #22d3ee;
+  --color-card: #1c1917;
+  --color-card-border: #292524;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.4);
+  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.5);
+}
+
+/* ============================================================
+   Blog markdown rendering (ui-ux-design.md P0)
+   Styles for react-markdown output on /blog/[slug]. Uses the
+   same tokens as the rest of the site — no raw hex, matches
+   the design system (plan §4.1).
+   ============================================================ */
+
+.markdown {
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.markdown > * + * {
+  margin-top: 1rem;
+}
+.markdown h2 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-top: 2rem;
+}
+.markdown h3 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-top: 1.5rem;
+}
+.markdown a {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown a:hover {
+  color: var(--color-accent-strong);
+}
+.markdown ul {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+.markdown ol {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+.markdown li + li {
+  margin-top: 0.35rem;
+}
+.markdown code {
+  background: var(--color-paper-deep);
+  border-radius: 6px;
+  padding: 0.15em 0.4em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+.markdown pre {
+  background: var(--color-paper-deep);
+  border-radius: var(--radius-card);
+  padding: 1rem;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: transparent;
+  padding: 0;
+  font-size: 0.85em;
+}
+.markdown blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1rem;
+  color: var(--color-ink-soft);
+}
+.markdown hr {
+  border-color: var(--color-card-border);
+}
+.markdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--color-card-border);
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.markdown th {
+  background: var(--color-paper-deep);
+  font-weight: 600;
+}
+.markdown img {
+  max-width: 100%;
+  border-radius: var(--radius-card);
+}
+.markdown strong {
+  font-weight: 600;
+}
+
+/* ============================================================
+   Reduced motion (plan §3.1: galaxy gets a static fallback;
+   §4: orbital ring pauses). Components also check this via
+   framer-motion's useReducedMotion.
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
