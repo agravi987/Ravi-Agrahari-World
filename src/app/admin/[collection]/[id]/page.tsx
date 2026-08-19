@@ -7,8 +7,9 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ExternalLink } from "lucide-react";
 import CollectionForm from "@/components/admin/CollectionForm";
-import { getCollection } from "@/lib/collections";
+import { getCollection, publicUrlFor } from "@/lib/collections";
 
 type Doc = Record<string, unknown> & { _id?: string };
 
@@ -57,8 +58,36 @@ export default function EditCollectionPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
-      <p className="font-mono text-xs text-accent">~/admin/{collection}/{id.slice(0, 8)}</p>
-      <h1 className="mt-2 font-display text-2xl font-semibold text-ink">Edit {spec.label}</h1>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="font-mono text-xs text-accent">~/admin/{collection}/{id.slice(0, 8)}</p>
+          <h1 className="mt-2 font-display text-2xl font-semibold text-ink">Edit {spec.label}</h1>
+        </div>
+        {/* Phase 11: see the doc exactly as a visitor does — the CMS →
+            site loop is one click, not a guess. */}
+        {doc && (() => {
+          const url = publicUrlFor(doc, collection);
+          if (!url) return null;
+          const cls =
+            "inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-accent";
+          return url.external ? (
+            <a
+              href={url.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Open on the live site (new tab)"
+              className={cls}
+            >
+              View on site
+              <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            </a>
+          ) : (
+            <a href={url.href} title="Open on the live site" className={cls}>
+              View on site
+            </a>
+          );
+        })()}
+      </div>
 
       {error && (
         <p role="alert" className="mt-6 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -70,6 +99,11 @@ export default function EditCollectionPage() {
       {!error && doc !== null && (
         <div className="mt-8 rounded-card border border-card-border bg-card p-6 shadow-card">
           <CollectionForm
+            // BUGFIX: key by id — without it, navigating from editing
+            // post A to post B (client-side link) REUSED the mounted
+            // form and its useState initializer never re-ran: the form
+            // showed A's values and saving silently overwrote B.
+            key={id}
             spec={spec}
             collection={collection}
             initialData={doc}

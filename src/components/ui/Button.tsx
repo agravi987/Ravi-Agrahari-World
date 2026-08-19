@@ -18,11 +18,12 @@ type ButtonProps = BaseProps &
   Omit<ComponentPropsWithoutRef<"button">, "className">;
 
 const variantClasses: Record<Variant, string> = {
+  // active:translate-y-px is the tactile "pressed" state (P7 polish)
   primary:
-    "bg-accent text-white hover:bg-accent-strong shadow-card transition-colors",
+    "bg-accent-btn text-white shadow-card transition-colors hover:bg-accent-btn-hover active:translate-y-px",
   secondary:
-    "border border-card-border bg-card text-ink hover:border-accent hover:text-accent transition-colors",
-  ghost: "text-ink-soft hover:text-accent transition-colors",
+    "border border-card-border bg-card text-ink transition-colors hover:border-accent hover:text-accent active:translate-y-px",
+  ghost: "text-ink-soft transition-colors hover:text-accent",
 };
 
 const baseClasses =

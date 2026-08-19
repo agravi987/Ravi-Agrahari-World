@@ -17,6 +17,12 @@ declare global {
 
 const cache = (globalThis.mongooseCache ??= { conn: null, promise: null });
 
+// Cooldown after a failed connect: once Mongo has proven unreachable, fall
+// back to seed data without retrying for a while. Without this, every single
+// request pays the full serverSelection timeout again (dev: no-DB stays fast).
+let failedAt = 0;
+const RETRY_AFTER_MS = 30_000;
+
 /**
  * Returns the shared mongoose connection, connecting on first call.
  * Returns null when MONGODB_URI is absent (callers fall back to
@@ -25,13 +31,22 @@ const cache = (globalThis.mongooseCache ??= { conn: null, promise: null });
 export async function connectDb(): Promise<typeof mongoose | null> {
   if (!MONGODB_URI) return null; // seed fallback mode (D6)
   if (cache.conn) return cache.conn;
+  if (Date.now() - failedAt < RETRY_AFTER_MS) return null; // down → seed now
   if (!cache.promise) {
     cache.promise = mongoose
-      .connect(MONGODB_URI, { serverSelectionTimeoutMS: 5000 })
+      // bufferCommands: false — when Mongo is down (no DB running),
+      // model calls reject immediately instead of silently buffering
+      // 10s per operation (this was adding ~15s of dead time to every
+      // request without a database). Fallbacks (seed data) kick in fast.
+      .connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 4000,
+        bufferCommands: false,
+      })
       .then((m) => m)
       .catch((err) => {
         // Don't cache a dead promise — allow the next call to retry.
         cache.promise = null;
+        failedAt = Date.now();
         throw err;
       });
   }

@@ -4,12 +4,17 @@
  * indigo accent, a little orbital ring — no image files needed.
  */
 import { ImageResponse } from "next/og";
+import { getContent } from "@/lib/content";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Agravi — Cloud, DevOps & AI Explorer";
+// Alt is a static export — kept generic so the name lives only in
+// the content layer (P24 zero-hardcoding; the rendered name below
+// reads config.name).
+export const alt = "Cloud, DevOps & AI portfolio — learning in public";
 
-export default function OpengraphImage() {
+export default async function OpengraphImage() {
+  const { config } = await getContent();
   return new ImageResponse(
     (
       <div
@@ -49,10 +54,11 @@ export default function OpengraphImage() {
           />
         </div>
         <div style={{ display: "flex", fontSize: 72, fontWeight: 700, letterSpacing: "-0.02em", marginTop: -220 }}>
-          Agravi<span style={{ color: "#4f46e5" }}>.</span>
+          {config.name}
+          <span style={{ color: "#4f46e5" }}>.</span>
         </div>
         <div style={{ display: "flex", fontSize: 32, color: "#57534e", marginTop: 16 }}>
-          Cloud · DevOps · AI — learning in public
+          {config.headline}
         </div>
       </div>
     ),

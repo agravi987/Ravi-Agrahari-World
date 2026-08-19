@@ -11,9 +11,158 @@
 import { ImageIcon, UploadCloud } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import ReactMarkdown from "react-markdown";
 import type { CollectionField, CollectionSpec } from "@/lib/collections";
 import { emptyDoc } from "@/lib/collections";
+import { showToast } from "@/components/ui/Toast";
+import GalaxySettingsPreview from "./GalaxySettingsPreview";
+
+/** Phase 11: derive a URL-safe slug from a name/title (auto-fill). */
+function slugify(input: string): string {
+  return input
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}
+
+/** Which collection's slug auto-fills from which field (Phase 11). */
+const SLUG_SOURCE: Record<string, string> = {
+  post: "title",
+  galaxyPlanet: "name",
+  galaxyMoon: "name",
+};
+
+/** Seed-default moon types — used only while the galaxySettings
+ *  singleton is missing or its moonTypes list is empty. */
+const DEFAULT_MOON_TYPES = ["project", "lab", "notes", "certification", "blog", "achievement"];
+
+/**
+ * MoonTypeSelect — the moon `type` picker, driven by the CONFIGURABLE
+ * galaxySettings.moonTypes list (fetch from the settings singleton),
+ * not a hardcoded registry. If the current value isn't in the list it
+ * stays visible (merged in first) so the admin can see what's stored.
+ */
+function MoonTypeSelect({
+  value,
+  onChange,
+  inputClasses,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  inputClasses: string;
+}) {
+  const [types, setTypes] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/admin/galaxySettings")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!alive) return;
+        const list = json?.data?.moonTypes;
+        setTypes(
+          Array.isArray(list) && list.length > 0
+            ? list.map((t: unknown) => String(t))
+            : DEFAULT_MOON_TYPES
+        );
+      })
+      .catch(() => {
+        if (alive) setTypes(DEFAULT_MOON_TYPES);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const options = types ?? DEFAULT_MOON_TYPES;
+  const merged =
+    value && !options.includes(value) ? [value, ...options] : options;
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className={inputClasses}
+    >
+      {types === null && <option value="">Loading…</option>}
+      {merged.map((t) => (
+        <option key={t} value={t}>
+          {t}
+        </option>
+      ))}
+    </select>
+  );
+}
+
+/**
+ * RefSelect — a select whose options load from another collection
+ * (galaxy v4: parent planet for moons). Values are Mongo _ids, labels
+ * are the doc's `name`. Requires the admin session cookie — this whole
+ * form only ever runs inside /admin, so the fetch is authorized.
+ */
+function RefSelect({
+  field,
+  value,
+  onChange,
+  inputClasses,
+}: {
+  field: CollectionField;
+  value: string;
+  onChange: (v: string) => void;
+  inputClasses: string;
+}) {
+  const [options, setOptions] = useState<{ id: string; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    // loading starts true; only async callbacks touch state (lint rule).
+    fetch(`/api/admin/${field.refCollection}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!alive) return;
+        const docs = json?.data;
+        setOptions(
+          Array.isArray(docs)
+            ? docs.map((d: { _id: unknown; name?: string }) => ({
+                id: String(d._id),
+                name: d.name ?? String(d._id),
+              }))
+            : []
+        );
+      })
+      .catch(() => {
+        if (alive) setFailed(true);
+      })
+      .finally(() => {
+        if (alive) setLoading(false);
+      });
+    return () => {
+      alive = false;
+    };
+  }, [field.refCollection]);
+
+  if (failed) {
+    return <p className="text-xs text-red-600">Could not load options — refresh and try again.</p>;
+  }
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)} className={inputClasses}>
+      {loading ? (
+        <option value="">Loading…</option>
+      ) : (
+        <option value="">Select…</option>
+      )}
+      {options.map((o) => (
+        <option key={o.id} value={o.id}>
+          {o.name}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 /**
  * ImageUpload — uploads a picked file to /api/upload (Cloudinary,
@@ -91,6 +240,16 @@ export default function CollectionForm({
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Phase 11: required-field inline errors (key → shown message).
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  // Phase 11: markdown fields currently in preview mode (key → bool).
+  const [previewMode, setPreviewMode] = useState<Record<string, boolean>>({});
+  // Phase 11: slug fields the user edited by hand — those stop auto-filling.
+  const slugEdited = useRef<Set<string>>(new Set());
+
+  // Slug auto-fill wiring (Phase 11): which field feeds the slug.
+  const slugField = spec.fields.find((f) => f.key === "slug")?.key;
+  const slugSourceKey = SLUG_SOURCE[collection];
 
   // Initialize once from existing data + registry defaults so every
   // input is controlled and no field is ever undefined.
@@ -114,7 +273,9 @@ export default function CollectionForm({
           out[f.key] = Boolean(raw);
           break;
         case "number":
-          out[f.key] = raw == null ? 0 : Number(raw);
+          // Keep the raw string so an empty field stays empty ("use the
+          // default") instead of snapping to 0 — see serialize().
+          out[f.key] = raw == null ? "" : String(raw);
           break;
         default:
           out[f.key] = raw == null ? "" : String(raw);
@@ -124,7 +285,25 @@ export default function CollectionForm({
   });
 
   function set(key: string, value: unknown) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+    setForm((prev) => {
+      const next = { ...prev, [key]: value };
+      // Phase 11: auto-derive an empty/untouched slug from name/title.
+      if (slugField && key === slugSourceKey && !slugEdited.current.has(slugField)) {
+        const derived = slugify(String(value ?? ""));
+        if (derived) next[slugField] = derived;
+      }
+      return next;
+    });
+    // Typing in the slug field itself marks it as hand-edited.
+    if (key === slugField) slugEdited.current.add(key);
+    // Clear any inline error for this field as the user fixes it.
+    if (fieldErrors[key]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
   }
 
   /** Serialize raw form state → API payload; returns error string on bad JSON. */
@@ -146,9 +325,14 @@ export default function CollectionForm({
             return { error: `"${f.label}" is not valid JSON — fix it or leave it empty.` };
           }
           break;
-        case "number":
-          data[f.key] = Number(raw) || 0;
+        case "number": {
+          // Empty string → undefined so JSON.stringify drops the key: the
+          // schema default applies on create, the old value is kept on edit.
+          const s = String(raw ?? "").trim();
+          const n = Number(s);
+          data[f.key] = s === "" || Number.isNaN(n) ? undefined : n;
           break;
+        }
         case "boolean":
           data[f.key] = Boolean(raw);
           break;
@@ -165,6 +349,24 @@ export default function CollectionForm({
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError(null);
+    // Phase 11: required-field inline validation BEFORE serializing —
+    // a red border + message per empty required field, focus the first.
+    const missing = spec.fields.filter(
+      (f) =>
+        f.required &&
+        String(form[f.key] ?? "").trim() === "" &&
+        f.type !== "number" &&
+        f.type !== "boolean"
+    );
+    if (missing.length > 0) {
+      const errs: Record<string, string> = {};
+      for (const f of missing) errs[f.key] = `Required — ${f.label.toLowerCase()} can't be empty.`;
+      setFieldErrors(errs);
+      setError(`${missing[0].label} is required.`);
+      const first = document.querySelector<HTMLElement>(`#field-${missing[0].key}`);
+      first?.focus();
+      return;
+    }
     const payload = serialize();
     if ("error" in payload) {
       setError(payload.error);
@@ -183,6 +385,9 @@ export default function CollectionForm({
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) throw new Error(json?.error || "Save failed");
+      // Phase 11: tell the admin the change is ALREADY live (the API
+      // revalidated the public pages before responding).
+      showToast(isNew ? "Created — the live site is updated" : "Saved — the live site is updated");
       // Back to the list; the API already revalidated the live site.
       router.push(`/admin/${collection}`);
       router.refresh();
@@ -197,30 +402,93 @@ export default function CollectionForm({
   function renderField(f: CollectionField) {
     const key = f.key;
     const value = form[key];
-    const inputClasses =
-      "w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none";
+    // Phase 11: red border while a required field is missing.
+    const invalid = Boolean(fieldErrors[key]);
+    const inputClasses = `w-full rounded-card border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none ${
+      invalid
+        ? "border-red-500/60 focus:border-red-500 focus:ring-2 focus:ring-red-500/15"
+        : "border-card-border focus:border-accent"
+    }`;
 
     let control: React.ReactNode;
     switch (f.type) {
       case "textarea":
-      case "markdown":
         control = (
           <textarea
             id={`field-${key}`}
-            rows={f.type === "markdown" ? 14 : 4}
+            rows={4}
             value={String(value ?? "")}
             onChange={(e) => set(key, e.target.value)}
-            className={`${inputClasses} resize-y ${f.type === "markdown" ? "font-mono text-xs" : ""}`}
+            className={`${inputClasses} resize-y`}
             placeholder={f.placeholder}
           />
         );
         break;
+      case "markdown": {
+        // Phase 11: write / preview tabs — see the rendered note without
+        // leaving the form (same react-markdown the blog uses).
+        const previewing = Boolean(previewMode[key]);
+        control = (
+          <div className="overflow-hidden rounded-card border border-card-border">
+            <div className="flex items-center justify-between gap-3 border-b border-card-border bg-paper-deep/40 px-2 py-1.5">
+              <div
+                role="tablist"
+                aria-label={`${f.label} mode`}
+                className="flex gap-1"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={!previewing}
+                  onClick={() => setPreviewMode((p) => ({ ...p, [key]: false }))}
+                  className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
+                    !previewing
+                      ? "bg-accent-soft text-accent"
+                      : "text-ink-faint hover:text-ink"
+                  }`}
+                >
+                  write
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={previewing}
+                  onClick={() => setPreviewMode((p) => ({ ...p, [key]: true }))}
+                  className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
+                    previewing
+                      ? "bg-accent-soft text-accent"
+                      : "text-ink-faint hover:text-ink"
+                  }`}
+                >
+                  preview
+                </button>
+              </div>
+              <span className="font-mono text-[10px] text-ink-faint">markdown</span>
+            </div>
+            {previewing ? (
+              <div className="markdown max-h-[420px] overflow-y-auto bg-paper px-4 py-3 text-sm">
+                <ReactMarkdown>{String(value ?? "")}</ReactMarkdown>
+              </div>
+            ) : (
+              <textarea
+                id={`field-${key}`}
+                rows={14}
+                value={String(value ?? "")}
+                onChange={(e) => set(key, e.target.value)}
+                className={`w-full resize-y border-0 bg-paper px-4 py-3 font-mono text-xs text-ink placeholder:text-ink-faint focus:outline-none`}
+                placeholder={f.placeholder}
+              />
+            )}
+          </div>
+        );
+        break;
+      }
       case "number":
         control = (
           <input
             id={`field-${key}`}
             type="number"
-            value={Number(value) || 0}
+            value={String(value ?? "")}
             onChange={(e) => set(key, e.target.value)}
             className={inputClasses}
           />
@@ -254,6 +522,48 @@ export default function CollectionForm({
               </option>
             ))}
           </select>
+        );
+        break;
+      case "moonType":
+        // Options come from galaxySettings.moonTypes (configurable),
+        // not from a hardcoded list — see MoonTypeSelect.
+        control = (
+          <MoonTypeSelect
+            value={String(value ?? "")}
+            onChange={(v) => set(key, v)}
+            inputClasses={inputClasses}
+          />
+        );
+        break;
+      case "refSelect":
+        control = (
+          <RefSelect
+            field={f}
+            value={String(value ?? "")}
+            onChange={(v) => set(key, v)}
+            inputClasses={inputClasses}
+          />
+        );
+        break;
+      case "color":
+        control = (
+          <div className="flex items-center gap-3">
+            <input
+              id={`field-${key}`}
+              type="color"
+              value={/^#[0-9a-fA-F]{6}$/.test(String(value ?? "")) ? String(value) : "#4f46e5"}
+              onChange={(e) => set(key, e.target.value)}
+              className="h-10 w-14 cursor-pointer rounded-card border border-card-border bg-paper p-1"
+              aria-label={`${f.label} swatch`}
+            />
+            <input
+              type="text"
+              value={String(value ?? "")}
+              onChange={(e) => set(key, e.target.value)}
+              className={inputClasses}
+              placeholder="#4f46e5"
+            />
+          </div>
         );
         break;
       case "stringList":
@@ -330,9 +640,6 @@ export default function CollectionForm({
             {f.label}
             {f.required && <span className="text-accent" aria-hidden="true"> *</span>}
           </label>
-          {f.type === "markdown" && (
-            <span className="font-mono text-[10px] text-ink-faint">markdown supported</span>
-          )}
           {f.image && (
             <span className="inline-flex items-center gap-1 font-mono text-[10px] text-ink-faint">
               <ImageIcon className="h-3 w-3" aria-hidden="true" />
@@ -341,6 +648,12 @@ export default function CollectionForm({
           )}
         </div>
         {control}
+        {/* Phase 11: inline required-field error under the control */}
+        {fieldErrors[key] && (
+          <p role="alert" className="mt-1 text-xs font-medium text-red-600 dark:text-red-400">
+            {fieldErrors[key]}
+          </p>
+        )}
         {f.help && <p className="mt-1 text-xs text-ink-faint">{f.help}</p>}
       </div>
     );
@@ -363,6 +676,73 @@ export default function CollectionForm({
         ))}
       </div>
 
+      {/* Phase 12: full post-shell live preview — title, date, tags and
+          rendered markdown update as you type, mirroring /blog/[slug]. */}
+      {collection === "post" && (
+        <div className="rounded-card border border-card-border bg-card shadow-card">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-card-border px-5 py-3">
+            <p className="font-mono text-xs text-accent">
+              live preview · /blog/{String(form.slug || "…")}
+            </p>
+            <span className="font-mono text-[10px] text-ink-faint">updates as you type</span>
+          </div>
+          <article className="px-5 py-6 sm:px-8">
+            <h3 className="font-display text-2xl font-semibold text-ink">
+              {String(form.title || "Untitled note")}
+            </h3>
+            <div className="mt-2 flex flex-wrap items-center gap-3">
+              {form.publishedAt ? (
+                <time
+                  dateTime={String(form.publishedAt)}
+                  className="font-mono text-xs text-ink-faint"
+                >
+                  {String(form.publishedAt)}
+                </time>
+              ) : (
+                <span className="font-mono text-xs text-ink-faint">no date yet</span>
+              )}
+              <div className="flex flex-wrap gap-1.5">
+                {String(form.tags ?? "")
+                  .split("\n")
+                  .map((t) => t.trim())
+                  .filter(Boolean)
+                  .map((t) => (
+                    <span
+                      key={t}
+                      className="rounded-full border border-card-border bg-paper-deep px-2.5 py-0.5 font-mono text-[10px] text-ink-soft"
+                    >
+                      #{t}
+                    </span>
+                  ))}
+              </div>
+            </div>
+            <div className="markdown mt-5 border-t border-card-border pt-5">
+              {String(form.contentMarkdown ?? "").trim() ? (
+                <ReactMarkdown>{String(form.contentMarkdown)}</ReactMarkdown>
+              ) : (
+                <p className="text-sm text-ink-faint">
+                  Write markdown above — the rendered note appears here.
+                </p>
+              )}
+            </div>
+          </article>
+        </div>
+      )}
+
+      {/* Galaxy v4 §29: live preview for the settings singleton — reads
+          the form's current (unsaved) values. */}
+      {spec.key === "galaxySettings" && (
+        <GalaxySettingsPreview
+          override={{
+            showOrbitLines: Boolean(form.showOrbitLines),
+            showStars: Boolean(form.showStars),
+            starDensity: String(form.starDensity || "medium") as "low" | "medium" | "high",
+            animationEnabled: Boolean(form.animationEnabled),
+            globalSpeedScale: Number(form.globalSpeedScale) || 1,
+          }}
+        />
+      )}
+
       {error && (
         <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
@@ -373,7 +753,7 @@ export default function CollectionForm({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-full bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-strong disabled:opacity-50"
+          className="rounded-full bg-accent-btn px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-btn-hover disabled:opacity-50"
         >
           {pending ? "Saving…" : isNew ? "Create" : "Save changes"}
         </button>

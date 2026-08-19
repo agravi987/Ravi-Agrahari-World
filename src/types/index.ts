@@ -4,35 +4,10 @@
  * Mirrors the MongoDB collections exactly (plan §3.1 / D6) so the
  * seed → Mongo swap in lib/content.ts stays drop-in. Components
  * import from here — never duplicate these shapes.
+ *
+ * Galaxy v4 types (GalaxyPlanet/GalaxyMoon/GalaxySettings) live in
+ * ./galaxy.ts — the old learningTrack model is replaced by them.
  */
-
-/** Moon/repo type inside a learning track (plan §3.1). */
-export type LearningItemType = "notes" | "hands-on" | "project";
-
-export interface LearningItem {
-  type: LearningItemType;
-  title: string;
-  description: string;
-  githubUrl: string;
-  tags: string[];
-  /** Drive the planet glow: recency, updated by the user in the CMS (D3). */
-  updatedAt?: string;
-}
-
-/** A learning topic = a planet in the galaxy (plan §3.1). */
-export interface LearningTrack {
-  name: string;
-  /** Emoji shown on the planet (🐳 ☸️ 🐧 🌐…) — the one place emojis shine. */
-  icon: string;
-  /** Tailwind color token name from globals.css (topic-cloud, topic-devops…). */
-  color: string;
-  /** Honest self-rating: beginner < learning < growing (plan §3.1). */
-  level: "beginner" | "learning" | "growing";
-  description: string;
-  /** Positioning inside the galaxy (planet orbit number). */
-  order: number;
-  items: LearningItem[];
-}
 
 export interface Skill {
   name: string;
@@ -51,6 +26,10 @@ export interface Project {
   demoUrl?: string;
   featured: boolean;
   order: number;
+  /** Phase 13: enables a public /projects/<slug> case-study page. */
+  slug?: string;
+  /** Markdown write-up rendered on that page (hidden when empty). */
+  caseStudy?: string;
 }
 
 export interface Experience {
@@ -60,6 +39,12 @@ export interface Experience {
   description: string;
   metrics: string[];
   order: number;
+  /** Phase 16: optional company logo URL (monogram fallback when empty). */
+  companyLogo?: string;
+  /** Phase 16: optional "tools used" chips (rendered when non-empty). */
+  tools?: string[];
+  /** Phase 16: optional anchor — #experience-<slug> deep-links to the row. */
+  slug?: string;
 }
 
 export interface Certification {
@@ -78,6 +63,9 @@ export interface Post {
   contentMarkdown: string;
   tags: string[];
   publishedAt: string;
+  /** Phase 17: Mongo `updatedAt` → ISO string, when present (seed fallback
+   *  has none → the "updated" line hides, zero-data policy). */
+  updatedAt?: string;
 }
 
 /** What the CMS can show/hide per section (plan §5.2). */
@@ -100,21 +88,36 @@ export interface SiteConfig {
   currentlyLearning: string;
   /** Learning streak — shown only when ≥ 2 (plan §5.3). */
   streak: number;
+  /** Availability line shown in the hero (e.g. "Open to internships &
+   *  full-time roles") — hidden when empty (zero-data policy). */
+  availability?: string;
   email: string;
   github: string;
+  /** Phase 17: "based in" line — hidden when empty (zero-data). */
+  location?: string;
   socialLinks: { label: string; url: string }[];
   sectionsEnabled: SectionsEnabled;
-  /** "What I learned this week" micro-notes (plan §4.2 core). */
-  weeklyNotes: string[];
+  /** Sun photo for the Learning Galaxy (Cloudinary URL, galaxy v4). */
+  profileImage?: string;
 }
 
 /** Everything the site renders, as returned by lib/content.ts. */
 export interface SiteContent {
   config: SiteConfig;
   skills: Skill[];
-  learningTracks: LearningTrack[];
   projects: Project[];
   experience: Experience[];
   certifications: Certification[];
   posts: Post[];
+}
+
+/** A contact-form message (Phase 13). Admin-only — mirrors the Mongo
+ *  `message` collection (never returned by getContent; read through
+ *  the /api/admin/message routes + dashboard counts). */
+export interface ContactMessage {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  read: boolean;
 }

@@ -1,0 +1,90 @@
+/**
+ * SectionRail.tsx (client) — desktop section-scroll dot rail (UI/UX pass).
+ * A slim vertical column on the right edge showing each section as a
+ * topic-hued dot. The active section glows/expands; clicking a dot
+ * smooth-scrolls to that section. Only renders on home ("/" pathname)
+ * and on desktop (hidden below xl).
+ *
+ * Gives the portfolio that top-MNC "you are here" navigation feel
+ * without cluttering the reading surface.
+ */
+
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+
+interface RailSection {
+  id: string;
+  label: string;
+  hue: string;
+}
+
+const RAIL_SECTIONS: RailSection[] = [
+  { id: "skills", label: "Skills", hue: "bg-topic-cloud" },
+  { id: "projects", label: "Projects", hue: "bg-topic-devops" },
+  { id: "experience", label: "Experience", hue: "bg-topic-linux" },
+  { id: "certifications", label: "Certs", hue: "bg-topic-ai" },
+  { id: "blog", label: "Blog", hue: "bg-topic-ice" },
+  { id: "contact", label: "Contact", hue: "bg-topic-mars" },
+];
+
+export default function SectionRail() {
+  const pathname = usePathname();
+  const [active, setActive] = useState<string | null>(null);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    if (pathname !== "/") return; // home-only
+    const onScroll = () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const probe = window.scrollY + window.innerHeight * 0.35;
+        let found: string | null = null;
+        for (const s of RAIL_SECTIONS) {
+          const el = document.getElementById(s.id);
+          if (el && el.offsetTop <= probe) found = s.id;
+        }
+        setActive(found);
+      });
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [pathname]);
+
+  if (pathname !== "/") return null;
+
+  return (
+    <nav
+      aria-label="Section quick navigation"
+      className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex"
+    >
+      {RAIL_SECTIONS.map((s) => {
+        const isActive = active === s.id;
+        return (
+          <a
+            key={s.id}
+            href={`#${s.id}`}
+            title={s.label}
+            className="group relative flex items-center justify-center"
+          >
+            <span
+              className={`block rounded-full transition-all duration-300 ${
+                isActive
+                  ? `${s.hue} h-3.5 w-3.5 shadow-[0_0_0_3px] shadow-current`
+                  : "h-2 w-2 bg-card-border hover:h-2.5 hover:w-2.5 hover:bg-ink-faint"
+              }`}
+            />
+            <span className="absolute right-full mr-3 whitespace-nowrap rounded-md border border-card-border bg-card px-2 py-1 font-mono text-[10px] text-ink-soft opacity-0 shadow-card transition-opacity duration-200 group-hover:opacity-100">
+              {s.label}
+            </span>
+          </a>
+        );
+      })}
+    </nav>
+  );
+}

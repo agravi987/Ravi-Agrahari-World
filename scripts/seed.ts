@@ -14,11 +14,13 @@ import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
-import { seedContent } from "../src/lib/seed";
+import { seedContent, seedGalaxy } from "../src/lib/seed";
 import {
   getCertificationModel,
   getExperienceModel,
-  getLearningTrackModel,
+  getGalaxyMoonModel,
+  getGalaxyPlanetModel,
+  getGalaxySettingsModel,
   getPostModel,
   getProjectModel,
   getSiteConfigModel,
@@ -38,10 +40,13 @@ const uri: string = MONGODB_URI;
 async function main() {
   await mongoose.connect(uri);
 
-  // Upsert siteConfig by github (stable key — the config is a singleton).
+  // Upsert siteConfig as a SINGLETON (empty filter). The admin reads it
+  // with findOne() — re-keying on `github` created a duplicate singleton
+  // the moment the handle was edited in the CMS, and re-seeding then
+  // stacked a second doc. Empty filter + upsert = one doc, always.
   const SiteConfig = getSiteConfigModel();
   await SiteConfig.updateOne(
-    { github: seedContent.config.github },
+    {},
     { $set: seedContent.config },
     { upsert: true }
   );
@@ -51,12 +56,36 @@ async function main() {
   await Skill.deleteMany({});
   await Skill.insertMany(seedContent.skills);
 
-  // Learning tracks: upsert by name (moons/planets keep their identity).
-  const LearningTrack = getLearningTrackModel();
-  await Promise.all(
-    seedContent.learningTracks.map((t) =>
-      LearningTrack.updateOne({ name: t.name }, { $set: t }, { upsert: true })
-    )
+  // Galaxy v4 — planets + moons + settings (replaces learningTrack).
+  // Planets upsert by slug; moons upsert by (planet slug placeholder + name)
+  // using the seed's slug-as-planetId convention, then re-parented to the
+  // real planet ObjectIds so the 1:N relationship is intact.
+  const GalaxyPlanet = getGalaxyPlanetModel();
+  const GalaxyMoon = getGalaxyMoonModel();
+  const GalaxySettings = getGalaxySettingsModel();
+
+  for (const planet of seedGalaxy.planets) {
+    const { moons, ...planetFields } = planet;
+    const planetDoc = await GalaxyPlanet.findOneAndUpdate(
+      { slug: planetFields.slug },
+      { $set: planetFields },
+      { upsert: true, returnDocument: "after" }
+    );
+    for (const moon of moons) {
+      // The seed uses the planet slug as a placeholder planetId.
+      await GalaxyMoon.updateOne(
+        { slug: moon.slug },
+        { $set: { ...moon, planetId: planetDoc._id } },
+        { upsert: true }
+      );
+    }
+  }
+
+  // Settings singleton (merge over defaults so nothing goes missing).
+  await GalaxySettings.updateOne(
+    {},
+    { $set: seedGalaxy.settings },
+    { upsert: true }
   );
 
   // Projects: upsert by title.

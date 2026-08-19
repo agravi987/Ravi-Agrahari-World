@@ -5,14 +5,17 @@
  * so we can tint brand marks with the theme accent. Use for BRANDS
  * (GitHub, AWS, Docker…) — UI icons stay in lucide-react.
  */
-import { siGithub, siX } from "simple-icons";
+import { siGithub, siTelegram, siWhatsapp, siX } from "simple-icons";
 
 /** Named allowlist of brand icons we actually use (keeps bundle small).
  *  (simple-icons 16 no longer ships LinkedIn — that label renders
- *  text-only in Contact.tsx until an alternative is chosen.) */
+ *  text-only in Contact.tsx until an alternative is chosen.) Phase 17:
+ *  telegram/whatsapp join for quick-message links in the contact panel. */
 const ICONS = {
   github: siGithub,
   x: siX,
+  telegram: siTelegram,
+  whatsapp: siWhatsapp,
 } as const;
 
 export type BrandIconName = keyof typeof ICONS;

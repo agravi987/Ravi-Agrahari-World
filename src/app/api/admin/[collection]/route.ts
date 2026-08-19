@@ -9,7 +9,7 @@ import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getCollection } from "@/lib/collections";
-import { MODEL_GETTERS } from "@/lib/collections.server";
+import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
 
 // Admin reads/writes must never be served from a stale static cache.
@@ -24,9 +24,12 @@ async function requireAdmin(): Promise<NextResponse | null> {
   return null;
 }
 
-/** Site + admin pages revalidate after any mutation (plan D10). */
+/** Site + admin pages revalidate after any mutation (plan D10).
+ *  Galaxy pages too — the Learning Galaxy renders from the same
+ *  content boundary and must reflect edits immediately (v4). */
 function revalidateFor(collection: string) {
   revalidatePath("/", "layout");
+  revalidatePath("/detailed-galaxy");
   revalidatePath(`/admin/${collection}`);
 }
 
@@ -51,7 +54,12 @@ export async function GET(
     return NextResponse.json({ data: doc ?? null });
   }
 
-  const docs = await Model.find().sort({ order: 1 }).lean();
+  // Sort by the registry's orderKey when one exists (galaxy displayOrder,
+  // project/experience order) so the server order matches what the list
+  // shows — the old hardcoded { order: 1 } was a no-op for displayOrder.
+  const docs = spec.orderKey
+    ? await Model.find().sort({ [spec.orderKey]: 1 }).lean()
+    : await Model.find().lean();
   return NextResponse.json({ data: docs });
 }
 
@@ -74,6 +82,17 @@ export async function POST(
     return NextResponse.json({ error: "Body must be { data: {…} }" }, { status: 400 });
   }
 
+  // Galaxy v4: reject writes that would break the zero-overlap layout.
+  const layoutError = await assertGalaxyLayoutValid(collection, body.data);
+  if (layoutError) {
+    return NextResponse.json({ error: layoutError }, { status: 400 });
+  }
+
+  // Slugs power deep links — reject URL-unsafe input before it's saved
+  // (a "My Cool Post!" slug breaks /blog/<slug> and galaxy anchors).
+  const slugErr = slugError(body.data.slug);
+  if (slugErr) return NextResponse.json({ error: slugErr }, { status: 400 });
+
   const Model = MODEL_GETTERS[collection]();
 
   try {
@@ -92,8 +111,15 @@ export async function POST(
     revalidateFor(collection);
     return NextResponse.json({ data: doc }, { status: 201 });
   } catch (err) {
-    // Mongoose validation errors bubble up as readable messages.
-    const message = err instanceof Error ? err.message : "Create failed";
+    // Mongoose validation errors bubble up as readable messages; the raw
+    // E11000 duplicate-key text (unique slug/name indexes) is not one of
+    // them, so translate it before the admin sees it.
+    const dup = (err as { code?: number })?.code === 11000;
+    const message = dup
+      ? "A document with this slug (or name) already exists — pick a unique slug before saving."
+      : err instanceof Error
+        ? err.message
+        : "Create failed";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

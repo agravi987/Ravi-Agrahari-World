@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
 
 # vercel
 .vercel
@@ -46,3 +47,13 @@ agent/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.vscode/
+
+# local dev / generated files
+skills-lock.json
+codebase-analysis.md
+agents.md
+docs/
+public/deploy-meta.json

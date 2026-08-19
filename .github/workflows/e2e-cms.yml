@@ -1,0 +1,48 @@
+name: E2E — CMS ↔ site loop
+
+# Phase 12: proves the full content pipeline on every push/PR — seed the
+# DB (service container), build, boot the production server, then run
+# scripts/e2e-cms-loop.mjs which logs in via NextAuth, creates/edits/
+# deletes a project through the admin API and asserts the public home
+# page reflects every change (ISR revalidation). Fail = CMS regression.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        # mongo:7 is fine with no health check for this short-lived job.
+    env:
+      MONGODB_URI: mongodb://127.0.0.1:27017/portfolio-e2e
+      AUTH_SECRET: e2e-only-secret-not-used-in-production
+      AUTH_TRUST_HOST: "true"
+      ADMIN_EMAIL: admin@e2e.test
+      ADMIN_PASSWORD: e2e-test-password
+      NEXT_PUBLIC_GITHUB_USERNAME: e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Seed the service container (idempotent) + build the site.
+      - run: npm run seed
+      - run: npm run build
+      # Boot the production server in the background, wait until it
+      # answers, then run the full CMS → UI loop.
+      - run: |
+          npm run start &
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          curl -sf http://localhost:3000 > /dev/null || { echo "server never came up"; exit 1; }
+          node scripts/e2e-cms-loop.mjs

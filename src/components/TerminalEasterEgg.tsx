@@ -1,12 +1,16 @@
 /**
  * TerminalEasterEgg.tsx (client) — plan §4 "small, hidden, delightful"
- * Ctrl+K (or Cmd+K) opens a fake terminal overlay. Commands: help,
- * whoami, ls, pwd, date, clear, exit. Purely cosmetic — no backend,
- * no data. Escape closes. Mounted once in layout.tsx.
+ * Ctrl+Shift+K (or Cmd+Shift+K — plain ⌘K belongs to the palette since
+ * P7) opens a fake terminal overlay. Commands: help, whoami, ls, open
+ * <section>, pwd, date, clear, exit. The `ls` listing doubles as a
+ * clickable menu (P21). Purely cosmetic — no backend, no data; the
+ * name comes from the content layer, never hardcoded. Escape closes.
  */
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { scrollToSection } from "@/lib/scrollTo";
 
 interface Line {
   text: string;
@@ -14,28 +18,31 @@ interface Line {
 }
 
 const HELP = `available commands:
-  help    show this help
-  whoami  who's flying this ship
-  ls      list sections of the mission
-  pwd     print working directory
-  date    mission time
-  clear   clear the screen
-  exit    close the terminal`;
+  help       show this help
+  whoami     who's flying this ship
+  ls         list sections of the mission (clickable)
+  open <sec> jump to a section — e.g. 'open galaxy'
+  pwd        print working directory
+  date       mission time
+  clear      clear the screen
+  exit       close the terminal`;
 
-const SECTIONS = [
-  "hero",
-  "skills",
-  "galaxy",
-  "projects",
-  "experience",
-  "certifications",
-  "blog",
-  "contact",
+/** Section → destination: anchor on home or a full page (P21). */
+const SECTIONS: { name: string; href: string }[] = [
+  { name: "hero", href: "#hero" },
+  { name: "skills", href: "#skills" },
+  { name: "galaxy", href: "/detailed-galaxy" },
+  { name: "projects", href: "#projects" },
+  { name: "experience", href: "#experience" },
+  { name: "certifications", href: "#certifications" },
+  { name: "blog", href: "/blog" },
+  { name: "contact", href: "#contact" },
 ];
 
 const BANNER = "orbital@mission-control:~$ type 'help' to begin";
 
-export default function TerminalEasterEgg() {
+export default function TerminalEasterEgg({ name }: { name: string }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<Line[]>([]);
   const [input, setInput] = useState("");
@@ -48,12 +55,13 @@ export default function TerminalEasterEgg() {
     openRef.current = open;
   }, [open]);
 
-  // Ctrl+K / Cmd+K toggles the terminal from anywhere on the page.
-  // State resets happen in the handler (an event callback), not in an
-  // effect — avoids setState-in-effect cascading renders (lint rule).
+  // Ctrl+Shift+K / Cmd+Shift+K toggles the terminal (plain Ctrl+K is
+  // the command palette's shortcut since P7). State resets happen in
+  // the handler (an event callback), not in an effect — avoids
+  // setState-in-effect cascading renders (lint rule).
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "k") {
         e.preventDefault();
         if (openRef.current) {
           setOpen(false);
@@ -88,37 +96,56 @@ export default function TerminalEasterEgg() {
     bodyRef.current?.scrollTo({ top: bodyRef.current.scrollHeight });
   }, [lines]);
 
+  function go(href: string) {
+    setOpen(false);
+    // Same-document anchors keep SPA behavior; full pages use the router.
+    // P23: anchors must work from ANY page — if the section isn't on
+    // this page, navigate home with the hash (Next scrolls after render).
+    if (href.startsWith("#")) {
+      // Reduced-motion-aware scroll (shared helper) + P23 any-page
+      // fallback: no section on this page → navigate home with hash.
+      if (!scrollToSection(href.slice(1))) router.push(`/${href}`);
+    } else {
+      router.push(href);
+    }
+  }
+
   function run(raw: string) {
-    const cmd = raw.trim().toLowerCase();
+    const trimmed = raw.trim();
+    const cmd = trimmed.toLowerCase();
     const output: Line[] = [];
     switch (cmd) {
       case "help":
         output.push({ text: HELP });
         break;
       case "whoami":
-        output.push({ text: "Agravi — Cloud, DevOps & AI explorer. Learning in public." });
+        output.push({ text: `${name} — Cloud, DevOps & AI explorer. Learning in public.` });
         break;
       case "ls":
-        output.push({ text: SECTIONS.map((s) => `~/${s}`).join("   ") });
+        output.push({ text: SECTIONS.map((s) => `~/${s.name}`).join("   ") });
         break;
-      case "pwd":
-        output.push({ text: "/home/agravi/portfolio" });
+      case "open": {
+        // `open` with no arg lists the destinations; `open galaxy` navigates.
+        output.push({ text: SECTIONS.map((s) => `~/${s.name}`).join("   ") });
         break;
-      case "date":
-        output.push({ text: new Date().toLocaleString() });
-        break;
-      case "clear":
-        setLines([]);
-        return;
-      case "exit":
-        setOpen(false);
-        return;
-      case "":
-        break;
-      default:
-        output.push({ text: `command not found: ${cmd} — try 'help'`, kind: "err" });
+      }
+      default: {
+        // open <section>
+        const m = cmd.match(/^open\s+([\w-]+)$/);
+        const hit = m ? SECTIONS.find((s) => s.name === m[1]) : undefined;
+        if (m && !hit) {
+          output.push({ text: `no such section: ${m[1]} — try 'ls'`, kind: "err" });
+        } else if (hit) {
+          setLines((prev) => [...prev, { text: `$ ${trimmed}` }]);
+          setInput("");
+          go(hit.href);
+          return;
+        } else {
+          output.push({ text: `command not found: ${cmd} — try 'help'`, kind: "err" });
+        }
+      }
     }
-    setLines((prev) => [...prev, { text: `$ ${cmd}` }, ...output]);
+    setLines((prev) => [...prev, { text: `$ ${trimmed}` }, ...output]);
     setInput("");
   }
 
@@ -138,7 +165,7 @@ export default function TerminalEasterEgg() {
       >
         {/* Title bar */}
         <div className="flex items-center justify-between border-b border-card-border bg-paper-deep px-4 py-2">
-          <p className="font-mono text-xs text-ink-soft">~/terminal — Ctrl+K to toggle</p>
+          <p className="font-mono text-xs text-ink-soft">~/terminal — Ctrl+Shift+K to toggle</p>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -162,6 +189,23 @@ export default function TerminalEasterEgg() {
               {line.text}
             </p>
           ))}
+          {/* P21: the `ls` listing doubles as a clickable menu — each
+              entry jumps straight to its destination. */}
+          {lines.some((l) => l.text.startsWith("~/")) &&
+            !lines[lines.length - 1].text.startsWith("$ open") && (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {SECTIONS.map((s) => (
+                  <button
+                    key={s.name}
+                    type="button"
+                    onClick={() => go(s.href)}
+                    className="rounded-full border border-emerald-700/40 px-2 py-0.5 text-emerald-300 transition-colors hover:border-emerald-400 hover:text-emerald-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400"
+                  >
+                    ~/{s.name}
+                  </button>
+                ))}
+              </div>
+            )}
         </div>
 
         {/* Prompt line */}

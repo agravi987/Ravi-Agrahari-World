@@ -7,15 +7,17 @@
 import { Schema, model, models, type Model } from "mongoose";
 import type {
   Certification,
+  ContactMessage,
   Experience,
-  LearningItem,
-  LearningTrack,
   Post,
   Project,
   SectionsEnabled,
   SiteConfig,
   Skill,
 } from "@/types";
+
+/* Galaxy v4 schemas live in ./galaxy.ts (galaxyPlanet/Moon/Settings). */
+export * from "./galaxy";
 
 /* --- Helpers --- */
 
@@ -40,105 +42,122 @@ const sectionsEnabledSchema = new Schema<SectionsEnabled>(
 
 /* --- siteConfig (single document, singleton pattern) --- */
 
-const siteConfigSchema = new Schema<SiteConfig>({
-  name: { type: String, required: true },
-  headline: { type: String, required: true },
-  roles: { type: [String], default: [] },
-  currentlyLearning: { type: String, default: "" },
-  streak: { type: Number, default: 0 }, // shown only when ≥ 2 (§5.3)
-  email: { type: String, required: true },
-  github: { type: String, required: true },
-  socialLinks: { type: [socialLinkSchema], default: [] },
-  sectionsEnabled: { type: sectionsEnabledSchema, default: () => ({}) },
-  weeklyNotes: { type: [String], default: [] }, // mission log (plan §4.2)
-});
+/* Phase 11: content models carry createdAt/updatedAt — the admin
+   dashboard's "Recently edited" feed reads updatedAt, and edits set
+   it automatically (additive; old docs simply lack it until edited). */
+const timestamps = { timestamps: true };
+
+const siteConfigSchema = new Schema<SiteConfig>(
+  {
+    name: { type: String, required: true },
+    headline: { type: String, required: true },
+    roles: { type: [String], default: [] },
+    currentlyLearning: { type: String, default: "" },
+    streak: { type: Number, default: 0 }, // shown only when ≥ 2 (§5.3)
+    availability: { type: String, default: "" }, // hero pill; hidden when empty
+    location: { type: String, default: "" }, // "based in" line; hidden when empty (Phase 17)
+    email: { type: String, required: true },
+    github: { type: String, required: true },
+    socialLinks: { type: [socialLinkSchema], default: [] },
+    sectionsEnabled: { type: sectionsEnabledSchema, default: () => ({}) },
+    profileImage: { type: String }, // sun photo for the Learning Galaxy (v4)
+  },
+  timestamps
+);
 
 /* --- skills --- */
 
-const skillSchema = new Schema<Skill>({
-  name: { type: String, required: true },
-  icon: { type: String, default: "cloud" },
-  level: { type: Number, min: 1, max: 5, required: true }, // honest 1–5
-  blurb: { type: String, default: "" },
-});
-
-/* --- learningTrack (planets + moons, plan §3.1) --- */
-
-const learningItemSchema = new Schema<LearningItem>(
+const skillSchema = new Schema<Skill>(
   {
-    type: {
-      type: String,
-      enum: ["notes", "hands-on", "project"],
-      required: true,
-    },
-    title: { type: String, required: true },
-    description: { type: String, default: "" },
-    githubUrl: { type: String, required: true },
-    tags: { type: [String], default: [] },
-    updatedAt: { type: String, default: "" }, // ISO date, drives planet glow (D3)
+    name: { type: String, required: true },
+    icon: { type: String, default: "cloud" },
+    level: { type: Number, min: 1, max: 5, required: true }, // honest 1–5
+    blurb: { type: String, default: "" },
   },
-  { _id: false }
+  timestamps
 );
-
-const learningTrackSchema = new Schema<LearningTrack>({
-  name: { type: String, required: true },
-  icon: { type: String, default: "✦" },
-  color: { type: String, default: "topic-cloud" },
-  level: {
-    type: String,
-    enum: ["beginner", "learning", "growing"],
-    default: "beginner",
-  },
-  description: { type: String, default: "" },
-  order: { type: Number, default: 0 },
-  items: { type: [learningItemSchema], default: [] },
-});
 
 /* --- project --- */
 
-const projectSchema = new Schema<Project>({
-  title: { type: String, required: true },
-  description: { type: String, default: "" },
-  coverImage: { type: String, default: undefined }, // Cloudinary URL (D8)
-  tech: { type: [String], default: [] },
-  repoUrl: { type: String, default: undefined },
-  demoUrl: { type: String, default: undefined },
-  featured: { type: Boolean, default: false },
-  order: { type: Number, default: 0 },
-});
+const projectSchema = new Schema<Project>(
+  {
+    title: { type: String, required: true },
+    description: { type: String, default: "" },
+    coverImage: { type: String, default: undefined }, // Cloudinary URL (D8)
+    tech: { type: [String], default: [] },
+    repoUrl: { type: String, default: undefined },
+    demoUrl: { type: String, default: undefined },
+    featured: { type: Boolean, default: false },
+    order: { type: Number, default: 0 },
+    /* Phase 13: optional case-study page — /projects/<slug> renders
+       caseStudy markdown (hidden entirely when either is absent). */
+    slug: { type: String, default: undefined },
+    caseStudy: { type: String, default: undefined },
+  },
+  timestamps
+);
 
 /* --- experience --- */
 
-const experienceSchema = new Schema<Experience>({
-  company: { type: String, required: true },
-  role: { type: String, required: true },
-  period: { type: String, default: "" },
-  description: { type: String, default: "" },
-  metrics: { type: [String], default: [] },
-  order: { type: Number, default: 0 },
-});
+const experienceSchema = new Schema<Experience>(
+  {
+    company: { type: String, required: true },
+    role: { type: String, required: true },
+    period: { type: String, default: "" },
+    description: { type: String, default: "" },
+    metrics: { type: [String], default: [] },
+    order: { type: Number, default: 0 },
+    /* Phase 16: optional polish fields — all render only when present. */
+    companyLogo: { type: String, default: undefined },
+    tools: { type: [String], default: [] },
+    slug: { type: String, default: undefined },
+  },
+  timestamps
+);
 
 /* --- certification --- */
 
-const certificationSchema = new Schema<Certification>({
-  name: { type: String, required: true },
-  issuer: { type: String, default: "" },
-  date: { type: String, default: "" },
-  verifyUrl: { type: String, default: undefined }, // official verify link (§4.3)
-  logo: { type: String, default: undefined },
-  category: { type: String, default: "" },
-});
+const certificationSchema = new Schema<Certification>(
+  {
+    name: { type: String, required: true },
+    issuer: { type: String, default: "" },
+    date: { type: String, default: "" },
+    verifyUrl: { type: String, default: undefined }, // official verify link (§4.3)
+    logo: { type: String, default: undefined },
+    category: { type: String, default: "" },
+  },
+  timestamps
+);
 
 /* --- post (markdown content, D9) --- */
 
-const postSchema = new Schema<Post>({
-  title: { type: String, required: true },
-  slug: { type: String, required: true, unique: true },
-  excerpt: { type: String, default: "" },
-  contentMarkdown: { type: String, default: "" },
-  tags: { type: [String], default: [] },
-  publishedAt: { type: String, default: "" },
-});
+const postSchema = new Schema<Post>(
+  {
+    title: { type: String, required: true },
+    slug: { type: String, required: true, unique: true },
+    excerpt: { type: String, default: "" },
+    contentMarkdown: { type: String, default: "" },
+    tags: { type: [String], default: [] },
+    publishedAt: { type: String, default: "" },
+  },
+  timestamps
+);
+
+/* --- message (contact inbox, Phase 13) ---
+   Written only by the public /api/contact route; read in the admin.
+   Timestamps double as a received-at clock. `read` flips in the CMS
+   list (bulk or per-row edit). */
+
+const messageSchema = new Schema(
+  {
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    subject: { type: String, required: true },
+    message: { type: String, required: true },
+    read: { type: Boolean, default: false },
+  },
+  timestamps
+);
 
 /* --- user (single admin, D7) --- */
 
@@ -155,9 +174,6 @@ export function getSiteConfigModel(): Model<SiteConfig> {
 export function getSkillModel(): Model<Skill> {
   return models.Skill ?? model<Skill>("Skill", skillSchema);
 }
-export function getLearningTrackModel(): Model<LearningTrack> {
-  return models.LearningTrack ?? model<LearningTrack>("LearningTrack", learningTrackSchema);
-}
 export function getProjectModel(): Model<Project> {
   return models.Project ?? model<Project>("Project", projectSchema);
 }
@@ -169,6 +185,9 @@ export function getCertificationModel(): Model<Certification> {
 }
 export function getPostModel(): Model<Post> {
   return models.Post ?? model<Post>("Post", postSchema);
+}
+export function getMessageModel(): Model<ContactMessage> {
+  return models.Message ?? model<ContactMessage>("Message", messageSchema);
 }
 export interface UserDoc {
   email: string;

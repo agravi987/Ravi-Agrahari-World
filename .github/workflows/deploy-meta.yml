@@ -20,4 +20,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test
       - run: npm run build
+      # Galaxy v4 bundle budget: home ships zero three.js, detailed-page
+      # three payload ≤ 250 KB gzip (plan §10, P5). Fails the build on
+      # any violation so a regression can't sneak in silently.
+      - run: node scripts/check-bundles.mjs
