@@ -138,11 +138,6 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
   // NOTE: this reads skills[active] — it MUST sit after the empty guard
   // above, or skills[-1] is undefined and skill.name crashes the page.
   const skill = skills[Math.min(active, skills.length - 1)];
-  const planetSlug = galaxyPlanetSlugs?.[skill.name.toLowerCase()];
-  const galaxyHref = planetSlug ? `/detailed-galaxy#planet-${planetSlug}` : "/detailed-galaxy";
-
-  const Icon = ICON_MAP[skill.icon as keyof typeof ICON_MAP] ?? Cloud;
-  const tile = TILE_STYLES[skill.icon] ?? "bg-accent-soft text-accent";
 
   return (
     <Section
@@ -234,9 +229,11 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
         {skills.length} skill {skills.length === 1 ? "domain" : "domains"}
       </p>
 
-      {/* Focus card — only the selected domain's detail is on screen. */}
+      {/* Focus card — all panels rendered simultaneously (absolute overlay)
+          so switching skills never changes container height (no scroll jump).
+          The active panel is relative (sets container height); others are
+          absolute inset-0 and crossfade via opacity. */}
       <div
-        key={skill.name}
         className="skill-swap mx-auto mt-6 max-w-2xl"
         role="tabpanel"
         id="skill-panel"
@@ -248,79 +245,85 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
         // Phase 9 gestures: swipe left/right cycles domains on touch
         {...swipe}
       >
-        <TiltCard max={5} className="rounded-card">
-          <Card
-            hover
-            className={`group border-l-4 p-6 outline-none transition-shadow sm:p-8 focus-within:ring-4 ${
-              RING_ACTIVE[skill.icon] ?? "focus-within:ring-accent/15"
-            } ${PANEL_ACCENT[skill.icon] ?? "border-l-accent/40"}`}
-          >
-            <div className="flex items-start gap-4">
-              <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${tile}`}
-              >
-                <Icon
-                  className="h-6 w-6 transition-transform duration-300 group-hover:rotate-6"
-                  aria-hidden="true"
-                />
-              </div>
-              <div className="min-w-0 flex-1">
-                {/* Level ring (UX pass) — the honest 1–5 level as a sweeping
-                  conic summary, topic-hued. Visible on every breakpoint
-                  (sits beside the title, not hidden on mobile). */}
-                <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-display text-xl font-semibold text-ink">
-                    {skill.name}
-                  </h3>
-                  {/* Phase 14 (#10): the ring explains its own scale */}
-                  <Tooltip label="1 = getting started · 5 = confident" side="left">
-                    <LevelRing
-                      level={skill.level}
-                      className={`shrink-0 ${barFor(skill.icon).text}`}
-                    />
-                  </Tooltip>
-                </div>
-                {/* Phase 14 (#14): empty blurbs render no dead space */}
-                {skill.blurb && (
-                  <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                    {skill.blurb}
-                  </p>
-                )}
-
-                {/* Honest level bar: 1–5, word + number (P25) */}
-                <div className="mt-5">
-                  <div className="flex items-center justify-between text-xs text-ink-faint">
-                    <span aria-hidden="true">level</span>
-                    <span className={`flex items-center gap-2 font-medium ${barFor(skill.icon).text}`}>
-                      {/* Phase 14 (#18): honest "still learning" badge —
-                          only while the level is under 3 */}
-                      {skill.level < 3 && (
-                        <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                          still learning
-                        </span>
-                      )}
-                      {levelWord(skill.level)} · {skill.level}/5
-                    </span>
-                  </div>
-                  <LevelBar
-                    level={skill.level}
-                    fillClass={barFor(skill.icon).fill}
-                  />
-                </div>
-
-                {/* P25: the skill lives in the galaxy — one click away.
-                    Phase 14 (#11): deep-links to the matching planet. */}
-                <a
-                  href={galaxyHref}
-                  className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline"
+        {skills.map((s, i) => {
+          const isActive = i === Math.min(active, skills.length - 1);
+          const SkillIcon = ICON_MAP[s.icon as keyof typeof ICON_MAP] ?? Cloud;
+          const skillTile = TILE_STYLES[s.icon] ?? "bg-accent-soft text-accent";
+          const planetSlug = galaxyPlanetSlugs?.[s.name.toLowerCase()];
+          const skillGalaxyHref = planetSlug ? `/detailed-galaxy#planet-${planetSlug}` : "/detailed-galaxy";
+          return (
+            <div
+              key={s.name}
+              className={isActive
+                ? "relative"
+                : "absolute inset-0 opacity-0 pointer-events-none"
+              }
+              style={!isActive ? { minHeight: "inherit" } : undefined}
+            >
+              <TiltCard max={5} className="rounded-card">
+                <Card
+                  hover
+                  className={`group border-l-4 p-6 outline-none transition-shadow sm:p-8 focus-within:ring-4 ${
+                    RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
+                  } ${PANEL_ACCENT[s.icon] ?? "border-l-accent/40"}`}
                 >
-                  explore in galaxy
-                  <span aria-hidden="true">→</span>
-                </a>
-              </div>
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}
+                    >
+                      <SkillIcon
+                        className="h-6 w-6 transition-transform duration-300 group-hover:rotate-6"
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="font-display text-xl font-semibold text-ink">
+                          {s.name}
+                        </h3>
+                        <Tooltip label="1 = getting started · 5 = confident" side="left">
+                          <LevelRing
+                            level={s.level}
+                            className={`shrink-0 ${barFor(s.icon).text}`}
+                          />
+                        </Tooltip>
+                      </div>
+                      {s.blurb && (
+                        <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
+                          {s.blurb}
+                        </p>
+                      )}
+                      <div className="mt-5">
+                        <div className="flex items-center justify-between text-xs text-ink-faint">
+                          <span aria-hidden="true">level</span>
+                          <span className={`flex items-center gap-2 font-medium ${barFor(s.icon).text}`}>
+                            {s.level < 3 && (
+                              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                                still learning
+                              </span>
+                            )}
+                            {levelWord(s.level)} · {s.level}/5
+                          </span>
+                        </div>
+                        <LevelBar
+                          level={s.level}
+                          fillClass={barFor(s.icon).fill}
+                        />
+                      </div>
+                      <a
+                        href={skillGalaxyHref}
+                        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline"
+                      >
+                        explore in galaxy
+                        <span aria-hidden="true">→</span>
+                      </a>
+                    </div>
+                  </div>
+                </Card>
+              </TiltCard>
             </div>
-          </Card>
-        </TiltCard>
+          );
+        })}
 
         {/* Phase 9: prev/next controls + position — click, swipe or
             arrow-keys all browse the same switcher. */}
@@ -335,7 +338,6 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
           </button>
           <span aria-live="polite" className="font-mono text-[10px] text-ink-faint">
             {Math.min(active, skills.length - 1) + 1} of {skills.length}
-            {/* Phase 14 (#16): screen readers hear WHICH domain is up */}
             <span className="sr-only">
               {" "}— {skill.name}, level {skill.level} of 5 ({levelWord(skill.level)})
             </span>
@@ -348,8 +350,6 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
           >
             <ChevronRight className="h-4 w-4" aria-hidden="true" />
           </button>
-          {/* Phase 14 (#21): pause/resume the auto-advance — reader
-              control over the 5s rhythm (aria-pressed reflects state) */}
           <button
             type="button"
             onClick={() => setPaused((p) => !p)}
@@ -369,7 +369,6 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
             )}
           </button>
         </div>
-        {/* Touch hint — phones get a quiet nudge that the card swipes */}
         <p className="mt-2 text-center font-mono text-[10px] text-ink-faint md:hidden">
           ‹ swipe to browse ›
         </p>

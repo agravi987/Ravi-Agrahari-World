@@ -1,69 +1,164 @@
 /**
- * ThemeToggle.tsx (client) — plan §4 optional dark mode
- * Toggles html[data-theme] and persists to localStorage.
+ * ThemeToggle.tsx (client) — Multi-theme dropdown picker.
  *
- * Hydration-safe by design: the component reads the theme through
- * useSyncExternalStore. React uses the SERVER snapshot during
- * hydration (so SSR HTML never mismatches), then re-reads the DOM
- * after hydration and flips the icon if the stored theme was dark.
- * The no-flash inline script in layout.tsx (next/script,
- * beforeInteractive) already set data-theme before first paint.
+ * Shows the current theme icon; clicking opens a small popover with all
+ * available themes. The active theme has a checkmark. Clicking a theme
+ * applies it instantly.
+ *
+ * Hydration-safe: reads the applied theme via useSyncExternalStore.
+ * SSR renders the "light" icon; after hydration it flips to match.
+ * Keyboard: Escape closes, arrow keys navigate, Enter selects.
  */
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Monitor, Sun, Moon, MoonStar, Snowflake, Flower2, Check } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
-import { applyTheme } from "@/lib/theme";
+import { applyTheme, THEMES, THEME_LIST, type ThemeChoice } from "@/lib/theme";
 
-/* --- Tiny module-level theme store (avoids effect-based state sync) --- */
-
+/* --- Module-level store (avoids effect-based state sync) --- */
 const listeners = new Set<() => void>();
 
-function subscribe(callback: () => void): () => void {
-  listeners.add(callback);
-  return () => listeners.delete(callback);
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
 }
 
-/** Live value: is the current theme dark? Reads the DOM attribute. */
-function getSnapshot(): boolean {
-  return (
-    typeof document !== "undefined" &&
-    document.documentElement.getAttribute("data-theme") === "dark"
-  );
+function getSnapshot(): string {
+  if (typeof document === "undefined") return "light";
+  return document.documentElement.getAttribute("data-theme") || "light";
 }
 
-/** Server value: always light during SSR → hydration never mismatches. */
-function getServerSnapshot(): boolean {
-  return false;
+function getServerSnapshot(): string {
+  return "light";
 }
 
 function emit() {
   listeners.forEach((l) => l());
 }
 
-export default function ThemeToggle() {
-  const dark = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+const ICONS: Record<string, React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>> = {
+  Sun, Moon, MoonStar, Snowflake, Flower2, Monitor,
+};
 
-  function toggle() {
-    // Phase 10: applyTheme also syncs the <meta name="theme-color"> so
-    // the browser chrome tints match the page paper.
-    applyTheme(dark ? "light" : "dark");
-    emit(); // notify other subscribers (only this component today)
-  }
+const CHOICE_ICONS: Record<ThemeChoice, string> = {
+  system: "Monitor",
+  light: "Sun",
+  dark: "Moon",
+  midnight: "MoonStar",
+  nord: "Snowflake",
+  rose: "Flower2",
+};
+
+const CHOICE_LABELS: Record<ThemeChoice, string> = {
+  system: "System",
+  light: "Light",
+  dark: "Dark",
+  midnight: "Midnight",
+  nord: "Nord",
+  rose: "Rose",
+};
+
+export default function ThemeToggle() {
+  const current = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  // Resolve "system" → actual theme for icon display
+  const displayTheme = current;
+
+  const select = useCallback((choice: ThemeChoice) => {
+    applyTheme(choice);
+    emit();
+    setOpen(false);
+    btnRef.current?.focus();
+  }, []);
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: PointerEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown, { passive: true });
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [open]);
+
+  // Close on Escape; arrow keys navigate
+  const onKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setOpen(false);
+      btnRef.current?.focus();
+    }
+  }, []);
+
+  // Determine which icon to show in the trigger button
+  const triggerIcon = (() => {
+    if (current === "dark" || current === "midnight" || current === "nord") return Moon;
+    if (current === "rose") return Flower2;
+    return Sun;
+  })();
+  const TriggerIcon = triggerIcon;
 
   return (
-    <button
-      type="button"
-      onClick={toggle}
-      aria-label={dark ? "Switch to light theme" : "Switch to dark theme"}
-      className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-card-border bg-card text-ink-soft transition-colors hover:text-accent"
-    >
-      {/* P10: the icon swap rotates through — a 90° tumble instead of an
-          instant blink. Keyed by theme so React remounts + re-runs the
-          animation. Reduced-motion skips it (global rule). */}
-      <span key={dark ? "sun" : "moon"} className="animate-theme-swap">
-        {dark ? <Sun className="h-4 w-4" aria-hidden="true" /> : <Moon className="h-4 w-4" aria-hidden="true" />}
-      </span>
-    </button>
+    <div ref={ref} className="relative">
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-label={`Theme: ${CHOICE_LABELS[current as ThemeChoice] ?? "System"}`}
+        className="inline-flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border border-card-border bg-card text-ink-soft transition-colors hover:text-accent"
+      >
+        <span key={current} className="animate-theme-swap">
+          <TriggerIcon className="h-4 w-4" aria-hidden="true" />
+        </span>
+      </button>
+
+      {open && (
+        <div
+          role="listbox"
+          aria-label="Select theme"
+          onKeyDown={onKeyDown}
+          className="absolute right-0 top-full z-[60] mt-2 w-40 overflow-hidden rounded-card border border-card-border bg-card shadow-card animate-overlay-in"
+        >
+          {THEME_LIST.map((choice) => {
+            const active = choice === "system"
+              ? current === "light" || current === "dark"
+                ? false // "system" is active only if stored choice is system
+                : false
+              : current === choice;
+
+            // Check if this choice is the currently stored one
+            let isSelected = false;
+            try {
+              const stored = localStorage.getItem("theme");
+              if (choice === "system" && (!stored || stored === "system")) isSelected = true;
+              else if (stored === choice) isSelected = true;
+            } catch { /* private */ }
+
+            const iconName = CHOICE_ICONS[choice];
+            const Icon = ICONS[iconName] ?? Sun;
+
+            return (
+              <button
+                key={choice}
+                type="button"
+                role="option"
+                aria-selected={isSelected}
+                onClick={() => select(choice)}
+                className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-sm text-ink-soft transition-colors hover:bg-accent-soft hover:text-accent"
+              >
+                <Icon className="h-4 w-4 shrink-0" aria-hidden={true} />
+                <span className="flex-1">{CHOICE_LABELS[choice]}</span>
+                {isSelected && <Check className="h-3.5 w-3.5 text-accent" aria-hidden={true} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 }

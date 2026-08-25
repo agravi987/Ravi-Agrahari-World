@@ -63,7 +63,7 @@ export default async function Home() {
           { label: "notes", value: posts.length, color: "linux", href: "/blog" },
           { label: "certifications", value: certifications.length, color: "ai", href: "#certifications" },
           { label: "skill areas", value: skills.length, color: "devops", href: "#skills" },
-          { label: "galaxy planets", value: galaxy.planets.length, color: "mars", href: "/detailed-galaxy" },
+          { label: "learning tracks", value: galaxy.planets.length, color: "mars", href: "/detailed-galaxy" },
         ]}
       />
 

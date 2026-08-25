@@ -30,7 +30,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { scrollToSection } from "@/lib/scrollTo";
-import { applyTheme, currentTheme } from "@/lib/theme";
+import { cycleTheme } from "@/lib/theme";
 import { showToast } from "@/components/ui/Toast";
 
 /* --- Tiny module store: lets the header button open the palette --- */
@@ -192,8 +192,7 @@ export default function CommandPalette({
   }, [email]);
 
   const toggleTheme = useCallback(() => {
-    // Phase 10: applyTheme keeps the theme-color meta in sync too.
-    applyTheme(currentTheme() === "dark" ? "light" : "dark");
+    cycleTheme();
   }, []);
 
   const openTerminal = useCallback(() => {
@@ -289,7 +288,7 @@ export default function CommandPalette({
       },
       {
         id: "theme",
-        label: "Toggle dark mode",
+        label: "Cycle theme",
         icon: Moon,
         keywords: "theme dark light mode color",
         run: toggleTheme,

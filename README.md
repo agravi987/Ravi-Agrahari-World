@@ -81,7 +81,7 @@ docker run -d \
   -v mongo-data:/data/db \
   mongo:7
 ```
-
+ 
 Add to `.env.local`:
 ```env
 MONGODB_URI=mongodb://127.0.0.1:27017/portfolio

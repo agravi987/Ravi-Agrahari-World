@@ -35,9 +35,6 @@ export default function TechMarquee({
   galaxy: GalaxyData;
 }) {
   const planetNames = galaxy.planets.map((p) => p.name);
-  // P27: planet chips carry their emoji icon (data-driven — the same
-  // icon the explorer page shows); skill chips keep the hue dot.
-  const planetIcon = new Map(galaxy.planets.map((p) => [p.name, p.icon]));
   const items = [...skills.map((s) => s.name), ...planetNames];
   if (items.length < 4) return null; // not enough to tick — zero-data hide
 
@@ -81,17 +78,11 @@ export default function TechMarquee({
             title="Explore this topic in the learning galaxy"
             className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-4 py-1.5 font-mono text-xs font-medium transition-all duration-200 hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${CHIP_HUES[i % CHIP_HUES.length]}`}
           >
-            {/* P27: emoji for planet chips, hue dot for the rest */}
-            {planetIcon.get(name) ? (
-              <span aria-hidden="true" className="text-sm leading-none">
-                {planetIcon.get(name)}
-              </span>
-            ) : (
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 rounded-full bg-current opacity-70"
-              />
-            )}
+            {/* Colored dot for all chips — consistent visual language */}
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 rounded-full bg-current opacity-70"
+            />
             {name}
           </a>
         ))}

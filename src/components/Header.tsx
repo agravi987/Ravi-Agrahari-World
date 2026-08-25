@@ -77,28 +77,22 @@ export default function Header({ name, currentlyLearning, github, availability }
   const { navigate, hrefFor } = useSmartNav();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  /** Page scroll progress 0–1 — drives the "flight path" line below the
-   *  header (plan §4.2 optional, ui-ux-design.md P2). */
-  const [progress, setProgress] = useState(0);
   /** Scrollspy: the section currently in view, highlighted in the nav. */
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
-  // One passive scroll listener drives: the header shadow, the flight-
-  // path progress line, and the scrollspy (which section is in view).
+  // One passive scroll listener drives: the header shadow and the
+  // scrollspy (which section is in view).
   // Only meaningful on home — the section ids don't exist on other
   // pages, so the probe is gated on isHome (P23).
   const isHome = pathname === "/";
   useEffect(() => {
     const onScroll = () => {
       setScrolled(window.scrollY > 8);
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
 
       // Scrollspy: the last section whose top passed ~35% of the viewport.
       let current: string | null = null;
       if (isHome) {
-        const probe = Math.min(window.scrollY + window.innerHeight * 0.35, doc.scrollHeight - 1);
+        const probe = Math.min(window.scrollY + window.innerHeight * 0.35, document.documentElement.scrollHeight - 1);
         for (const id of SCROLLSPY_IDS) {
           const el = document.getElementById(id);
           if (el && el.offsetTop <= probe) current = id;
@@ -169,11 +163,10 @@ export default function Header({ name, currentlyLearning, github, availability }
         scrolled ? "shadow-card" : ""
       }`}
     >
-      {/* Color pass: a 3px gradient hairline sits on the very top edge —
-          identity color at the top of every page. */}
+      {/* Subtle accent hairline — identity color at the top of every page */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-accent via-accent-cyan to-topic-ai"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-accent/20"
       />
       {/* P25: the bar compacts on scroll (py-3 → py-2) — subtle, feels alive */}
       <div
@@ -293,17 +286,6 @@ export default function Header({ name, currentlyLearning, github, availability }
             )}
           </button>
         </div>
-      </div>
-
-      {/* Flight-path scroll progress (plan §4.2) — gradient accent line */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[2px] bg-transparent"
-      >
-        <div
-          className="h-full bg-gradient-to-r from-accent via-accent-cyan to-accent-cyan/40 transition-[width] duration-150 ease-out"
-          style={{ width: `${progress * 100}%` }}
-        />
       </div>
 
       {/* Mobile nav panel (rendered under the header row) */}

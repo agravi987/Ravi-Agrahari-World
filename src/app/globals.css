@@ -65,6 +65,10 @@
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace; /* terminal eyebrows (plan §4.1) */
 
+  /* --- Easing scale (spring for hovers, smooth for transitions) --- */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+
   /* --- Radius scale (one consistent scale everywhere) --- */
   --radius-card: 0.75rem;   /* 12px — cards */
   --radius-pill: 9999px;    /* pills, badges, buttons */
@@ -116,7 +120,7 @@
   background: linear-gradient(90deg, var(--sweep, var(--color-accent)), var(--color-accent-cyan));
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.6s ease-out;
+  transition: transform 0.6s var(--ease-smooth);
 }
 .section-reveal.is-in-view .title-sweep::after {
   transform: scaleX(1);
@@ -262,18 +266,9 @@
   animation: mesh-drift 20s ease-in-out infinite;
 }
 
-/* P30: SectionDivider — flowing gradient divider between sections.
-   Moves like a living ribbon through all topic hues. */
-@keyframes divider-flow {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 200% 50%;
-  }
-}
+/* P30: SectionDivider — static gradient accent line between sections. */
 .animate-divider-flow > div {
-  animation: divider-flow 8s linear infinite;
+  background-size: 200% 100%;
 }
 
 /* P9 cover shine: a soft white streak sweeps across project covers
@@ -286,7 +281,7 @@
     transparent 60%
   );
   transform: translateX(-110%);
-  transition: transform 0.7s ease;
+  transition: transform 0.7s var(--ease-smooth);
 }
 .group:hover .cover-shine {
   transform: translateX(110%);
@@ -308,7 +303,7 @@
   background: var(--nav-hue, var(--color-accent));
   transform: scaleX(0);
   transform-origin: left;
-  transition: transform 0.25s ease-out;
+  transition: transform 0.25s var(--ease-smooth);
 }
 .nav-link:hover::after,
 .nav-link:focus-visible::after,
@@ -411,23 +406,7 @@
   }
 }
 
-/* #6 Constellation dot-grid: tiny starfield that twinkles in 2 layers. */
-.constellation {
-  background-image:
-    radial-gradient(circle, color-mix(in oklab, var(--color-accent) 30%, transparent) 1px, transparent 1.4px),
-    radial-gradient(circle, color-mix(in oklab, var(--color-topic-ai) 22%, transparent) 1px, transparent 1.4px);
-  background-size: 44px 44px, 71px 71px;
-  background-position: 0 0, 22px 33px;
-  animation: constellation-twinkle 9s ease-in-out infinite;
-}
-@keyframes constellation-twinkle {
-  0%, 100% {
-    opacity: 0.5;
-  }
-  50% {
-    opacity: 0.95;
-  }
-}
+
 
 /* #3 Headline word stagger — fast, transform-only (no CLS), words stay
    visible from ~40% opacity so the paragraph never "pops in" late. */
@@ -521,7 +500,9 @@
 
 /* Phase 15 (Projects #23): CMS cover images get a gentle dark-mode
    treatment so light art doesn't glare on the dark paper. */
-html[data-theme="dark"] .project-cover-img {
+html[data-theme="dark"] .project-cover-img,
+html[data-theme="midnight"] .project-cover-img,
+html[data-theme="nord"] .project-cover-img {
   filter: brightness(0.92);
 }
 
@@ -545,7 +526,9 @@ html[data-theme="dark"] .project-cover-img {
 .cert-print-list {
   display: none;
 }
-html[data-theme="dark"] .cert-logo {
+html[data-theme="dark"] .cert-logo,
+html[data-theme="midnight"] .cert-logo,
+html[data-theme="nord"] .cert-logo {
   filter: brightness(0.92);
 }
 
@@ -600,7 +583,6 @@ html[data-theme="dark"] .cert-logo {
 }
 
 @media print {
-  .constellation,
   .hero-cta-sticky,
   .photo-composition,
   .skills-deco-chips {
@@ -637,9 +619,10 @@ html[data-theme="dark"] .cert-logo {
    ============================================================ */
 
 html {
-  /* Smooth anchor scrolling for section nav; reduced-motion
-     users get instant jumps via the media query below. */
-  scroll-behavior: smooth;
+  /* FIX: removed scroll-behavior: smooth — it amplified layout-shift
+     scroll jumps from LazyMount and Skills content swaps. Smooth
+     scrolling for anchor nav is handled by @/lib/scrollTo.ts which
+     already respects prefers-reduced-motion. */
   scroll-padding-top: 5rem; /* offset for sticky header */
 }
 
@@ -740,28 +723,123 @@ html[data-theme="dark"] {
   --color-accent: #818cf8;       /* indigo-400 — brighter for dark bg */
   --color-accent-soft: rgb(99 102 241 / 0.15);
   --color-accent-strong: #a5b4fc;
-  --color-accent-btn: #4f46e5;   /* P16: filled buttons stay indigo-600 on dark too */
+  --color-accent-btn: #4f46e5;
   --color-accent-btn-hover: #4338ca;
   --color-accent-cyan: #22d3ee;
   --color-card: #1c1917;
   --color-card-border: #292524;
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.4);
   --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.5);
+  --color-stat-cloud: #38bdf8;
+  --color-stat-devops: #2dd4bf;
+  --color-stat-ai: #a78bfa;
+  --color-stat-linux: #fbbf24;
+  --color-stat-mars: #f87171;
+  --color-topic-cloud-deep: #7dd3fc;
+  --color-topic-devops-deep: #5eead4;
+  --color-topic-ai-deep: #c4b5fd;
+  --color-topic-linux-deep: #fcd34d;
+  --color-topic-mars-deep: #fca5a5;
+  --color-topic-ice-deep: #7dd3fc;
+}
 
-  /* Stat numerals brighten on dark so they stay readable (P8). */
-  --color-stat-cloud: #38bdf8;   /* sky-400 */
-  --color-stat-devops: #2dd4bf;  /* teal-400 */
-  --color-stat-ai: #a78bfa;      /* violet-400 */
-  --color-stat-linux: #fbbf24;   /* amber-400 */
-  --color-stat-mars: #f87171;    /* red-400 */
+/* ============================================================
+   Midnight — deep navy blue (Linear / Vercel aesthetic)
+   ============================================================ */
+html[data-theme="midnight"] {
+  --color-paper: #0b1120;        /* deep navy */
+  color-scheme: dark;
+  --color-paper-deep: #111827;   /* slightly lighter navy */
+  --color-ink: #e2e8f0;          /* slate-200 */
+  --color-ink-soft: #94a3b8;     /* slate-400 */
+  --color-ink-faint: #475569;    /* slate-600 */
+  --color-accent: #818cf8;       /* indigo-400 */
+  --color-accent-soft: rgb(99 102 241 / 0.12);
+  --color-accent-strong: #a5b4fc;
+  --color-accent-btn: #6366f1;   /* indigo-500 */
+  --color-accent-btn-hover: #4f46e5;
+  --color-accent-cyan: #22d3ee;
+  --color-card: #111827;
+  --color-card-border: #1e293b;  /* slate-800 */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.5), 0 4px 20px rgb(0 0 0 / 0.35);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.5), 0 10px 30px rgb(0 0 0 / 0.45);
+  --color-stat-cloud: #38bdf8;
+  --color-stat-devops: #2dd4bf;
+  --color-stat-ai: #a78bfa;
+  --color-stat-linux: #fbbf24;
+  --color-stat-mars: #f87171;
+  --color-topic-cloud-deep: #7dd3fc;
+  --color-topic-devops-deep: #5eead4;
+  --color-topic-ai-deep: #c4b5fd;
+  --color-topic-linux-deep: #fcd34d;
+  --color-topic-mars-deep: #fca5a5;
+  --color-topic-ice-deep: #7dd3fc;
+}
 
-  /* P25 deep-text variants brighten for dark backgrounds. */
-  --color-topic-cloud-deep: #7dd3fc;   /* sky-300 */
-  --color-topic-devops-deep: #5eead4;  /* teal-300 */
-  --color-topic-ai-deep: #c4b5fd;      /* violet-300 */
-  --color-topic-linux-deep: #fcd34d;   /* amber-300 */
-  --color-topic-mars-deep: #fca5a5;    /* red-300 */
-  --color-topic-ice-deep: #7dd3fc;     /* sky-300 */
+/* ============================================================
+   Nord — arctic blue palette (nordtheme.com inspired)
+   ============================================================ */
+html[data-theme="nord"] {
+  --color-paper: #2e3440;        /* nord1 — dark base */
+  color-scheme: dark;
+  --color-paper-deep: #3b4252;   /* nord2 */
+  --color-ink: #eceff4;          /* nord6 — snow white */
+  --color-ink-soft: #d8dee9;     /* nord4 */
+  --color-ink-faint: #4c566a;    /* nord3 */
+  --color-accent: #88c0d0;       /* nord8 — frost cyan */
+  --color-accent-soft: rgb(136 192 208 / 0.12);
+  --color-accent-strong: #8fbcbb; /* nord7 */
+  --color-accent-btn: #5e81ac;   /* nord9 — nordic blue */
+  --color-accent-btn-hover: #4c6a8f;
+  --color-accent-cyan: #88c0d0;
+  --color-card: #3b4252;
+  --color-card-border: #434c5e;  /* nord3-ish */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.4);
+  --color-stat-cloud: #88c0d0;
+  --color-stat-devops: #a3be8c;  /* nord14 — green */
+  --color-stat-ai: #b48ead;      /* nord15 — purple */
+  --color-stat-linux: #ebcb8b;   /* nord13 — yellow */
+  --color-stat-mars: #bf616a;    /* nord11 — red */
+  --color-topic-cloud-deep: #88c0d0;
+  --color-topic-devops-deep: #a3be8c;
+  --color-topic-ai-deep: #b48ead;
+  --color-topic-linux-deep: #ebcb8b;
+  --color-topic-mars-deep: #bf616a;
+  --color-topic-ice-deep: #8fbcbb;
+}
+
+/* ============================================================
+   Rose — warm rose-tinted light theme
+   ============================================================ */
+html[data-theme="rose"] {
+  --color-paper: #fff1f2;        /* rose-50 */
+  color-scheme: light;
+  --color-paper-deep: #ffe4e6;   /* rose-100 */
+  --color-ink: #1c1917;          /* stone-900 */
+  --color-ink-soft: #57534e;     /* stone-600 */
+  --color-ink-faint: #a8a29e;    /* stone-400 */
+  --color-accent: #e11d48;       /* rose-600 */
+  --color-accent-soft: rgb(225 29 72 / 0.08);
+  --color-accent-strong: #be123c; /* rose-700 */
+  --color-accent-btn: #e11d48;
+  --color-accent-btn-hover: #be123c;
+  --color-accent-cyan: #06b6d4;
+  --color-card: #ffffff;
+  --color-card-border: #fecdd3;  /* rose-200 */
+  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 4px 16px rgb(225 29 72 / 0.06);
+  --shadow-card-hover: 0 2px 4px rgb(28 25 23 / 0.05), 0 10px 28px rgb(225 29 72 / 0.1);
+  --color-stat-cloud: #0284c7;
+  --color-stat-devops: #0d9488;
+  --color-stat-ai: #7c3aed;
+  --color-stat-linux: #d97706;
+  --color-stat-mars: #dc2626;
+  --color-topic-cloud-deep: #075985;
+  --color-topic-devops-deep: #0f766e;
+  --color-topic-ai-deep: #6d28d9;
+  --color-topic-linux-deep: #92400e;
+  --color-topic-mars-deep: #b91c1c;
+  --color-topic-ice-deep: #0369a1;
 }
 
 /* ============================================================
@@ -984,7 +1062,9 @@ html[data-theme="dark"] {
   background-size: 110px 110px, 74px 74px, 48px 48px;
   background-position: 12% 22%, 68% 58%, 32% 78%;
 }
-html[data-theme="dark"] .galaxy-stars {
+html[data-theme="dark"] .galaxy-stars,
+html[data-theme="midnight"] .galaxy-stars,
+html[data-theme="nord"] .galaxy-stars {
   background-image:
     radial-gradient(circle, rgb(255 255 255 / 0.2) 1px, transparent 1.4px),
     radial-gradient(circle, rgb(255 255 255 / 0.13) 1px, transparent 1.4px),
@@ -1019,7 +1099,9 @@ html[data-theme="dark"] .galaxy-stars {
   background-position: 6% 14%, 73% 86%;
   animation: star-twinkle 3.6s ease-in-out infinite;
 }
-html[data-theme="dark"] .galaxy-stars::after {
+html[data-theme="dark"] .galaxy-stars::after,
+html[data-theme="midnight"] .galaxy-stars::after,
+html[data-theme="nord"] .galaxy-stars::after {
   background-image:
     radial-gradient(circle, rgb(255 255 255 / 0.55) 1.5px, transparent 2px),
     radial-gradient(circle, rgb(255 255 255 / 0.4) 1px, transparent 1.6px);
@@ -1222,7 +1304,9 @@ html[data-theme="dark"] .galaxy-stars::after {
   stroke-linecap: round;
   stroke-dasharray: 1.6 7;
 }
-html[data-theme="dark"] .galaxy-orbit-line circle {
+html[data-theme="dark"] .galaxy-orbit-line circle,
+html[data-theme="midnight"] .galaxy-orbit-line circle,
+html[data-theme="nord"] .galaxy-orbit-line circle {
   stroke: rgb(255 255 255 / 0.12);
 }
 /* The planet whose card is open: its orbit lights up in its color. */
@@ -1311,8 +1395,8 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
   pointer-events: auto;
   box-shadow: 0 2px 10px rgb(28 25 23 / 0.14);
   transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+    transform 0.25s var(--ease-spring),
+    box-shadow 0.25s var(--ease-smooth);
   isolation: isolate;
 }
 /* Anchor jumps: html's scroll-padding-top (5rem) is the single source
@@ -1430,7 +1514,7 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
   box-shadow:
     0 0 0 2px rgb(255 255 255 / 0.8),
     0 1px 4px rgb(28 25 23 / 0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-smooth);
 }
 .galaxy-moon:hover,
 .galaxy-moon:focus-visible,
@@ -1471,12 +1555,6 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
 }
 
 /* Gentle float — transform-only, covered by the reduce override. */
-.float-slow {
-  animation: float-slow 7s ease-in-out infinite;
-}
-.float-slower {
-  animation: float-slow 11s ease-in-out infinite;
-}
 @keyframes float-slow {
   0%,
   100% {
@@ -1487,7 +1565,7 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
   }
 }
 
-/* Radial halo that pulses behind a focal element (hero photo, sun). */
+/* Radial halo behind a focal element (hero photo, sun) — static, no pulse. */
 .halo {
   position: absolute;
   border-radius: 9999px;
@@ -1497,19 +1575,7 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
     transparent 70%
   );
   filter: blur(10px);
-  animation: halo-pulse 6s ease-in-out infinite;
   pointer-events: none;
-}
-@keyframes halo-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 0.7;
-  }
-  50% {
-    transform: scale(1.12);
-    opacity: 1;
-  }
 }
 
 /* Card spotlight — a radial tint that follows the pointer (--sx/--sy
@@ -1528,7 +1594,7 @@ html[data-theme="dark"] .galaxy-orbit-line circle {
     transparent 60%
   );
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.3s var(--ease-smooth);
   pointer-events: none;
   z-index: 1;
 }

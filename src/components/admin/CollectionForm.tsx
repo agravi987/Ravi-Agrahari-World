@@ -8,7 +8,7 @@
  */
 "use client";
 
-import { ImageIcon, UploadCloud } from "lucide-react";
+import { ImageIcon, UploadCloud, Bold, Italic, Code, Code2, List, Type, Quote, Link2, Image as ImageIconMd, Minus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
@@ -217,6 +217,275 @@ function ImageUpload({
   );
 }
 
+/** 
+ * MarkdownField — a markdown textarea with toolbar and preview.
+ * Manages its own ref internally to avoid lint issues with refs in render functions.
+ */
+function MarkdownField({
+  key: fieldKey,
+  value,
+  onChange,
+  previewMode,
+  setPreviewMode,
+  label,
+  placeholder,
+}: {
+  key: string;
+  value: string;
+  onChange: (v: string) => void;
+  previewMode: boolean;
+  setPreviewMode: (v: boolean) => void;
+  label: string;
+  placeholder?: string;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const insert = (prefix: string, suffix = "") => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    const before = value.slice(0, start);
+    const selected = value.slice(start, end);
+    const after = value.slice(end);
+    const replacement = prefix + selected + suffix;
+    const next = before + replacement + after;
+    onChange(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    });
+  };
+
+  const insertLine = (prefix: string) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const lines = value.slice(0, start).split("\n");
+    const currentLine = lines[lines.length - 1];
+    if (currentLine.startsWith(prefix)) return;
+    insert(prefix, "");
+  };
+
+  const handleClick = (action: string) => {
+    switch (action) {
+      case "heading1":
+        insertLine("# ");
+        break;
+      case "heading2":
+        insertLine("## ");
+        break;
+      case "heading3":
+        insertLine("### ");
+        break;
+      case "bold":
+        insert("**", "**");
+        break;
+      case "italic":
+        insert("*", "*");
+        break;
+      case "code":
+        insert("`", "`");
+        break;
+      case "codeblock":
+        insert("```\n", "\n```");
+        break;
+      case "bullet":
+        insertLine("- ");
+        break;
+      case "numbered":
+        insertLine("1. ");
+        break;
+      case "quote":
+        insertLine("> ");
+        break;
+      case "link":
+        insert("[", "](url)");
+        break;
+      case "image":
+        insert("![", "](url)");
+        break;
+      case "hr":
+        insert("\n---\n");
+        break;
+    }
+  };
+
+  const buttons = [
+    { icon: <Type className="h-4 w-4" />, title: "Heading 1", action: "heading1" as const },
+    { icon: <Type className="h-4 w-4" />, title: "Heading 2", action: "heading2" as const },
+    { icon: <Type className="h-4 w-4" />, title: "Heading 3", action: "heading3" as const },
+    { icon: <Bold className="h-4 w-4" />, title: "Bold", action: "bold" as const },
+    { icon: <Italic className="h-4 w-4" />, title: "Italic", action: "italic" as const },
+    { icon: <Code className="h-4 w-4" />, title: "Inline code", action: "code" as const },
+    { icon: <Code2 className="h-4 w-4" />, title: "Code block", action: "codeblock" as const },
+    { icon: <List className="h-4 w-4" />, title: "Bullet list", action: "bullet" as const },
+    { icon: <List className="h-4 w-4" />, title: "Numbered list", action: "numbered" as const },
+    { icon: <Quote className="h-4 w-4" />, title: "Blockquote", action: "quote" as const },
+    { icon: <Link2 className="h-4 w-4" />, title: "Link", action: "link" as const },
+    { icon: <ImageIconMd className="h-4 w-4" />, title: "Image", action: "image" as const },
+    { icon: <Minus className="h-4 w-4" />, title: "Horizontal rule", action: "hr" as const },
+  ];
+
+  return (
+    <div className="overflow-hidden rounded-card border border-card-border">
+      {!previewMode && (
+        <div className="flex flex-wrap gap-1 p-1.5 border-b border-card-border bg-paper-deep/30 rounded-t-card" role="toolbar" aria-label="Markdown formatting">
+          {buttons.map((b, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => handleClick(b.action)}
+              title={b.title}
+              className="p-1.5 rounded text-ink-soft hover:text-accent hover:bg-accent-soft transition-colors disabled:opacity-40"
+              aria-label={b.title}
+            >
+              {b.icon}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center justify-between gap-3 border-b border-card-border bg-paper-deep/40 px-2 py-1.5">
+        <div role="tablist" aria-label={`${label} mode`} className="flex gap-1">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={!previewMode}
+            onClick={() => setPreviewMode(false)}
+            className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
+              !previewMode ? "bg-accent-soft text-accent" : "text-ink-faint hover:text-ink"
+            }`}
+          >
+            write
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={previewMode}
+            onClick={() => setPreviewMode(true)}
+            className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
+              previewMode ? "bg-accent-soft text-accent" : "text-ink-faint hover:text-ink"
+            }`}
+          >
+            preview
+          </button>
+        </div>
+        <span className="font-mono text-[10px] text-ink-faint">markdown</span>
+      </div>
+      {previewMode ? (
+        <div className="markdown max-h-[420px] overflow-y-auto bg-paper px-4 py-3 text-sm">
+          <ReactMarkdown>{value}</ReactMarkdown>
+        </div>
+      ) : (
+        <textarea
+          ref={textareaRef}
+          id={`field-${fieldKey}`}
+          rows={14}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`w-full resize-y border-0 bg-paper px-4 py-3 font-mono text-xs text-ink placeholder:text-ink-faint focus:outline-none`}
+          placeholder={placeholder}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * AutoSaveDraft — persists form state to localStorage and restores on mount.
+ * Keyed by collection + id (or 'new') so each doc gets its own draft.
+ */
+function useAutoSaveDraft({
+  collection,
+  id,
+  isNew,
+  form,
+  spec,
+}: {
+  collection: string;
+  id?: string;
+  isNew: boolean;
+  form: Record<string, unknown>;
+  spec: { fields: Array<{ key: string; type: string }> };
+}) {
+  const draftKey = `draft:${collection}:${isNew ? "new" : id}`;
+  const [hasDraft, setHasDraft] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const saveTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  // Load draft on mount
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Only restore if draft is recent (24h) and has content
+        if (Date.now() - (parsed.ts || 0) < 24 * 60 * 60 * 1000) {
+          const hasContent = Object.values(parsed.data).some(
+            (v) => v !== "" && v !== false && v !== null && v !== undefined
+          );
+          if (hasContent) {
+            // Wrap in setTimeout to avoid synchronous setState in effect
+            setTimeout(() => setHasDraft(true), 0);
+          }
+        }
+      }
+    } catch {
+      // ignore corrupt draft
+    }
+  }, [draftKey]);
+
+  // Save draft on form change (debounced 1s)
+  useEffect(() => {
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify({ data: form, ts: Date.now() }));
+        setHasDraft(true);
+      } catch {
+        // quota exceeded, ignore
+      }
+    }, 1000);
+    return () => {
+      if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    };
+  }, [form, draftKey]);
+
+  // Restore draft into form
+  const restoreDraft = () => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        // Merge draft with current form (draft wins for non-empty values)
+        const merged: Record<string, unknown> = { ...form };
+        for (const f of spec.fields) {
+          const draftVal = parsed.data[f.key];
+          if (draftVal !== "" && draftVal !== false && draftVal !== null && draftVal !== undefined) {
+            merged[f.key] = draftVal;
+          }
+        }
+        return merged;
+      }
+    } catch {
+      // ignore
+    }
+    return form;
+  };
+
+  // Clear draft on successful save
+  const clearDraft = () => {
+    try {
+      localStorage.removeItem(draftKey);
+      setHasDraft(false);
+    } catch {
+      // ignore
+    }
+  };
+
+  return { hasDraft, restored, setRestored, restoreDraft, clearDraft };
+}
+
 interface CollectionFormProps {
   spec: CollectionSpec;
   collection: string;
@@ -283,6 +552,28 @@ export default function CollectionForm({
     }
     return out;
   });
+
+  // Auto-save draft hook
+  const { hasDraft, restoreDraft, clearDraft } = useAutoSaveDraft({
+    collection,
+    id,
+    isNew,
+    form,
+    spec,
+  });
+
+  // Restore draft on mount if available
+  const [draftRestored, setDraftRestored] = useState(false);
+  useEffect(() => {
+    if (hasDraft && !draftRestored) {
+      const restored = restoreDraft();
+      // Wrap in setTimeout to avoid synchronous setState in effect
+      setTimeout(() => {
+        setForm(restored);
+        setDraftRestored(true);
+      }, 0);
+    }
+  }, [hasDraft, draftRestored, restoreDraft]);
 
   function set(key: string, value: unknown) {
     setForm((prev) => {
@@ -388,6 +679,8 @@ export default function CollectionForm({
       // Phase 11: tell the admin the change is ALREADY live (the API
       // revalidated the public pages before responding).
       showToast(isNew ? "Created — the live site is updated" : "Saved — the live site is updated");
+      // Clear draft on successful save
+      clearDraft();
       // Back to the list; the API already revalidated the live site.
       router.push(`/admin/${collection}`);
       router.refresh();
@@ -429,57 +722,15 @@ export default function CollectionForm({
         // leaving the form (same react-markdown the blog uses).
         const previewing = Boolean(previewMode[key]);
         control = (
-          <div className="overflow-hidden rounded-card border border-card-border">
-            <div className="flex items-center justify-between gap-3 border-b border-card-border bg-paper-deep/40 px-2 py-1.5">
-              <div
-                role="tablist"
-                aria-label={`${f.label} mode`}
-                className="flex gap-1"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={!previewing}
-                  onClick={() => setPreviewMode((p) => ({ ...p, [key]: false }))}
-                  className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
-                    !previewing
-                      ? "bg-accent-soft text-accent"
-                      : "text-ink-faint hover:text-ink"
-                  }`}
-                >
-                  write
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={previewing}
-                  onClick={() => setPreviewMode((p) => ({ ...p, [key]: true }))}
-                  className={`rounded-full px-3 py-1 font-mono text-[10px] font-medium transition-colors ${
-                    previewing
-                      ? "bg-accent-soft text-accent"
-                      : "text-ink-faint hover:text-ink"
-                  }`}
-                >
-                  preview
-                </button>
-              </div>
-              <span className="font-mono text-[10px] text-ink-faint">markdown</span>
-            </div>
-            {previewing ? (
-              <div className="markdown max-h-[420px] overflow-y-auto bg-paper px-4 py-3 text-sm">
-                <ReactMarkdown>{String(value ?? "")}</ReactMarkdown>
-              </div>
-            ) : (
-              <textarea
-                id={`field-${key}`}
-                rows={14}
-                value={String(value ?? "")}
-                onChange={(e) => set(key, e.target.value)}
-                className={`w-full resize-y border-0 bg-paper px-4 py-3 font-mono text-xs text-ink placeholder:text-ink-faint focus:outline-none`}
-                placeholder={f.placeholder}
-              />
-            )}
-          </div>
+          <MarkdownField
+            key={key}
+            value={String(value ?? "")}
+            onChange={(v) => set(key, v)}
+            previewMode={previewing}
+            setPreviewMode={(v) => setPreviewMode((p) => ({ ...p, [key]: v }))}
+            label={f.label}
+            placeholder={f.placeholder}
+          />
         );
         break;
       }
@@ -661,6 +912,48 @@ export default function CollectionForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Auto-save draft restore banner */}
+      {hasDraft && !draftRestored && (
+        <div className="rounded-lg border border-amber-300/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 flex items-center justify-between gap-4">
+          <span>You have an unsaved draft from a previous session.</span>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => {
+                const restored = restoreDraft();
+                setForm(restored);
+                setDraftRestored(true);
+              }}
+              className="rounded-full border border-card-border bg-card px-4 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-accent"
+            >
+              Restore
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraft();
+                setDraftRestored(true); // dismiss without restoring
+              }}
+              className="rounded-full border border-card-border bg-card px-4 py-1.5 text-sm font-medium text-ink-soft transition-colors hover:text-red-500"
+            >
+              Discard
+            </button>
+          </div>
+        </div>
+      )}
+      {draftRestored && hasDraft && (
+        <div className="rounded-lg border border-emerald-300/40 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-800 dark:text-emerald-300 flex items-center justify-between gap-4">
+          <span>Draft restored.</span>
+          <button
+            type="button"
+            onClick={() => clearDraft()}
+            className="font-mono text-[10px] text-emerald-600 hover:underline"
+          >
+            Clear draft
+          </button>
+        </div>
+      )}
+
       <div className="grid gap-6 sm:grid-cols-2">
         {spec.fields.map((f) => (
           <div

@@ -21,7 +21,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Check, Copy, Mail, Rocket } from "lucide-react";
+import { Mail, Rocket, Flame } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { initials } from "@/lib/galaxyGeometry";
 import { isAllowedImageUrl } from "@/lib/imageHosts";
@@ -29,9 +29,7 @@ import { scrollToSection } from "@/lib/scrollTo";
 import Button from "@/components/ui/Button";
 import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
 import GradientMesh from "@/components/ui/GradientMesh";
-import Kbd from "@/components/ui/Kbd";
 import Magnetic from "@/components/ui/Magnetic";
-import { showToast } from "@/components/ui/Toast";
 
 interface HeroProps {
   name: string;
@@ -232,32 +230,6 @@ function useScrollDrift(amount = 14) {
   return ref;
 }
 
-/** #7 Sticky CTA bar: true once the hero has scrolled `threshold` of
- *  its own height out of view (with hysteresis built into the caller). */
-function usePastHero(threshold = 0.8) {
-  const [past, setPast] = useState(false);
-  useEffect(() => {
-    const hero = document.getElementById("hero");
-    if (!hero) return;
-    let raf = 0;
-    const check = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const r = hero.getBoundingClientRect();
-        setPast(-r.top > r.height * threshold);
-      });
-    };
-    check();
-    window.addEventListener("scroll", check, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", check);
-    };
-  }, [threshold]);
-  return past;
-}
-
 /** #13 Mouse-tilt on the photo card (pointer-fine only) — the card
  *  leans toward the cursor; transform-based, resets on leave. */
 function useTilt(maxDeg = 4) {
@@ -394,7 +366,7 @@ function PhotoComposition({
           title="Learning streak — the days I've shipped something, back to back"
           className="animate-float-a absolute -top-4 right-2 flex items-center gap-1.5 rounded-full border border-card-border bg-card/90 px-3 py-1.5 text-xs font-medium text-ink shadow-card backdrop-blur-sm"
         >
-          <span aria-hidden="true" className="flame-flicker">🔥</span>
+          <Flame className="h-3.5 w-3.5 text-topic-mars" aria-hidden="true" />
           {streak}-day streak
         </p>
       )}
@@ -418,17 +390,13 @@ export default function Hero({
   currentlyLearning,
   streak,
   availability,
-profileImage,
+  profileImage,
   }: HeroProps) {
-  // Phase 14 state + effects (backlog §1).
-  const [emailCopied, setEmailCopied] = useState(false); // #8 copy-email morph
-  const [cueHidden, setCueHidden] = useState(false); // #11 scroll cue fade
-  const [ctaDismissed, setCtaDismissed] = useState(false); // #7 sticky bar
-  const pastHero = usePastHero(0.8);
+  const [cueHidden, setCueHidden] = useState(false);
   const driftRef = useScrollDrift(14);
   const router = useRouter();
 
-  /** P19 chips + scroll cue: #section anchors only exist when the section
+  /** P19 scroll cue: #section anchors only exist when the section
    *  is enabled AND we're on home. A disabled section made the chips dead
    *  links — fall back to navigating home with the hash instead. */
   const jumpSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -462,20 +430,6 @@ profileImage,
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  /** #8: one click copies the email and the button says so. */
-  async function copyEmail() {
-    try {
-      await navigator.clipboard.writeText(email);
-      setEmailCopied(true);
-      showToast("Email copied to clipboard");
-      setTimeout(() => setEmailCopied(false), 2000);
-    } catch {
-      /* clipboard blocked — the mailto CTA still works */
-    }
-  }
-
-  const headlineWords = headline.trim().split(/\s+/);
-
   return (
     <>
     <section
@@ -483,13 +437,6 @@ profileImage,
       aria-labelledby="hero-title"
       className="relative overflow-hidden px-6 py-20 lg:py-24"
     >
-      {/* Phase 14 (#6): constellation dot-grid — twinkling starfield
-          behind the mesh. Decorative + aria-hidden; reduced-motion
-          freezes the twinkle (global rule). */}
-      <div
-        aria-hidden="true"
-        className="constellation pointer-events-none absolute inset-0 -z-20 opacity-60"
-      />
       {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now
           carries it; the soft glow below sits behind the composition */}
       <div
@@ -560,29 +507,15 @@ profileImage,
             <span className="block text-4xl sm:text-6xl">
               {/* Phase 14 (#1): slow traveling shimmer on the gradient
                   text — background-position only, LCP-neutral. */}
-              <span className="text-gradient text-shimmer">{name}</span>
+              <span className="text-gradient">{name}</span>
             </span>
             <span className="mt-2 block text-2xl text-accent sm:text-4xl">
               <TypewriterRole roles={roles} />
             </span>
           </h1>
 
-          {/* P27: text-balance — multi-line headlines wrap evenly.
-              Phase 14 (#3): word-level stagger — fast, transform-only,
-              words stay ≥40% visible so nothing "pops in" late (LCP
-              stays pinned to the h1 which never animates). */}
           <p className="mx-auto mt-5 max-w-xl text-lg text-balance text-ink-soft lg:mx-0">
-            {headlineWords.map((w, i) => (
-              <span key={i}>
-                <span
-                  className="word-in"
-                  style={{ animationDelay: `${i * 45}ms` }}
-                >
-                  {w}
-                </span>
-                {i < headlineWords.length - 1 ? " " : ""}
-              </span>
-            ))}
+            {headline}
           </p>
 
           {/* Gradient divider under the headline (UX pass) */}
@@ -604,27 +537,11 @@ profileImage,
               </Button>
             </Magnetic>
             <Magnetic strength={0.2}>
-              <Button href="/detailed-galaxy" variant="secondary">
+              <Button href="#projects" variant="secondary">
                 <Rocket className="h-4 w-4" aria-hidden="true" />
-                Explore the galaxy
+                View projects
               </Button>
             </Magnetic>
-            {/* Phase 14 (#8): copy-email morphs into a checkmark —
-                one click, no mail app required. */}
-            <button
-              type="button"
-              onClick={copyEmail}
-              aria-live="polite"
-              aria-label={emailCopied ? "Email copied" : "Copy email address"}
-              className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-2.5 text-sm font-medium text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:text-accent hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-            >
-              {emailCopied ? (
-                <Check className="h-4 w-4 text-emerald-500" aria-hidden="true" />
-              ) : (
-                <Copy className="h-4 w-4" aria-hidden="true" />
-              )}
-              {emailCopied ? "Copied!" : "Copy email"}
-            </button>
           </div>
 
           {/* Social row (P24) — icon pills for known brands (GitHub,
@@ -672,35 +589,6 @@ profileImage,
             </nav>
           )}
 
-          {/* P19: quick-jump chips — the hero is the surface overview; one
-              click drops you into the section. Topic-hued, anchors land
-              below the sticky header (P16 scroll-padding). */}
-          <nav
-            aria-label="Jump to section"
-            className="hero-fade mt-7 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
-            style={{ animationDelay: "0.5s" }}
-          >
-            {[
-              { href: "#skills", label: "Skills", hue: "border-topic-cloud/30 text-topic-cloud-deep hover:bg-topic-cloud/10" },
-              { href: "#projects", label: "Projects", hue: "border-topic-devops/30 text-topic-devops-deep hover:bg-topic-devops/10" },
-              { href: "#blog", label: "Blog", hue: "border-topic-ai/30 text-topic-ai-deep hover:bg-topic-ai/10" },
-              { href: "#contact", label: "Contact", hue: "border-topic-mars/30 text-topic-mars-deep hover:bg-topic-mars/10" },
-            ].map((c) => (
-              <a
-                key={c.href}
-                href={c.href}
-                onClick={(e) => jumpSection(e, c.href)}
-                className={`rounded-full border bg-transparent px-3.5 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${c.hue}`}
-              >
-                {c.label}
-              </a>
-            ))}
-          </nav>
-
-          {/* P27: discoverability — the keyboard layer exists, say so */}
-          <p className="hero-fade mt-4 hidden font-mono text-[10px] text-ink-faint md:block">
-            press <Kbd>?</Kbd> for shortcuts
-          </p>
         </div>
 
         {/* Right — the photo composition */}
@@ -725,41 +613,6 @@ profileImage,
         </svg>
       </a>
     </section>
-
-    {/* Phase 14 (#7): sticky quick-action bar — appears once the hero
-        has scrolled ~80% out of view (desktop only, dismissible). */}
-    {pastHero && !ctaDismissed && (
-      <div
-        className="hero-cta-sticky fixed inset-x-0 bottom-4 z-40 hidden justify-center px-4 lg:flex"
-        role="complementary"
-        aria-label="Quick actions"
-      >
-        <div className="flex items-center gap-1 rounded-full border border-card-border bg-card/90 p-1.5 shadow-orbital backdrop-blur-md">
-          <a
-            href={`mailto:${email}`}
-            className="inline-flex items-center gap-1.5 rounded-full bg-accent-btn px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-accent-btn-hover"
-          >
-            <Mail className="h-3.5 w-3.5" aria-hidden="true" />
-            Get in touch
-          </a>
-          <a
-            href="/detailed-galaxy"
-            className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
-          >
-            <Rocket className="h-3.5 w-3.5" aria-hidden="true" />
-            Explore galaxy
-          </a>
-          <button
-            type="button"
-            onClick={() => setCtaDismissed(true)}
-            aria-label="Dismiss quick actions"
-            className="grid h-7 w-7 place-items-center rounded-full text-ink-faint transition-colors hover:bg-paper-deep hover:text-ink"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-    )}
     </>
   );
 }

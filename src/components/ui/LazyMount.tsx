@@ -1,11 +1,13 @@
 /**
- * LazyMount.tsx (client) — defers mounting (and therefore hydrating)
- * a heavy below-the-fold section until it scrolls near the viewport.
+ * LazyMount.tsx (client) — defers visible rendering of a heavy
+ * below-the-fold section until it scrolls near the viewport.
  *
- * The fallback is server-rendered (a slim placeholder), so the page
- * paints instantly; the real content — with all its DOM + JS — only
- * materializes when the user is actually about to see it. Sections
- * already in/near view (e.g. mid-page reload) mount immediately.
+ * FIX: Both placeholder and real content are rendered simultaneously.
+ * The placeholder takes up space (min-h-[340px]) while the real content
+ * is invisible (opacity-0). On intersection, we crossfade: placeholder
+ * fades out, real content fades in. Since both are in the DOM at all
+ * times, the container height stays stable — no layout shift, no scroll
+ * jumping (the root cause of the auto-scroll bug).
  */
 "use client";
 
@@ -23,26 +25,25 @@ export default function LazyMount({
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [mounted, setMounted] = useState(false);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (typeof IntersectionObserver === "undefined") {
-      // No IO (ancient browsers): mount on the next tick — never
-      // synchronously inside the effect body.
-      const t = setTimeout(() => setMounted(true), 0);
+      // No IO (ancient browsers): reveal immediately.
+      const t = setTimeout(() => setVisible(true), 0);
       return () => clearTimeout(t);
     }
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
-          setMounted(true);
+          setVisible(true);
           io.disconnect();
         }
       },
       // rootMargin: treat the viewport as ~1200px taller, so content
-      // mounts just before it's actually seen — a seamless swap.
+      // reveals just before it's actually seen — a seamless swap.
       { rootMargin },
     );
     io.observe(el); // fires immediately with the current state
@@ -51,7 +52,30 @@ export default function LazyMount({
 
   return (
     <div ref={ref} className={className}>
-      {mounted ? children : fallback}
+      {/* Placeholder: always rendered, fades out when real content is ready.
+          min-h ensures the container has height before real content appears. */}
+      {fallback && (
+        <div
+          className="transition-opacity duration-500 ease-out"
+          style={{
+            opacity: visible ? 0 : 1,
+            pointerEvents: visible ? "none" : "auto",
+          }}
+        >
+          {fallback}
+        </div>
+      )}
+      {/* Real content: always rendered (takes up space from the start),
+          fades in when the intersection observer fires. */}
+      <div
+        className="transition-opacity duration-500 ease-out"
+        style={{
+          opacity: visible ? 1 : 0,
+          pointerEvents: visible ? "auto" : "none",
+        }}
+      >
+        {children}
+      </div>
     </div>
   );
 }

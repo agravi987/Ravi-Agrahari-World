@@ -30,6 +30,9 @@ export interface Project {
   slug?: string;
   /** Markdown write-up rendered on that page (hidden when empty). */
   caseStudy?: string;
+  /** Phase 17: Mongo `updatedAt` → ISO string, when present (seed fallback
+   *  has none → the "updated" line hides, zero-data policy). */
+  updatedAt?: string;
 }
 
 export interface Experience {

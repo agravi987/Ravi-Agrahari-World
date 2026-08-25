@@ -47,7 +47,7 @@ const ICON_BY_LABEL: Record<string, LucideIcon> = {
   notes: BookOpen,
   certifications: Award,
   "skill areas": Sparkles,
-  "galaxy planets": Orbit,
+  "learning tracks": Orbit,
 };
 
 /** Animates a number from 0 → value with an ease-out ramp (rAF).
