@@ -69,6 +69,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // the password-guessing itself, not just the bcrypt cost).
         if (lockedOut(email)) return null;
 
+        // --- FIX: check .env credentials directly (no DB needed) ---
+        // Whatever ADMIN_EMAIL / ADMIN_PASSWORD is set in .env.local
+        // is the admin. No seed script required for auth.
+        const envEmail = process.env.ADMIN_EMAIL;
+        const envPassword = process.env.ADMIN_PASSWORD;
+        if (envEmail && envPassword) {
+          const emailMatch = email.toLowerCase() === envEmail.toLowerCase();
+          const passMatch = password === envPassword;
+          if (emailMatch && passMatch) {
+            recordAttempt(email, true);
+            return { id: "admin-env", email };
+          }
+          // Wrong .env credentials — still count as a failed attempt
+          if (emailMatch || email.toLowerCase() === envEmail.toLowerCase()) {
+            recordAttempt(email, false);
+            return null;
+          }
+        }
+
+        // Fallback: check database (for users created by seed script)
         try {
           await connectDb();
           const User = getUserModel();
