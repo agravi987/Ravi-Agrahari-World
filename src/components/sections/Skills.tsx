@@ -116,7 +116,10 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
   const swipe = useSwipe(next, prev);
 
   /** Auto-advance through domains: one after another, ~5s each.
-      Paused on hover/focus, manual select, or reduced-motion. */
+      Paused on hover/focus, manual select, or reduced-motion.
+      FIX: auto-advance only changes state (no .focus()) — calling
+      focus() on the tab button scrolls the page UP to the Skills
+      section every 5 seconds, which is the "auto-scroll" bug. */
   const reduceMotion = useReducedMotion();
   const [paused, setPaused] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -124,12 +127,12 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
   useEffect(() => {
     if (reduceMotion || skills.length <= 1 || paused) return;
     timerRef.current = setTimeout(() => {
-      moveTab(active, 1);
+      setActive((i) => (i + 1) % skills.length);
     }, 5000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [active, paused, reduceMotion, skills.length, moveTab]);
+  }, [active, paused, reduceMotion, skills.length]);
 
   if (skills.length === 0) return null; // auto-hide when empty (§5.2)
 
