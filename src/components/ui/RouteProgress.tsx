@@ -8,6 +8,11 @@
  * when available for real start/stop events, with a pathname-change
  * fallback so the bar still flashes on link clicks everywhere else.
  * Reduced-motion users get a simple fade (no sweep) via CSS.
+ *
+ * Note: every state update is deferred through a timer. The browser
+ * can dispatch `navigate` synchronously (e.g. during prefetch or
+ * hydration), and scheduling a React update from inside such an
+ * event crashes with "useInsertionEffect must not schedule updates".
  */
 "use client";
 
@@ -25,34 +30,43 @@ export default function RouteProgress() {
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    let t1: ReturnType<typeof setTimeout> | undefined;
-    let t2: ReturnType<typeof setTimeout> | undefined;
+    // All pending timers live here so cleanup can cancel any of them.
+    const timers = new Set<ReturnType<typeof setTimeout>>();
+    const defer = (fn: () => void) => {
+      const t = setTimeout(() => {
+        timers.delete(t);
+        fn();
+      }, 0);
+      timers.add(t);
+    };
+
     const nav =
       (window as unknown as { navigation?: NavLike | null }).navigation ?? null;
 
     if (!nav) {
       // Fallback: flash the bar on every pathname change so it still
-      // reads as "you navigated somewhere". Both transitions run in
-      // timers (never synchronously in the effect body).
-      t1 = setTimeout(() => setPending(true), 0);
-      t2 = setTimeout(() => setPending(false), 400);
+      // reads as "you navigated somewhere".
+      defer(() => setPending(true));
+      const t2 = setTimeout(() => setPending(false), 400);
+      timers.add(t2);
       return () => {
-        clearTimeout(t1);
-        clearTimeout(t2);
+        for (const t of timers) clearTimeout(t);
+        timers.clear();
       };
     }
 
-    const start = () => setPending(true);
-    const finish = () => {
-      setPending(false);
-    };
+    const start = () => defer(() => setPending(true));
+    const finish = () => defer(() => setPending(false));
+
     nav.addEventListener("navigate", start);
     nav.addEventListener("navigatesuccess", finish);
     nav.addEventListener("navigateerror", finish);
     return () => {
-      nav?.removeEventListener("navigate", start);
-      nav?.removeEventListener("navigatesuccess", finish);
-      nav?.removeEventListener("navigateerror", finish);
+      nav.removeEventListener("navigate", start);
+      nav.removeEventListener("navigatesuccess", finish);
+      nav.removeEventListener("navigateerror", finish);
+      for (const t of timers) clearTimeout(t);
+      timers.clear();
     };
   }, [pathname]);
 
