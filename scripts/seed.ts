@@ -1,9 +1,9 @@
 /**
  * scripts/seed.ts — plan S11e
  * Idempotent: safe to run repeatedly (upserts by stable keys).
- * 1. Populates all collections from src/lib/seed.ts
- * 2. Creates the single admin user from ADMIN_EMAIL/ADMIN_PASSWORD
- *    (bcrypt-hashed — plan D7). Requires MONGODB_URI.
+ * Populates all content collections from src/lib/seed.ts.
+ * Admin auth is now handled directly by .env credentials
+ * (ADMIN_EMAIL / ADMIN_PASSWORD) — no user seeding needed.
  *
  * Run: npm run seed
  */
@@ -12,7 +12,6 @@ import "dotenv/config";
 // dotenv loads .env by default; we use Next.js' .env.local convention.
 import { config as loadEnv } from "dotenv";
 loadEnv({ path: ".env.local" });
-import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { seedContent, seedGalaxy } from "../src/lib/seed";
 import {
@@ -25,7 +24,6 @@ import {
   getProjectModel,
   getSiteConfigModel,
   getSkillModel,
-  getUserModel,
 } from "../src/models";
 
 const MONGODB_URI = process.env.MONGODB_URI;
@@ -120,21 +118,8 @@ async function main() {
     )
   );
 
-  // Admin user (D7): created from env, bcrypt-hashed, idempotent.
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-  if (adminEmail && adminPassword) {
-    const User = getUserModel();
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
-    await User.updateOne(
-      { email: adminEmail },
-      { $set: { email: adminEmail, passwordHash } },
-      { upsert: true }
-    );
-    console.log(`✓ admin user ready: ${adminEmail}`);
-  } else {
-    console.warn("⚠ ADMIN_EMAIL/ADMIN_PASSWORD not set — admin login unavailable until seeded.");
-  }
+  // Admin auth: now handled directly by .env credentials in auth.ts
+  // — no user document needed in the database.
 
   console.log("✓ seed complete");
   await mongoose.disconnect();
