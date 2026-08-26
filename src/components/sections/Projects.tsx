@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
+import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
 import { useSwipe } from "@/lib/useSwipe";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -38,6 +38,10 @@ interface ProjectsProps {
   /** Phase 15 (#24): GitHub username for the "more on GitHub" link. */
   github?: string;
 }
+
+/** Progressive disclosure: only this many cards show until "Explore
+ *  more" expands the rest in place — less scrolling, faster scan. */
+const INITIAL_COUNT = 4;
 
 /** Own-site URLs open in-app; everything else opens a new tab. */
 function ProjectLink({
@@ -103,6 +107,9 @@ export default function Projects({ projects, github }: ProjectsProps) {
   // "one project after another" without closing the dialog.
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
+  // Progressive disclosure: collapsed by default — INITIAL_COUNT cards,
+  // "Explore more" reveals the rest of the (filtered) list.
+  const [expanded, setExpanded] = useState(false);
 
   // The tech list is small — a plain computation.
   const techs = Array.from(new Set(projects.flatMap((p) => p.tech))).sort();
@@ -114,6 +121,8 @@ export default function Projects({ projects, github }: ProjectsProps) {
       (selectedTechs.length === 0 || selectedTechs.every((t) => p.tech.includes(t))) &&
       (!featuredOnly || p.featured)
   );
+  /** The cards actually rendered — collapsed until "Explore more". */
+  const shownProjects = expanded ? visible : visible.slice(0, INITIAL_COUNT);
   const techCount = new Set(projects.flatMap((p) => p.tech)).size; // P27 footnote
 
   // Phase 9: the project currently open in the dialog (derived from the
@@ -164,7 +173,19 @@ export default function Projects({ projects, github }: ProjectsProps) {
   useEffect(() => {
     focusedIdxRef.current = focusedIdx;
   }, [focusedIdx]);
-  const cols = typeof window !== "undefined" && window.innerWidth >= 640 ? 2 : 1;
+  // Mirror of the SHOWN card count so the roving-tabindex effect always
+  // clamps to cards actually rendered (collapsed vs expanded).
+  const shownLenRef = useRef(0);
+  useEffect(() => {
+    shownLenRef.current = shownProjects.length;
+  }, [shownProjects.length]);
+  const [cols, setCols] = useState(1);
+  useEffect(() => {
+    const update = () => setCols(window.innerWidth >= 640 ? 2 : 1);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   useEffect(() => {
     const el = gridRef.current;
@@ -174,7 +195,9 @@ export default function Projects({ projects, github }: ProjectsProps) {
     // focusing it (keyboard flow felt broken: Tab landed on the OLD
     // card). move() updates state AND focuses the new card together.
     const move = (next: number) => {
-      const normalized = ((next % visible.length) + visible.length) % visible.length;
+      // Roving tabindex walks the SHOWN grid — hidden (collapsed) cards
+      // can't be focused.
+      const normalized = ((next % shownLenRef.current) + shownLenRef.current) % shownLenRef.current;
       focusedIdxRef.current = normalized;
       setFocusedIdx(normalized);
       requestAnimationFrame(() => {
@@ -192,7 +215,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
         move(focusedIdxRef.current - 1);
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        move(Math.min(focusedIdxRef.current + cols, visible.length - 1));
+        move(Math.min(focusedIdxRef.current + cols, shownLenRef.current - 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         move(Math.max(focusedIdxRef.current - cols, 0));
@@ -201,7 +224,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
         move(0);
       } else if (e.key === "End") {
         e.preventDefault();
-        move(visible.length - 1);
+        move(shownLenRef.current - 1);
       } else if (e.key === "Enter" || e.key === " ") {
         const btn = target.closest("button") as HTMLButtonElement | null;
         if (btn && !btn.closest("[role=dialog]")) {
@@ -212,7 +235,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [visible.length, cols]);
+  }, [shownProjects.length, cols]);
 
   if (projects.length === 0) return null; // auto-hide (§5.2)
 
@@ -344,8 +367,8 @@ export default function Projects({ projects, github }: ProjectsProps) {
           </button>
         </div>
       ) : (
-        <div ref={gridRef} className="projects-grid grid gap-6 sm:grid-cols-2" role="grid" aria-label="Projects">
-        {visible.map((project, i) => {
+        <div ref={gridRef} id="projects-grid" className="projects-grid grid gap-6 sm:grid-cols-2" role="grid" aria-label="Projects">
+        {shownProjects.map((project, i) => {
           const visibleTech = project.tech.slice(0, 3);
           const hiddenCount = project.tech.length - visibleTech.length;
           // Phase 15 (#1): featured projects lead as HERO cards — full
@@ -391,7 +414,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
                         image={project.coverImage}
                         title={project.title}
                         tech={project.tech}
-                        className={hero ? "h-52 sm:h-60" : "h-44 sm:h-40"}
+                        className={`cover-zoom ${hero ? "h-52 sm:h-60" : "h-44 sm:h-40"}`}
                       />
                       {/* Scrim — guarantees the overlay text reads on any image */}
                       <span
@@ -405,6 +428,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
                           {project.featured && (
                             <Star
                               className="h-4 w-4 -translate-y-0.5 fill-amber-300 text-amber-300"
+                              role="img"
                               aria-label="Featured project"
                             />
                           )}
@@ -458,6 +482,28 @@ export default function Projects({ projects, github }: ProjectsProps) {
             </Reveal>
           );
         })}
+        </div>
+      )}
+
+      {/* Progressive disclosure: reveal the rest of the (filtered) wall
+          in place — no page change, one click. */}
+      {visible.length > shownProjects.length && (
+        <div className="mt-6 text-center">
+          <button
+            type="button"
+            onClick={() => setExpanded(true)}
+            // Disclosure semantics: SRs hear the current state, and
+            // aria-controls ties the button to the grid it grows.
+            aria-expanded={expanded}
+            aria-controls="projects-grid"
+            className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-5 py-2.5 text-sm font-medium text-ink-soft shadow-card transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            Explore more projects
+            <span className="font-mono text-xs text-ink-faint">
+              +{visible.length - shownProjects.length}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
         </div>
       )}
 

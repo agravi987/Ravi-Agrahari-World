@@ -18,7 +18,6 @@ import Badge from "@/components/ui/Badge";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import CodeBlock from "@/components/blog/CodeBlock";
 import Eyebrow from "@/components/ui/Eyebrow";
-import JsonLd from "@/components/JsonLd";
 import { getContent } from "@/lib/content";
 import { tagHueClasses } from "@/lib/tagHue";
 
@@ -56,6 +55,8 @@ export async function generateMetadata({
       description: excerpt,
       type: "article",
       url: `${siteUrl}/projects/${project.slug}`,
+      // The cover makes the share preview recognizable (only when set).
+      images: project.coverImage ? [{ url: project.coverImage }] : undefined,
     },
     twitter: { card: "summary", title: project.title, description: excerpt },
   };
@@ -74,8 +75,25 @@ export default async function ProjectCaseStudyPage({
   const hasCaseStudy = Boolean(project.caseStudy?.trim());
   const hasCover = Boolean(project.coverImage);
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  // SEO: typed CreativeWork entity for this case study.
+  const creativeWork = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: project.title,
+    description: project.description || undefined,
+    url: `${siteUrl}/projects/${project.slug}`,
+    image: project.coverImage || undefined,
+    keywords: project.tech?.join(", ") || undefined,
+  };
+
   return (
     <article className="mx-auto max-w-3xl px-6 py-16">
+      {/* SEO: typed entity for this case study */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(creativeWork).replace(/</g, "\\u003c") }}
+      />
       {/* Breadcrumbs — hierarchy navigation for deep pages */}
       <Breadcrumbs
         items={[

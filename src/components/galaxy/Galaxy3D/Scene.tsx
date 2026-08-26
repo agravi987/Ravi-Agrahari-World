@@ -469,9 +469,14 @@ export default function Scene({
   const ndc = useMemo(() => new THREE.Vector2(), []);
 
   // Theme-aware colors (light paper theme by default; dark mode detected).
+  // Includes midnight + nord — any theme where THEMES[t].dark is true.
   const [dark, setDark] = useState(false);
   useEffect(() => {
-    const check = () => setDark(document.documentElement.dataset.theme === "dark");
+    const DARK_THEMES = new Set(["dark", "midnight", "nord"]);
+    const check = () => {
+      const t = document.documentElement.dataset.theme ?? "light";
+      setDark(DARK_THEMES.has(t));
+    };
     check();
     const mo = new MutationObserver(check);
     mo.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });

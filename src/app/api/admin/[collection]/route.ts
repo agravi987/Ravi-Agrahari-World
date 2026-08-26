@@ -1,37 +1,18 @@
 /**
- * api/admin/[collection]/route.ts — plan D10 / ui-ux-design.md P0
+ * api/admin/[collection]/route.ts -- plan D10 / ui-ux-design.md P0
  * List (GET) + create (POST) for admin collections. Session-checked
- * server-side (middleware.ts already gates the path; this is the
+ * server-side (proxy.ts already gates the path; this is the
  * second line of defense). After every mutation we revalidate the
  * whole site so edits go live immediately (plan D10).
  */
-import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { getCollection } from "@/lib/collections";
 import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
+import { requireAdmin, revalidateFor } from "@/lib/adminApi";
 
 // Admin reads/writes must never be served from a stale static cache.
 export const dynamic = "force-dynamic";
-
-/** Rejects unauthenticated requests; returns null when allowed through. */
-async function requireAdmin(): Promise<NextResponse | null> {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
-
-/** Site + admin pages revalidate after any mutation (plan D10).
- *  Galaxy pages too — the Learning Galaxy renders from the same
- *  content boundary and must reflect edits immediately (v4). */
-function revalidateFor(collection: string) {
-  revalidatePath("/", "layout");
-  revalidatePath("/detailed-galaxy");
-  revalidatePath(`/admin/${collection}`);
-}
 
 export async function GET(
   _req: NextRequest,
@@ -97,12 +78,18 @@ export async function POST(
 
   try {
     if (spec.singleDoc) {
-      // Singleton: update the one document, or create it on first run.
-      const doc = await Model.findOneAndUpdate({}, body.data, {
-        new: true,
-        upsert: true,
-        runValidators: true,
-      }).lean();
+      // Singleton: find-or-create pattern. Using upsert with an empty
+      // filter {} is fragile if duplicates somehow exist -- instead,
+      // explicitly find first and create only when no doc exists.
+      let doc = await Model.findOne().lean();
+      if (doc) {
+        doc = await Model.findByIdAndUpdate(doc._id, body.data, {
+          new: true,
+          runValidators: true,
+        }).lean();
+      } else {
+        doc = await Model.create(body.data);
+      }
       revalidateFor(collection);
       return NextResponse.json({ data: doc });
     }

@@ -107,8 +107,26 @@ async function fetchFromMongo(): Promise<SiteContent> {
   // site never renders blank before `npm run seed` (plan D1).
   if (!config) return seedContent;
 
+  // Normalize sectionsEnabled: a config saved before a section key
+  // existed (or a partial save) must not silently hide that section —
+  // missing keys default to SHOWN; only an explicit false hides.
+  const saved = (config.sectionsEnabled ?? {}) as Partial<SiteContent["config"]["sectionsEnabled"]>;
+  const withSections: SiteContent["config"] = {
+    ...config,
+    sectionsEnabled: {
+      hero: saved.hero ?? true,
+      skills: saved.skills ?? true,
+      galaxy: saved.galaxy ?? true,
+      projects: saved.projects ?? true,
+      experience: saved.experience ?? true,
+      certifications: saved.certifications ?? true,
+      blog: saved.blog ?? true,
+      contact: saved.contact ?? true,
+    },
+  };
+
   return {
-    config: pick(config)!,
+    config: pick(withSections)!,
     skills: pick(skills) ?? [],
     projects: pick(projects) ?? [],
     experience: pick(experience) ?? [],
@@ -150,7 +168,9 @@ function asString(v: unknown): string {
  *  undefined when the doc has none (e.g. seed fallback). */
 function updatedAtIso(doc: unknown): string | undefined {
   const u = (doc as Record<string, unknown> | null | undefined)?.updatedAt;
-  return u instanceof Date && !Number.isNaN(u.getTime()) ? u.toISOString() : undefined;
+  if (u instanceof Date && !Number.isNaN(u.getTime())) return u.toISOString();
+  if (typeof u === "string") return u;
+  return undefined;
 }
 
 async function fetchGalaxyFromMongo(config: SiteContent["config"]): Promise<GalaxyData> {

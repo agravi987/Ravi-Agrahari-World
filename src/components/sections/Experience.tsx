@@ -2,7 +2,7 @@
  * Experience.tsx (client) — plan S7 + P13 progressive disclosure + P25.
  * Timeline where each role is a ROW (company · role · period); click
  * to expand the description + metrics in place. One role open at a
- * time (accordion), first defaults open. The timeline stays a clean
+ * time (accordion), all collapsed by default. The timeline stays a clean
  * scan line — detail waits behind the click.
  *
  * P25: metrics get emerald check icons (done-things, not bullets),
@@ -100,7 +100,9 @@ interface ExperienceProps {
 }
 
 export default function Experience({ experience }: ExperienceProps) {
-  const [openIdx, setOpenIdx] = useState<number | null>(0);
+  // Collapsed by default — the visitor scans the timeline rows first;
+  // detail is one click away on every role (progressive disclosure).
+  const [openIdx, setOpenIdx] = useState<number | null>(null);
   const trackRef = useRef<HTMLOListElement>(null);
 
   // Growing timeline (UX pass): --track-progress scales the gradient line
@@ -228,7 +230,7 @@ export default function Experience({ experience }: ExperienceProps) {
                       loading="lazy"
                       decoding="async"
                       title={item.company}
-                      className="experience-logo h-10 w-10 shrink-0 rounded-xl border border-card-border bg-white object-contain p-1 dark:bg-white"
+                      className="experience-logo h-10 w-10 shrink-0 rounded-xl border border-card-border bg-card object-contain p-1"
                     />
                   ) : (
                     <span

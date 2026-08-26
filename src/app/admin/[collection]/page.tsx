@@ -14,18 +14,26 @@
 
 import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Search } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
 
 type Doc = Record<string, unknown> & { _id?: string };
 
-/** Renders a cell value for the list table (arrays → count, booleans → yes/no). */
+/** Renders a cell value for the list table (arrays → count, booleans → yes/no).
+ *  ISO timestamps render as short human dates — `publishedAt` used to
+ *  show the raw "2026-08-01T00:00:00.000Z" string in the table. */
 function formatCell(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
   if (Array.isArray(value)) return `${value.length} item${value.length === 1 ? "" : "s"}`;
   if (typeof value === "boolean") return value ? "yes" : "no";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)) {
+    const d = new Date(value);
+    if (!Number.isNaN(d.getTime())) {
+      return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+    }
+  }
   return String(value);
 }
 
@@ -72,18 +80,34 @@ export default function CollectionListPage() {
   const [docs, setDocs] = useState<Doc[] | null>(null);
   const [singleDoc, setSingleDoc] = useState<Doc | null>(null);
   const [error, setError] = useState<string | null>(null);
-  /** P20: client-side list filter — type to find a row in big collections. */
+  /** P20: client-side list filter — type to find a row in big collections.
+   *  The input updates `query` instantly (controlled), but filtering runs
+   *  against the debounced value so long lists don't re-filter per key. */
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 150);
+    return () => clearTimeout(t);
+  }, [query]);
   /** galaxyPlanet name map — lets the moon list show "AWS" not the raw _id. */
   const [planetNames, setPlanetNames] = useState<Record<string, string>>({});
   /** Phase 12: ids checked for bulk actions (toggle visibility / delete). */
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  /** Re-entrancy guard for Duplicate — double-clicks used to POST twice
+   *  and create two copies (the button has no built-in pending state). */
+  const duplicating = useRef(false);
 
-  /** Reload the current collection from the API (used after bulk ops). */
+  /** Reload the current collection from the API (used after bulk ops).
+   *  Failures are surfaced — a silent no-op left stale rows on screen
+   *  with no hint that e.g. a bulk delete half-failed. */
   async function reload() {
     const res = await fetch(`/api/admin/${collection}`);
     const json = await res.json().catch(() => null);
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError(json?.error || "Failed to refresh the list — refresh the page.");
+      return;
+    }
+    setError(null);
     if (spec?.singleDoc) setSingleDoc((json?.data as Doc) ?? null);
     else setDocs((json?.data as Doc[]) ?? []);
   }
@@ -102,18 +126,28 @@ export default function CollectionListPage() {
     }
   }
 
+  /** Run a request per id in bounded batches — selecting 100+ rows used
+   *  to fire every PUT/DELETE simultaneously and hammer the API. */
+  async function batchedRequests(ids: string[], make: (id: string) => Promise<Response>): Promise<Response[]> {
+    const results: Response[] = [];
+    const BATCH = 8;
+    for (let i = 0; i < ids.length; i += BATCH) {
+      results.push(...(await Promise.all(ids.slice(i, i + BATCH).map(make))));
+    }
+    return results;
+  }
+
   /** Bulk visibility flip — PUTs the boolean field on every checked row. */
   async function bulkSetVisibility(show: boolean) {
     if (!boolKey || selected.size === 0) return;
     setError(null);
-    const results = await Promise.all(
-      [...selected].map((id) =>
-        fetch(`/api/admin/${collection}/${id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: { [boolKey]: show } }),
-        })
-      )
+    const ids = [...selected];
+    const results = await batchedRequests(ids, (id) =>
+      fetch(`/api/admin/${collection}/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: { [boolKey]: show } }),
+      })
     );
     if (results.some((r) => !r.ok)) {
       setError("Some updates failed — refresh to see the current state.");
@@ -129,10 +163,9 @@ export default function CollectionListPage() {
       spec?.deleteWarning ?? "Delete these items? This cannot be undone.";
     if (!window.confirm(`${warning} Delete ${selected.size} item(s) anyway?`)) return;
     setError(null);
-    const results = await Promise.all(
-      [...selected].map((id) =>
-        fetch(`/api/admin/${collection}/${id}`, { method: "DELETE" })
-      )
+    const ids = [...selected];
+    const results = await batchedRequests(ids, (id) =>
+      fetch(`/api/admin/${collection}/${id}`, { method: "DELETE" })
     );
     if (results.some((r) => !r.ok)) {
       setError("Some deletes failed — refresh to see what remains.");
@@ -142,6 +175,9 @@ export default function CollectionListPage() {
   }
 
   useEffect(() => {
+    // Unknown collection: skip the fetch entirely (the "Unknown
+    // collection" screen below handles it; fetching would 400 anyway).
+    if (!spec) return;
     let cancelled = false;
     fetch(`/api/admin/${collection}`)
       .then(async (res) => {
@@ -160,7 +196,9 @@ export default function CollectionListPage() {
     return () => {
       cancelled = true;
     };
-  }, [collection, spec?.singleDoc]);
+    // spec comes from a module-level map — stable identity per collection,
+    // so this doesn't re-subscribe on unrelated renders.
+  }, [collection, spec, spec?.singleDoc]);
 
   // Moon list: load planet names for the parent-planet column.
   useEffect(() => {
@@ -191,15 +229,17 @@ export default function CollectionListPage() {
       )
     : docs;
 
-  // P20: filter rows by any visible text (name/title/slug/fields).
-  // spec may be undefined here (guard is below) — optional-chain it.
-  const q = query.trim().toLowerCase();
+  // P20: filter rows by their VISIBLE columns only. The old fallback
+  // also matched d.name/d.title even when those weren't listed columns,
+  // so searching could surface rows whose hidden fields (message body,
+  // markdown content…) happened to contain the query.
+  const q = debouncedQuery.trim().toLowerCase();
   const columns = spec?.listColumns ?? [];
   const filtered = q
     ? (sorted ?? []).filter((d) =>
         columns.some((col) =>
           String(d[col] ?? "").toLowerCase().includes(q)
-        ) || String(d.name ?? d.title ?? "").toLowerCase().includes(q)
+        )
       )
     : sorted;
 
@@ -224,7 +264,10 @@ export default function CollectionListPage() {
   if (spec.singleDoc) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <p className="font-mono text-xs text-accent">~/admin/{collection}</p>
+        {/* Path doubles as the back-link — no dead-end pages. */}
+        <Link href="/admin" className="font-mono text-xs text-accent hover:underline">
+          ~/admin/{collection}
+        </Link>
         <h1 className="mt-2 font-display text-2xl font-semibold text-ink">{spec.label}</h1>
         <p className="mt-1 text-sm text-ink-soft">{spec.description}</p>
         {error && (
@@ -232,7 +275,7 @@ export default function CollectionListPage() {
             {error}
           </p>
         )}
-        {!error && docs === null && singleDoc === null && (
+        {!error && singleDoc === null && (
           <p className="mt-6 text-sm text-ink-faint">Loading…</p>
         )}
         {/* BUGFIX: only mount the form once the singleton doc has
@@ -275,7 +318,9 @@ export default function CollectionListPage() {
   }
 
   async function duplicate(doc: Doc) {
-    if (!spec) return;
+    if (!spec || duplicating.current) return; // ignore double-clicks
+    duplicating.current = true;
+    try {
     const id = String(doc._id ?? "");
     if (!id) return;
     const clone: Record<string, unknown> = { ...doc };
@@ -283,7 +328,15 @@ export default function CollectionListPage() {
     delete clone.createdAt;
     delete clone.updatedAt;
     // Make the copy distinguishable + keep slugs unique (galaxy v4).
-    if (typeof clone.slug === "string") clone.slug = `${clone.slug}-copy`;
+    // Duplicating a copy used to stack suffixes ("post-copy-copy");
+    // now it counts: -copy, -copy-2, -copy-3…
+    if (typeof clone.slug === "string") {
+      const taken = new Set((docs ?? []).map((d) => String(d.slug ?? "")));
+      let n = 1;
+      let candidate = `${clone.slug}-copy`;
+      while (taken.has(candidate)) candidate = `${clone.slug}-copy-${++n}`;
+      clone.slug = candidate;
+    }
     if (typeof clone.name === "string") clone.name = `${clone.name} (copy)`;
     else if (typeof clone.title === "string") clone.title = `${clone.title} (copy)`;
 
@@ -333,6 +386,9 @@ export default function CollectionListPage() {
       lastErr = json?.error || lastErr;
     }
     setError(lastErr);
+    } finally {
+      duplicating.current = false;
+    }
   }
 
   /** Swap this doc's order value with its neighbor and persist both. */
@@ -377,7 +433,10 @@ export default function CollectionListPage() {
     <div className="mx-auto max-w-5xl px-6 py-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="font-mono text-xs text-accent">~/admin/{collection}</p>
+          {/* Path doubles as the back-link — no dead-end pages. */}
+          <Link href="/admin" className="font-mono text-xs text-accent hover:underline">
+            ~/admin/{collection}
+          </Link>
           <h1 className="mt-2 font-display text-2xl font-semibold text-ink">{spec.label}s</h1>
           <p className="mt-1 text-sm text-ink-soft">{spec.description}</p>
         </div>
@@ -496,7 +555,15 @@ export default function CollectionListPage() {
             </p>
           )}
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-card-border bg-paper-deep/50">
+            {/* SR context: what this table is + how many rows are shown
+                (filters shrink the set without any other announcement). */}
+            <caption className="sr-only">
+              {spec.label} list — {filtered.length}
+              {q ? ` matching “${query}”` : ""} of {sorted?.length ?? 0}
+            </caption>
+            {/* Sticky header: long collections (messages, posts) keep
+                column labels visible while scrolling the table. */}
+            <thead className="sticky top-0 z-[5] border-b border-card-border bg-paper-deep/50 backdrop-blur">
               <tr>
                 <th scope="col" className="w-8 px-2 py-3" aria-label="Select rows">
                   <input
@@ -526,7 +593,13 @@ export default function CollectionListPage() {
                 const id = String(doc._id ?? "");
                 const thumb = previewKey ? String(doc[previewKey] ?? "") : "";
                 return (
-                  <tr key={id} className="transition-colors hover:bg-paper/60">
+                  <tr key={id} className="relative transition-colors hover:bg-paper/60">
+                    {/* Hover accent: a 2px bar on the leading edge — rows
+                        scan faster than a background wash alone. */}
+                    <td
+                      aria-hidden="true"
+                      className="absolute left-0 top-0 h-full w-0.5 bg-accent opacity-0 transition-opacity [tr:hover_&]:opacity-60"
+                    />
                     <td className="px-2 py-3">
                       <input
                         type="checkbox"

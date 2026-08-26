@@ -19,7 +19,7 @@ async function copyPlanetLink(slug: string) {
     );
     showToast("Planet link copied — share it");
   } catch {
-    /* clipboard unavailable — nothing to do */
+    showToast("Could not copy — try manually");
   }
 }
 
@@ -122,6 +122,11 @@ export default function PlanetCard({
                 <span className="truncate">{m.name}</span>
               </button>
             ))}
+            {planet.moons.length > 6 && (
+              <span className="rounded-full bg-paper-deep px-2 py-1 text-[10px] text-ink-faint">
+                +{planet.moons.length - 6} more
+              </span>
+            )}
           </div>
         </div>
       )}

@@ -10,7 +10,7 @@
 "use client";
 
 import { Menu, Search, X } from "lucide-react";
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { usePathname } from "next/navigation";
 import { openCommandPalette } from "./ui/CommandPalette";
 import BrandIcon from "./ui/BrandIcon";
@@ -18,27 +18,34 @@ import Kbd from "./ui/Kbd";
 import ThemeToggle from "./ThemeToggle";
 import Tooltip from "./ui/Tooltip";
 import { useSmartNav } from "@/lib/smartNav";
+import type { SectionsEnabled } from "@/types";
 
 interface HeaderProps {
   name: string;
   currentlyLearning: string;
   github: string;
-  /** Phase 10: availability line from the CMS (recruiter-first) —
-   *  hidden when empty; shown only on very wide screens so the nav
-   *  never crowds. */
-  availability?: string;
+  /** CMS section toggles — nav links to hidden sections are omitted. */
+  sectionsEnabled: SectionsEnabled;
+  // `availability` was removed: hero + contact both render the same CMS
+  // line, so a third copy in the nav was pure duplication at xl+.
 }
 
 /** `id` drives the active state (scrollspy on home, pathname on pages);
  *  `href` is the logical destination — #anchors resolve via smartNav so
  *  they work from ANY page (P23). Blog points at the archive (/blog) —
- *  the full notes collection — not the home teaser section. */
-const NAV_LINKS = [
-  { id: "skills", href: "#skills", label: "skills" },
-  { id: "galaxy", href: "/detailed-galaxy", label: "galaxy" }, // full explorer page (Galaxy v4)
-  { id: "projects", href: "#projects", label: "projects" },
-  { id: "blog", href: "/blog", label: "blog" },
-  { id: "contact", href: "#contact", label: "contact" },
+ *  the full notes collection — not the home teaser section.
+ *  `section` = the sectionsEnabled key that gates the link. */
+const NAV_LINKS: {
+  id: string;
+  href: string;
+  label: string;
+  section?: keyof SectionsEnabled;
+}[] = [
+  { id: "skills", href: "#skills", label: "skills", section: "skills" },
+  { id: "galaxy", href: "/detailed-galaxy", label: "galaxy", section: "galaxy" }, // full explorer page (Galaxy v4)
+  { id: "projects", href: "#projects", label: "projects", section: "projects" },
+  { id: "blog", href: "/blog", label: "blog", section: "blog" },
+  { id: "contact", href: "#contact", label: "contact", section: "contact" },
 ];
 
 /** Home-only section ids the scrollspy tracks. */
@@ -72,40 +79,71 @@ function navClickHandler(navigate: (href: string) => void, href: string) {
   };
 }
 
-export default function Header({ name, currentlyLearning, github, availability }: HeaderProps) {
+export default function Header({
+  name,
+  currentlyLearning,
+  github,
+  sectionsEnabled,
+}: HeaderProps) {
   const pathname = usePathname();
   const { navigate, hrefFor } = useSmartNav();
+  // Hidden sections lose their nav link (CMS-controlled, no dead anchors).
+  const navLinks = NAV_LINKS.filter(
+    (l) => !l.section || sectionsEnabled[l.section] !== false
+  );
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Focus management refs (mobile menu a11y).
+  const headerRef = useRef<HTMLElement | null>(null);
+  const burgerRef = useRef<HTMLButtonElement | null>(null);
+  const wasOpen = useRef(false);
   /** Scrollspy: the section currently in view, highlighted in the nav. */
   const [activeSection, setActiveSection] = useState<string | null>(null);
 
-  // One passive scroll listener drives: the header shadow and the
-  // scrollspy (which section is in view).
-  // Only meaningful on home — the section ids don't exist on other
-  // pages, so the probe is gated on isHome (P23).
+  // One passive scroll listener drives just the header shadow now.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll(); // initial state without waiting for a scroll event
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Scrollspy via IntersectionObserver — no offsetTop reads per scroll
+  // event (the old probe forced layout every frame). A section counts
+  // as "active" while it intersects a band around 35% viewport height;
+  // when several do, the topmost wins (same semantics as before).
   const isHome = pathname === "/";
   useEffect(() => {
-    const onScroll = () => {
-      setScrolled(window.scrollY > 8);
-
-      // Scrollspy: the last section whose top passed ~35% of the viewport.
-      let current: string | null = null;
-      if (isHome) {
-        const probe = Math.min(window.scrollY + window.innerHeight * 0.35, document.documentElement.scrollHeight - 1);
-        for (const id of SCROLLSPY_IDS) {
-          const el = document.getElementById(id);
-          if (el && el.offsetTop <= probe) current = id;
-        }
-      }
-      setActiveSection(current);
-    };
-    onScroll(); // set initial state without waiting for a scroll event
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
+    if (!isHome) return;
+    const visible = new Map<string, boolean>();
+    let raf = 0;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) visible.set((e.target as HTMLElement).id, e.isIntersecting);
+        // Coalesce bursts of entries into one state write per frame.
+        cancelAnimationFrame(raf);
+        raf = requestAnimationFrame(() => {
+          let current: string | null = null;
+          for (const id of SCROLLSPY_IDS) {
+            if (visible.get(id)) {
+              current = id;
+              break; // document order — first intersecting section is active
+            }
+          }
+          setActiveSection(current);
+        });
+      },
+      // The band: a section is "current" while it overlaps the zone
+      // from 35% viewport height down to ~45%.
+      { rootMargin: "-35% 0px -55% 0px", threshold: 0 }
+    );
+    for (const id of SCROLLSPY_IDS) {
+      const el = document.getElementById(id);
+      if (el) observer.observe(el);
+    }
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(raf);
+      observer.disconnect();
     };
   }, [isHome]);
 
@@ -115,14 +153,49 @@ export default function Header({ name, currentlyLearning, github, availability }
     activeSection ??
     (pathname.startsWith("/blog") ? "blog" : pathname === "/detailed-galaxy" ? "galaxy" : null);
 
-  // Close the mobile panel on Escape so keyboard users never get stuck.
+  // Mobile menu a11y: Escape closes (as before) AND Tab is trapped
+  // inside the header so keyboard users can't land on content behind
+  // the open panel; body scroll locks so the page doesn't slide under;
+  // closing returns focus to the burger (where a keyboard user left it).
   useEffect(() => {
-    if (!menuOpen) return;
+    if (!menuOpen) {
+      // Restore focus once, on the open → close transition.
+      if (wasOpen.current) {
+        wasOpen.current = false;
+        burgerRef.current?.focus();
+      }
+      return;
+    }
+    wasOpen.current = true;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setMenuOpen(false);
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const root = headerRef.current;
+      if (!root) return;
+      const focusables = root.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled])'
+      );
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKey);
+    };
   }, [menuOpen]);
 
   // BUGFIX: close it on browser back/forward too (popstate) — plain
@@ -159,6 +232,7 @@ export default function Header({ name, currentlyLearning, github, availability }
 
   return (
     <header
+      ref={headerRef}
       className={`sticky top-0 z-50 border-b border-card-border bg-paper/70 backdrop-blur-xl transition-shadow supports-[backdrop-filter]:bg-paper/60 ${
         scrolled ? "shadow-card" : ""
       }`}
@@ -188,7 +262,7 @@ export default function Header({ name, currentlyLearning, github, availability }
 
         {/* Nav (desktop) */}
         <nav aria-label="Primary" className="hidden items-center gap-6 md:flex">
-          {NAV_LINKS.map((link) => {
+          {navLinks.map((link) => {
             const active = link.id === activeId;
             return (
               <a
@@ -227,33 +301,20 @@ export default function Header({ name, currentlyLearning, github, availability }
               <Kbd>⌘K</Kbd>
             </button>
           </Tooltip>
-          {/* Momentum badge (plan §4.2 core) — header, desktop+ */}
+          {/* Momentum badge (plan §4.2 core) — header, desktop+.
+              Hidden when the galaxy section is off (its target). */}
           {/* P18: the momentum badge is a shortcut INTO the galaxy — the
               "currently learning" topic lives there as a planet */}
-          <a
-            href="/detailed-galaxy"
-            title="See this topic in the learning galaxy"
-            className="hidden items-center gap-1.5 rounded-full border border-card-border bg-card px-3 py-1 text-xs text-ink-soft transition-colors hover:border-accent/40 hover:text-accent lg:inline-flex"
-          >
-            <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" aria-hidden="true" />
-            learning: {currentlyLearning}
-          </a>
-          {/* Phase 10: availability pill — recruiter-first signal, same
-              CMS line as the hero/contact; xl+ only to protect the nav. */}
-          {availability && (
-            <span
-              title="Availability"
-              className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-400 xl:inline-flex"
+          {sectionsEnabled.galaxy !== false && (
+            <a
+              href={hrefFor("/detailed-galaxy")}
+              onClick={navClickHandler(navigate, "/detailed-galaxy")}
+              title="See this topic in the learning galaxy"
+              className="hidden items-center gap-1.5 rounded-full border border-card-border bg-card px-3 py-1 text-xs text-ink-soft transition-colors hover:border-accent/40 hover:text-accent lg:inline-flex"
             >
-              <span
-                aria-hidden="true"
-                className="relative flex h-1.5 w-1.5"
-              >
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-50" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              </span>
-              {availability}
-            </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" aria-hidden="true" />
+              learning: {currentlyLearning}
+            </a>
           )}
           <Tooltip label="GitHub profile">
             <a
@@ -272,6 +333,7 @@ export default function Header({ name, currentlyLearning, github, availability }
 
           {/* Mobile menu toggle — md:hidden; links live in the panel below */}
           <button
+            ref={burgerRef}
             type="button"
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
@@ -296,7 +358,7 @@ export default function Header({ name, currentlyLearning, github, availability }
           className="border-t border-card-border bg-paper/95 backdrop-blur-sm md:hidden"
         >
           <ul className="mx-auto max-w-5xl space-y-1 px-6 py-4">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <li key={link.id}>
                 <a
                   href={hrefFor(link.href)}

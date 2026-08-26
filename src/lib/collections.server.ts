@@ -76,30 +76,38 @@ export async function getRecentEdits(limit = 6): Promise<RecentEdit[]> {
     ["skill", "Skill"],
     ["siteConfig", "Site config"],
   ];
-  for (const [key, label] of order) {
-    try {
-      const docs = (await MODEL_GETTERS[key]()
-        .find()
-        .sort({ updatedAt: -1 })
-        .limit(perCollection)
-        .lean()) as unknown as Record<string, unknown>[];
-      for (const d of docs) {
-        const updated = d.updatedAt;
-        // Only real dates count (lean() returns native Date objects).
-        if (!(updated instanceof Date) || Number.isNaN(updated.getTime())) continue;
-        out.push({
-          collection: key,
-          label,
-          id: String(d._id ?? ""),
-          title: String(d.title ?? d.name ?? d.company ?? key),
-          updatedAt: updated,
-          href: key === "siteConfig" ? "/admin/siteConfig" : `/admin/${key}/${d._id}`,
+  // All collections in parallel — the sequential loop stacked 8 round
+  // trips on every dashboard render before the page could paint.
+  const settled = await Promise.all(
+    order.map(async ([key, label]) => {
+      try {
+        const docs = (await MODEL_GETTERS[key]()
+          .find()
+          .sort({ updatedAt: -1 })
+          .limit(perCollection)
+          .lean()) as unknown as Record<string, unknown>[];
+        return docs.flatMap((d) => {
+          const updated = d.updatedAt;
+          // Only real dates count (lean() returns native Date objects).
+          if (!(updated instanceof Date) || Number.isNaN(updated.getTime())) return [];
+          return [
+            {
+              collection: key,
+              label,
+              id: String(d._id ?? ""),
+              title: String(d.title ?? d.name ?? d.company ?? key),
+              updatedAt: updated,
+              href: key === "siteConfig" ? "/admin/siteConfig" : `/admin/${key}/${d._id}`,
+            } satisfies RecentEdit,
+          ];
         });
+      } catch {
+        // A single broken collection shouldn't kill the dashboard.
+        return [] as RecentEdit[];
       }
-    } catch {
-      // A single broken collection shouldn't kill the dashboard.
-    }
-  }
+    })
+  );
+  out.push(...settled.flat());
   return out
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, limit);

@@ -93,6 +93,10 @@ const HAIRLINE = [
   "border-t-topic-linux",
 ];
 
+/** Progressive disclosure: the chip row shows this many certs until
+ *  "Show all" expands the rest — long lists stay scannable. */
+const CHIP_LIMIT = 6;
+
 export default function Certifications({
   certifications,
   galaxyCategorySlugs,
@@ -111,8 +115,14 @@ export default function Certifications({
       : certifications.filter((c) => c.category === filter)
   ).sort((a, b) => monthValue(b.date) - monthValue(a.date));
 
+  /** Collapsed by default: only the first CHIP_LIMIT chips (+ spotlight)
+      render until "Show all" expands — less content per screen. */
+  const [expandedAll, setExpandedAll] = useState(false);
+  const shownCerts = expandedAll ? visible : visible.slice(0, CHIP_LIMIT);
+
   // Phase 9 gestures: prev/next via click or touch swipe (parity with skills).
-  const len = Math.max(1, visible.length); // guard: section hides when empty
+  // Browsing cycles within the SHOWN set so the active chip is always visible.
+  const len = Math.max(1, shownCerts.length); // guard: section hides when empty
   const prev = useCallback(
     () => setActive((i) => (i - 1 + len) % len),
     [len]
@@ -144,8 +154,8 @@ export default function Certifications({
 
   if (certifications.length === 0) return null; // auto-hide (§5.2)
 
-  const idx = Math.min(active, visible.length - 1);
-  const cert = visible[idx];
+  const idx = Math.min(active, shownCerts.length - 1);
+  const cert = shownCerts[idx];
   // Phase 16 (#1): issuer domain for the "verified" tooltip.
   const domain = cert?.verifyUrl ? domainOf(cert.verifyUrl) : null;
 
@@ -206,14 +216,17 @@ export default function Certifications({
 
       {/* Chip row — one cert focused at a time. */}
       <div role="tablist" aria-label="Certifications" className="flex flex-wrap justify-center gap-2">
-        {visible.map((c, i) => {
+        {shownCerts.map((c, i) => {
           const selected = i === idx;
           return (
             <button
               key={`${i}-${c.name}-${c.date}`}
               type="button"
               role="tab"
+              id={`cert-tab-${i}`}
               aria-selected={selected}
+              aria-controls="cert-panel"
+              tabIndex={selected ? 0 : -1}
               onClick={() => goTo(i)}
               onKeyDown={(e) => {
                 // P27: Home/End jump; ←/→ roving nav — all through goTo
@@ -223,7 +236,7 @@ export default function Certifications({
                   goTo(0);
                 } else if (e.key === "End") {
                   e.preventDefault();
-                  goTo(visible.length - 1);
+                  goTo(shownCerts.length - 1);
                 } else if (e.key === "ArrowLeft") {
                   e.preventDefault();
                   goTo(activeRef.current - 1);
@@ -244,13 +257,28 @@ export default function Certifications({
         })}
       </div>
 
-      {/* P26: honest scale — how many are verified here */}
+      {/* Progressive disclosure toggle — reveal/hide the rest of the list */}
+      {visible.length > CHIP_LIMIT && (
+        <div className="mt-3 text-center">
+          <button
+            type="button"
+            onClick={() => setExpandedAll((v) => !v)}
+            aria-expanded={expandedAll}
+            className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-4 py-2 text-xs font-medium text-ink-soft shadow-card transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+          >
+            {expandedAll ? "Show fewer" : `Show all ${visible.length} certifications`}
+          </button>
+        </div>
+      )}
       <p className="mt-3 text-center font-mono text-xs text-ink-faint">
-        {visible.length} certification{visible.length === 1 ? "" : "s"} in this view
+        {shownCerts.length} of {visible.length} certification{visible.length === 1 ? "" : "s"} in this view
       </p>
 
       {/* Focus card — only the selected cert's detail is on screen. */}
       <div
+        id="cert-panel"
+        role="tabpanel"
+        aria-labelledby={`cert-tab-${idx}`}
         key={`${idx}-${cert.name}-${cert.date}`}
         className="skill-swap mx-auto mt-6 max-w-2xl"
         aria-live="polite"

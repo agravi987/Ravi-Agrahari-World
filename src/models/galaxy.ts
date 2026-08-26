@@ -29,7 +29,8 @@ const galaxyMoonSchema = new Schema<GalaxyMoon>(
   {
     planetId: {
       // Shared type declares planetId as string (client-safe); Mongo stores
-      // an ObjectId ref. Cast keeps the generic schema happy.
+      // an ObjectId ref. The double cast satisfies both Mongoose's runtime
+      // ObjectId handling and the TS string type in GalaxyMoon.
       type: Schema.Types.ObjectId as unknown as typeof String,
       ref: "GalaxyPlanet",
       required: true,

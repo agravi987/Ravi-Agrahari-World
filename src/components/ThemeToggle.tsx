@@ -14,7 +14,7 @@
 import { Monitor, Sun, Moon, MoonStar, Snowflake, Flower2, Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
-import { applyTheme, THEMES, THEME_LIST, type ThemeChoice } from "@/lib/theme";
+import { applyTheme, THEME_LIST, type ThemeChoice } from "@/lib/theme";
 
 /* --- Module-level store (avoids effect-based state sync) --- */
 const listeners = new Set<() => void>();
@@ -65,9 +65,6 @@ export default function ThemeToggle() {
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
-  // Resolve "system" → actual theme for icon display
-  const displayTheme = current;
-
   const select = useCallback((choice: ThemeChoice) => {
     applyTheme(choice);
     emit();
@@ -90,6 +87,23 @@ export default function ThemeToggle() {
     if (e.key === "Escape") {
       setOpen(false);
       btnRef.current?.focus();
+      return;
+    }
+    const items = ref.current?.querySelectorAll<HTMLElement>('[role="option"]');
+    if (!items?.length) return;
+    const idx = Array.from(items).findIndex((el) => el === document.activeElement);
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+      e.preventDefault();
+      items[(idx + 1) % items.length].focus();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+      e.preventDefault();
+      items[(idx - 1 + items.length) % items.length].focus();
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      items[0].focus();
+    } else if (e.key === "End") {
+      e.preventDefault();
+      items[items.length - 1].focus();
     }
   }, []);
 
@@ -125,12 +139,6 @@ export default function ThemeToggle() {
           className="absolute right-0 top-full z-[60] mt-2 w-40 overflow-hidden rounded-card border border-card-border bg-card shadow-card animate-overlay-in"
         >
           {THEME_LIST.map((choice) => {
-            const active = choice === "system"
-              ? current === "light" || current === "dark"
-                ? false // "system" is active only if stored choice is system
-                : false
-              : current === choice;
-
             // Check if this choice is the currently stored one
             let isSelected = false;
             try {

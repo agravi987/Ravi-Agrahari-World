@@ -1,12 +1,13 @@
 /**
- * api/upload/route.ts — plan D8
- * Admin-only image upload → Cloudinary, returns the secure URL so
+ * api/upload/route.ts -- plan D8
+ * Admin-only image upload -> Cloudinary, returns the secure URL so
  * the admin form can fill image fields (project covers, cert logos).
- * Session-checked server-side; returns 503 when Cloudinary env isn't
- * configured (the form then falls back to pasting a URL).
+ * Session-checked server-side (proxy.ts + this handler); returns 503
+ * when Cloudinary env isn't configured (the form then falls back to
+ * pasting a URL).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { requireAdmin } from "@/lib/adminApi";
 import { cloudinaryConfigured, uploadImageBuffer } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
@@ -24,10 +25,8 @@ const ALLOWED_MIME = new Set([
 const MAX_BYTES = 5 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const denied = await requireAdmin();
+  if (denied) return denied;
 
   if (!cloudinaryConfigured()) {
     return NextResponse.json({ error: "Cloudinary not configured" }, { status: 503 });

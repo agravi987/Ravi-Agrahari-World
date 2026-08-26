@@ -24,12 +24,13 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Mail, Rocket, Flame } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { initials } from "@/lib/galaxyGeometry";
-import { isAllowedImageUrl } from "@/lib/imageHosts";
+import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 import { scrollToSection } from "@/lib/scrollTo";
 import Button from "@/components/ui/Button";
 import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
 import GradientMesh from "@/components/ui/GradientMesh";
 import Magnetic from "@/components/ui/Magnetic";
+import ParticleField from "@/components/ui/ParticleField";
 
 interface HeroProps {
   name: string;
@@ -73,6 +74,7 @@ const BRAND_HOVER: Record<string, string> = {
  */
 function TypewriterRole({ roles }: { roles: string[] }) {
   const [text, setText] = useState(roles[0] ?? "");
+  const [activeIdx, setActiveIdx] = useState(0);
   const reduceMotion = useReducedMotion();
   // Phase 14 (#2): hovering the role freezes the typing loop — you can
   // read the current role without it deleting itself under your cursor.
@@ -108,6 +110,7 @@ function TypewriterRole({ roles }: { roles: string[] }) {
         setText(role.slice(0, pos));
         if (pos === 0) {
           roleIndex = (roleIndex + 1) % roles.length;
+          setActiveIdx(roleIndex);
           typing = true;
         }
       }
@@ -123,20 +126,40 @@ function TypewriterRole({ roles }: { roles: string[] }) {
   }, [roles, reduceMotion]);
 
   return (
-    <span
-      className="relative inline-block gradient-text"
-      onMouseEnter={() => (hoveredRef.current = true)}
-      onMouseLeave={() => (hoveredRef.current = false)}
-    >
-      <span className="inline-block">
-        {text}
-        {/* P25: terminal caret — blinks while the role "types" in place.
-            Reduced-motion freezes it via the global rule. */}
+    <span className="inline-block">
+      <span
+        className="relative inline-block gradient-text"
+        onMouseEnter={() => (hoveredRef.current = true)}
+        onMouseLeave={() => (hoveredRef.current = false)}
+      >
+        <span className="inline-block">
+          {text}
+          {/* P25: terminal caret — blinks while the role "types" in place.
+              Reduced-motion freezes it via the global rule. */}
+          <span
+            aria-hidden="true"
+            className="role-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] rounded-full bg-accent align-baseline"
+          />
+        </span>
+      </span>
+      {/* Role indicator dots — show which role is active and how many total */}
+      {roles.length > 1 && (
         <span
           aria-hidden="true"
-          className="role-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] rounded-full bg-accent align-baseline"
-        />
-      </span>
+          className="mt-3 flex items-center justify-center gap-1.5 lg:justify-start"
+        >
+          {roles.map((_, i) => (
+            <span
+              key={i}
+              className={`block rounded-full transition-all duration-400 ${
+                i === activeIdx
+                  ? "h-1.5 w-4 bg-accent"
+                  : "h-1.5 w-1.5 bg-ink-faint/40"
+              }`}
+            />
+          ))}
+        </span>
+      )}
     </span>
   );
 }
@@ -228,6 +251,37 @@ function useScrollDrift(amount = 14) {
   }, [reduceMotion, amount]);
 
   return ref;
+}
+
+/** Scroll-linked fade: drives scale (1→0.97) on the hero section as
+ *  it scrolls out of view. Creates parallax depth between hero and
+ *  sections below. Opacity omitted to avoid LCP animation penalty.
+ *  Reduced-motion: no-op. */
+function useScrollFade() {
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    let raf = 0;
+    const update = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const vh = window.innerHeight;
+        const p = Math.min(1, Math.max(0, window.scrollY / vh));
+        const el = document.getElementById("hero");
+        if (el) {
+          el.style.transform = `scale(${1 - p * 0.03})`;
+        }
+      });
+    };
+    window.addEventListener("scroll", update, { passive: true });
+    update();
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("scroll", update);
+    };
+  }, [reduceMotion]);
 }
 
 /** #13 Mouse-tilt on the photo card (pointer-fine only) — the card
@@ -341,7 +395,7 @@ function PhotoComposition({
         <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.1rem] bg-card transition-transform duration-500 md:group-hover:scale-[1.02]">
           {imageOk && image ? (
             <Image
-              src={image}
+              src={withCloudinaryOptimizations(image)}
               alt={`${name} portrait`}
               fill
               priority
@@ -414,6 +468,10 @@ export default function Hero({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /** Scroll-linked fade: hero content fades + scales down as it scrolls
+   *  out of view, creating parallax depth between hero and sections below. */
+  useScrollFade();
+
   /** #14: press G (not in a field) → focus the GitHub social link. */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -435,7 +493,8 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative overflow-hidden px-6 py-20 lg:py-24"
+      className="relative overflow-hidden px-6 py-14 lg:py-20"
+      style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now
           carries it; the soft glow below sits behind the composition */}
@@ -455,13 +514,17 @@ export default function Hero({
           2-blob aurora with a richer, more vibrant mesh. */}
       <GradientMesh />
 
+      {/* Canvas constellation — connected dots drift behind the hero,
+          adding a "connected brain" depth layer. Pointer-fine only,
+          reduced-motion frozen. LCP-neutral (z-0, behind content). */}
+      <ParticleField />
+
       <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         {/* Left — the pitch. Phase 14 (#5): the drift ref gives this
             column a slow scroll parallax (transform-only). */}
         <div
           ref={driftRef}
           className="text-center lg:text-left"
-          style={{ willChange: "transform" }}
         >
           {/* Badge row: momentum badge + availability pill (P24 —
               recruiter-first: they scan availability in seconds) */}

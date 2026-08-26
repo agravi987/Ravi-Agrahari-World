@@ -16,6 +16,7 @@ import { useInView } from "@/lib/useInView";
 import { showToast } from "./Toast";
 import GradientMesh from "./GradientMesh";
 import Eyebrow from "./Eyebrow";
+import StaggerReveal from "./StaggerReveal";
 
 interface SectionProps {
   id: string;
@@ -36,7 +37,30 @@ interface SectionProps {
   /** Add a colorful gradient mesh background (P30). Use sparingly for
    *  visual variety — not every section needs it. */
   mesh?: boolean;
+  /** Vertical rhythm preset. Paddings are FLUID — they scale smoothly
+   *  with the viewport via clamp() instead of jumping at breakpoints:
+   *    "tight"  → compact sections that sit close to their neighbors
+   *    "normal" → default editorial rhythm (a touch more air above
+   *               than below, so headings breathe and pages don't end
+   *               each section with a big dead zone)
+   *    "roomy"  → hero-adjacent / showcase sections
+   *  Per-section overrides still win: pass pt-, pb- or py- utilities
+   *  via className (same specificity, later utilities layer). */
+  spacing?: "tight" | "normal" | "roomy";
 }
+
+/** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
+/** Fluid padding presets — clamp(min, preferred, max) so the space
+ *  grows with the viewport between a mobile floor and a desktop ceiling.
+ *  Bottom padding is ~80% of top on every preset: classic editorial
+ *  rhythm (space belongs ABOVE a heading, not after the content). */
+const SPACING: Record<NonNullable<SectionProps["spacing"]>, string> = {
+  tight: "pt-[clamp(1.75rem,1rem+2.5vw,3rem)] pb-[clamp(1.5rem,0.875rem+2vw,2.5rem)]",
+  normal:
+    "pt-[clamp(2.5rem,1.25rem+4vw,5rem)] pb-[clamp(2rem,1rem+3.25vw,4rem)]",
+  roomy:
+    "pt-[clamp(3.5rem,1.5rem+6vw,7rem)] pb-[clamp(2.75rem,1.25rem+4.75vw,5.5rem)]",
+};
 
 /** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
 const TONES: Record<
@@ -91,6 +115,7 @@ export default function Section({
   tone = "accent",
   band = false,
   mesh = false,
+  spacing = "normal",
 }: SectionProps) {
   const { ref, inView } = useInView<HTMLElement>();
   const t = TONES[tone];
@@ -121,12 +146,16 @@ export default function Section({
       ref={ref}
       id={id}
       aria-labelledby={`${id}-title`}
-      // py-14 gives every section the same generous vertical rhythm
-      // (ui-ux-design.md clean-up: consistent whitespace, plan §4).
+      // Compact-but-consistent vertical rhythm: tighter than before so
+      // more content fits per screen without feeling cramped.
       // html scroll-padding (5rem) clears the sticky header — an extra
       // scroll-mt-24 here would stack and overshoot every anchor jump.
       className={clsx(
-        "py-14 section-reveal",
+        // Fluid vertical rhythm (see SPACING): scales continuously with
+        // the viewport instead of fixed steps that feel too airy on
+        // phones and too cramped on wide screens.
+        SPACING[spacing],
+        "section-reveal",
         inView && "is-in-view",
         band && "band-bg relative",
         className
@@ -139,46 +168,48 @@ export default function Section({
     >
       {mesh && <GradientMesh />}
       <div className="mx-auto max-w-5xl px-6">
-        <div className="group/head">
-          <div className="flex items-center gap-3">
-            {index && (
-              <span
-                aria-hidden="true"
-                className={clsx(
-                  "inline-flex h-6 items-center justify-center rounded-full border px-2 font-mono text-[11px] font-medium",
-                  t.pill
-                )}
+        <StaggerReveal staggerMs={60}>
+          <div className="group/head">
+            <div className="flex items-center gap-3">
+              {index && (
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    "inline-flex h-6 items-center justify-center rounded-full border px-2 font-mono text-[11px] font-medium",
+                    t.pill
+                  )}
+                >
+                  {index}
+               </span>
+              )}
+              <Eyebrow label={eyebrow} className={t.eyebrow} />
+           </div>
+            <div className="flex items-center gap-2.5">
+              <h2
+                id={`${id}-title`}
+                className="title-sweep animated mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
+                style={{ "--sweep": t.sweep } as CSSProperties}
               >
-                {index}
-             </span>
-            )}
-            <Eyebrow label={eyebrow} className={t.eyebrow} />
-         </div>
-          <div className="flex items-center gap-2.5">
-            <h2
-              id={`${id}-title`}
-              className="title-sweep animated mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
-              style={{ "--sweep": t.sweep } as CSSProperties}
-            >
-              {title}
-           </h2>
-            {/* Phase 9: copy-section-link — appears on hover/focus, copies
-                #id so any part of the page is shareable. */}
-            <button
-              type="button"
-              onClick={copyLink}
-              aria-label={`Copy link to the ${title} section`}
-              title="Copy link to this section"
-              // Visible on touch (no hover) — opacity-0 only from md up;
-              // parity with the code-block copy button pattern.
-              className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-card-border bg-card font-mono text-xs font-semibold text-ink-faint shadow-card transition-all hover:border-accent/40 hover:text-accent md:opacity-0 md:focus-visible:opacity-100 md:group-hover/head:opacity-100"
-            >
-              #
-            </button>
+                {title}
+             </h2>
+              {/* Phase 9: copy-section-link — appears on hover/focus, copies
+                  #id so any part of the page is shareable. */}
+              <button
+                type="button"
+                onClick={copyLink}
+                aria-label={`Copy link to the ${title} section`}
+                title="Copy link to this section"
+                // Visible on touch (no hover) — opacity-0 only from md up;
+                // parity with the code-block copy button pattern.
+                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-card-border bg-card font-mono text-xs font-semibold text-ink-faint shadow-card transition-all hover:border-accent/40 hover:text-accent md:opacity-0 md:focus-visible:opacity-100 md:group-hover/head:opacity-100"
+              >
+                #
+              </button>
+            </div>
           </div>
-        </div>
-        {description && <p className="mt-3 max-w-2xl text-ink-soft">{description}</p>}
-        <div className="mt-10">{children}</div>
+          {description && <p className="mt-3 max-w-2xl text-ink-soft">{description}</p>}
+        </StaggerReveal>
+        <div className="mt-[clamp(1.5rem,1rem+2vw,2.5rem)]">{children}</div>
      </div>
    </section>
   );

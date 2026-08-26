@@ -6,7 +6,11 @@
  * tech initial as a soft watermark. Keeps cards colorful and
  * distinct even with zero images uploaded (the seed has none).
  */
+"use client";
+
 import { clsx } from "clsx";
+import { useState } from "react";
+import { withCloudinaryOptimizations } from "@/lib/imageHosts";
 
 /** Deterministic hash so the same tech list always gets the same hue. */
 function hashTech(tech: string[]): number {
@@ -36,25 +40,30 @@ export default function ProjectCover({
   tech: string[];
   className?: string;
 }) {
+  const [loaded, setLoaded] = useState(false);
   const pair = GRADIENTS[hashTech(tech) % GRADIENTS.length];
   const initial = (tech[0] ?? title).charAt(0).toUpperCase();
 
   if (image) {
     return (
-      <div className={clsx("overflow-hidden bg-card", className)}>
+      <div className={clsx("overflow-hidden bg-card", !loaded && "img-shimmer", className)}>
         {/* CMS-provided URL (Cloudinary) — next/image isn't applicable. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={image}
+          src={withCloudinaryOptimizations(image)}
           alt=""
           loading="lazy"
           // Phase 10 perf: async decode keeps the main thread free; sizes
           // tells the browser which image size to fetch for this layout.
           decoding="async"
           sizes="(max-width: 640px) 92vw, 480px"
+          onLoad={() => setLoaded(true)}
           // Phase 15 (#7): muted at rest, full color + slow zoom on hover;
           // project-cover-img carries the dark-mode brightness rule.
-          className="project-cover-img h-full w-full object-cover transition-[transform,filter] duration-500 group-hover:scale-105 group-hover:grayscale-0 grayscale-[45%]"
+          className={clsx(
+            "project-cover-img h-full w-full object-cover transition-[transform,filter] duration-500 group-hover:scale-105 group-hover:grayscale-0 grayscale-[45%]",
+            loaded ? "opacity-100 loaded" : "opacity-0",
+          )}
         />
       </div>
     );

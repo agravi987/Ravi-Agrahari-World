@@ -26,9 +26,23 @@ export async function generateMetadata({
   params: Promise<{ tag: string }>;
 }): Promise<Metadata> {
   const { tag } = await params;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const url = `${siteUrl}/blog/tag/${encodeURIComponent(tag)}`;
   return {
     title: `#${tag} — Notes & learnings`,
     description: `Every note tagged #${tag}.`,
+    alternates: { canonical: url },
+    openGraph: {
+      title: `#${tag} — Notes & learnings`,
+      description: `Every note tagged #${tag}.`,
+      url,
+      type: "website",
+    },
+    twitter: {
+      card: "summary",
+      title: `#${tag} — Notes & learnings`,
+      description: `Every note tagged #${tag}.`,
+    },
   };
 }
 

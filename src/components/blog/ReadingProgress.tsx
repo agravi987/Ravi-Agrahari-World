@@ -41,7 +41,7 @@ export default function ReadingProgress() {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none fixed inset-x-0 top-0 z-[60] h-[2px] bg-transparent"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[59] h-[2px] bg-transparent"
     >
       <div
         className="h-full bg-gradient-to-r from-accent to-accent-cyan"

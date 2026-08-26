@@ -91,8 +91,20 @@ export default function Contact({
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
+  // A11y: ALL validation problems in ONE live region — per-field inline
+  // errors alone force SR users to hunt through the form to find them.
+  const [errorSummary, setErrorSummary] = useState<string[]>([]);
   const [company, setCompany] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+  // Success card receives focus after a clean send — otherwise screen
+  // readers never announce "Message sent" (role=status alone is missed
+  // when the form it replaced unmounts).
+  const sentRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!sent) return;
+    const raf = requestAnimationFrame(() => sentRef.current?.focus());
+    return () => cancelAnimationFrame(raf);
+  }, [sent]);
 
   // Real-time validity — the same rules /api/contact enforces.
   const valid = {
@@ -168,6 +180,7 @@ export default function Contact({
     setMessage("");
     setAttempted(false);
     setSendError(null);
+    setErrorSummary([]);
     setSent(false);
     // Phase 17 (#15): a clean send clears the saved draft too.
     try {
@@ -256,7 +269,7 @@ export default function Contact({
           <p className="mt-2 text-xs text-ink-faint" aria-live="polite">
             {copied
               ? "Copied to clipboard ✓"
-              : "Click to copy — one click, no friction (plan §4.2)"}
+              : "Click to copy — one click, no friction"}
           </p>
 
           <div className="mt-6">
@@ -275,6 +288,7 @@ export default function Contact({
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    aria-label={link.label}
                     className={`inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-2 text-sm font-medium text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                       brandHover ?? "hover:border-accent/40 hover:text-accent"
                     }`}
@@ -303,7 +317,9 @@ export default function Contact({
             form after a clean send. */}
         {sent ? (
           <div
-            className="rounded-card border border-emerald-500/30 bg-emerald-500/10 p-8 text-center shadow-card"
+            ref={sentRef}
+            tabIndex={-1}
+            className="rounded-card border border-emerald-500/30 bg-emerald-500/10 p-8 text-center shadow-card outline-none"
             role="status"
           >
             <span
@@ -336,9 +352,18 @@ export default function Contact({
             // first invalid field, and don't send anything.
             if (!valid.name || !valid.email || !valid.subject || !valid.message) {
               showToast("A couple of fields still need your words");
+              setErrorSummary(
+                [
+                  !valid.name && "Name needs at least 2 characters.",
+                  !valid.email && "That email doesn't look right.",
+                  !valid.subject && "Subject needs at least 3 characters.",
+                  !valid.message && "Message needs at least 10 characters.",
+                ].filter((s): s is string => Boolean(s))
+              );
               document.getElementById(firstInvalid ?? "name")?.focus();
               return;
             }
+            setErrorSummary([]);
             // Phase 13: POST to the inbox first. Only when the backend is
             // unavailable do we fall back to the mailto: app — the site
             // keeps working on a fresh clone with no MongoDB.
@@ -596,6 +621,23 @@ export default function Contact({
               </span>
             </span>
           </div>
+          {/* A11y: single announced summary of everything still wrong */}
+          {errorSummary.length > 0 && (
+            <div
+              role="alert"
+              className="rounded-card border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-400"
+            >
+              <p className="font-medium">
+                Please fix {errorSummary.length === 1 ? "this field" : `these ${errorSummary.length} fields`} before
+                sending:
+              </p>
+              <ul className="mt-1 list-disc space-y-0.5 pl-5">
+                {errorSummary.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           {/* Phase 13: submission error (rate limit etc.) — inline, honest */}
           {sendError && (
             <p

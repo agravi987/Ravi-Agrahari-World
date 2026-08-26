@@ -26,7 +26,7 @@ export default function SectionPlaceholder({
       aria-busy="true"
       aria-label={id ? `Loading ${id} section` : "Loading section"}
       className={cn(
-        "flex min-h-[340px] flex-col items-center justify-center gap-5 py-14 text-center",
+        "flex min-h-[280px] flex-col items-center justify-center gap-5 py-10 text-center sm:py-12",
         className,
       )}
     >

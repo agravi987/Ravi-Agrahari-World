@@ -64,14 +64,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.3,
     },
-    ...posts.map((post) => ({
-      url: `${base}/blog/${post.slug}`,
-      // BUGFIX: parseDate — a garbage publishedAt produced an Invalid
-      // Date here (sitemap emits <lastmod> from it). Falls back to now.
-      lastModified: lastMod(post.publishedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    })),
+    ...posts.map((post) => {
+      // lastmod should reflect the last EDIT: prefer updatedAt when it's
+      // newer than publishedAt (edited posts re-crawl sooner).
+      const published = lastMod(post.publishedAt);
+      const edited = post.updatedAt ? lastMod(post.updatedAt) : published;
+      return {
+        url: `${base}/blog/${post.slug}`,
+        lastModified:
+          edited.getTime() > published.getTime() ? edited : published,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      };
+    }),
     ...tags,
     ...caseStudies,
   ];

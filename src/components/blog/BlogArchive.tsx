@@ -9,7 +9,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, ArrowUpRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Rss } from "lucide-react";
 import Badge from "@/components/ui/Badge";
 import { readTimeMinutes } from "@/lib/readTime";
 import { tagHueClasses } from "@/lib/tagHue";
@@ -244,10 +244,23 @@ export default function BlogArchive({ posts, initialTag }: BlogArchiveProps) {
             </button>
           </div>
         </div>
-        <p aria-live="polite" className="font-mono text-xs text-ink-faint">
-          {filter === "all" && !q
-            ? `${posts.length} ${posts.length === 1 ? "note" : "notes"} total`
-            : `${visible.length} of ${posts.length} shown`}
+        <p aria-live="polite" className="flex items-center gap-3 font-mono text-xs text-ink-faint">
+          <span>
+            {filter === "all" && !q
+              ? `${posts.length} ${posts.length === 1 ? "note" : "notes"} total`
+              : `${visible.length} of ${posts.length} shown`}
+          </span>
+          {/* RSS is a first-class citizen — devs who subscribe deserve a
+              visible affordance, not just head autodiscovery. */}
+          <a
+            href="/feed.xml"
+            title="Subscribe via RSS"
+            aria-label="Subscribe to notes via RSS"
+            className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-2.5 py-0.5 transition-colors hover:border-accent/40 hover:text-accent"
+          >
+            <Rss className="h-3 w-3" aria-hidden="true" />
+            rss
+          </a>
         </p>
       </div>
 

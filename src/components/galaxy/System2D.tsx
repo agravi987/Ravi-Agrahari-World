@@ -71,7 +71,6 @@ export default function System2D({
       className="galaxy-stage relative mx-auto w-full max-w-[720px]"
       data-static={!settings.animationEnabled || undefined}
       data-paused={paused || undefined}
-      data-zoom={zoom !== 1 ? zoom : undefined}
       data-labels={labels ? undefined : "false"}
       style={{ ...sunStyle(96), "--galaxy-zoom": zoom } as CSSProperties}
     >

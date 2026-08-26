@@ -16,7 +16,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const commit =
   process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.GITHUB_SHA ?? "";
 
-const meta = { commit, builtAt: new Date().toISOString() };
+// "owner/repo" for the footer's commit link — Vercel splits it across two
+// vars, GitHub Actions provides GITHUB_REPOSITORY directly. Without this
+// the footer guessed a hardcoded repo name and every badge link 404'd.
+const repo =
+  process.env.GITHUB_REPOSITORY ??
+  (process.env.VERCEL_GIT_REPO_OWNER && process.env.VERCEL_GIT_REPO_SLUG
+    ? `${process.env.VERCEL_GIT_REPO_OWNER}/${process.env.VERCEL_GIT_REPO_SLUG}`
+    : "");
+
+const meta = { commit, builtAt: new Date().toISOString(), repo };
 
 mkdirSync(join(root, "public"), { recursive: true });
 writeFileSync(

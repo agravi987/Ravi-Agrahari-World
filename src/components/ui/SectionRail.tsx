@@ -32,18 +32,30 @@ const RAIL_SECTIONS: RailSection[] = [
 export default function SectionRail() {
   const pathname = usePathname();
   const [active, setActive] = useState<string | null>(null);
+  // Sections actually present in the DOM — CMS-hidden sections render
+  // no element (and no LazyMount placeholder), so their dot is omitted
+  // instead of offering a dead anchor.
+  const [existing, setExisting] = useState<Set<string>>(new Set());
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
     if (pathname !== "/") return; // home-only
+    // One DOM probe on mount (deferred a frame so the DOM is settled):
+    // every rendered section (or its lazy placeholder) carries its
+    // anchor id already.
+    const mountProbe = requestAnimationFrame(() => {
+      setExisting(
+        new Set(RAIL_SECTIONS.filter((s) => document.getElementById(s.id)).map((s) => s.id))
+      );
+    });
     const onScroll = () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(() => {
-        const probe = window.scrollY + window.innerHeight * 0.35;
+        const probeY = window.scrollY + window.innerHeight * 0.35;
         let found: string | null = null;
         for (const s of RAIL_SECTIONS) {
           const el = document.getElementById(s.id);
-          if (el && el.offsetTop <= probe) found = s.id;
+          if (el && el.offsetTop <= probeY) found = s.id;
         }
         setActive(found);
       });
@@ -51,6 +63,7 @@ export default function SectionRail() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
+      cancelAnimationFrame(mountProbe);
       window.removeEventListener("scroll", onScroll);
       cancelAnimationFrame(rafRef.current);
     };
@@ -63,7 +76,7 @@ export default function SectionRail() {
       aria-label="Section quick navigation"
       className="fixed right-5 top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-3 xl:flex"
     >
-      {RAIL_SECTIONS.map((s) => {
+      {RAIL_SECTIONS.filter((s) => existing.has(s.id)).map((s) => {
         const isActive = active === s.id;
         return (
           <a

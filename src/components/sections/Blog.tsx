@@ -40,6 +40,7 @@ export default function Blog({ posts }: BlogProps) {
   if (posts.length === 0) return null; // auto-hide (§5.2)
 
   const tags = Array.from(new Set(posts.flatMap((p) => p.tags))).sort();
+  const activeIdx = filter === "all" ? 0 : tags.indexOf(filter) + 1;
   const q = search.trim().toLowerCase();
   // Layered filter (UX pass): tag → free-text across title/excerpt/tags.
   const visible = (filter === "all" ? posts : posts.filter((p) => p.tags.includes(filter))).filter(
@@ -71,7 +72,8 @@ export default function Blog({ posts }: BlogProps) {
 
   /** P25: ←/→ keys move the filter selection (roving tabindex). */
   function moveFilter(i: number, dir: 1 | -1) {
-    const next = (i + dir + tags.length) % tags.length;
+    const total = tags.length + 1; // "All" + each tag
+    const next = (i + dir + total) % total;
     setFilter(next === 0 ? "all" : tags[next - 1]);
     requestAnimationFrame(() => {
       document.querySelector<HTMLButtonElement>(`[data-blog-tab="${next}"]`)?.focus();
@@ -173,7 +175,7 @@ export default function Blog({ posts }: BlogProps) {
         </div>
       )}
 
-      <div id="blog-panel" role="tabpanel" aria-labelledby="blog-tab-0" className="grid gap-6 sm:grid-cols-2">
+      <div id="blog-panel" role="tabpanel" aria-labelledby={`blog-tab-${activeIdx}`} className="grid gap-6 sm:grid-cols-2">
         {shown.map((post, i) => {
           // Phase 9 color: a 2px topic-hued top edge from the first tag —
           // the card family reads at a glance (accent fallback for
@@ -223,7 +225,7 @@ export default function Blog({ posts }: BlogProps) {
             <h3 className="mt-2 font-display text-lg font-semibold text-ink transition-colors group-hover:text-accent">
               {post.title}
             </h3>
-            <p className="mt-2 text-sm text-ink-soft">{post.excerpt}</p>
+            <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{post.excerpt}</p>
             {post.tags.length > 0 && (
               /* Cards are whole-card <a> — chips stay plain (nested <a>
                  is invalid HTML). Tag destinations live on the archive

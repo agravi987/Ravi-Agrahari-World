@@ -6,13 +6,15 @@
  * with deploy badge, plan S9/S10). Mounts the Ctrl+K terminal easter
  * egg (plan §4) and the mobile-nav-busting P0 fixes.
  */
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import BackToTop from "@/components/ui/BackToTop";
 import CommandPalette from "@/components/ui/CommandPalette";
 import CursorGlow from "@/components/ui/CursorGlow";
 import RouteProgress from "@/components/ui/RouteProgress";
+import ScrollProgressBar from "@/components/ui/ScrollProgressBar";
 import SectionRail from "@/components/ui/SectionRail";
+import PageReveal from "@/components/ui/PageReveal";
 import Shortcuts from "@/components/ui/Shortcuts";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
@@ -57,13 +59,33 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     keywords: ["portfolio", "cloud", "devops", "ai", "aws", "docker", "kubernetes"],
+    alternates: {
+      canonical: siteUrl, // child pages override with their own canonical
+      // RSS autodiscovery — readers (and browsers) pick this up from
+      // <head>; the feed itself lives at /feed.xml.
+      types: { "application/rss+xml": `${siteUrl}/feed.xml` },
+    },
     openGraph: {
       title,
       description,
       type: "website",
+      url: siteUrl,
+    },
+    // X/Twitter shares previously rendered bare text — the card block
+    // gives them a real preview (post/project pages override per-slug).
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
     },
   };
 }
+
+/** Browser-chrome tint (P10) — rendered in <head> via the viewport
+ *  export; lib/theme.applyTheme swaps it live when themes change. */
+export const viewport: Viewport = {
+  themeColor: "#faf9f6",
+};
 
 /** Theme no-flash script moved to ThemeInit.tsx (useServerInsertedHTML)
  *  — React 19 warns on any <script> inside its tree, so the script is
@@ -87,26 +109,33 @@ export default async function RootLayout({
       className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}
     >
       <body className="min-h-dvh antialiased">
-        {/* Phase 10: browser-chrome tint — matches the light paper; the
-            ThemeInit script (and lib/theme.applyTheme) swap it on toggle. */}
-        <meta name="theme-color" content="#faf9f6" />
         {/* PERF: warm the connection to the CMS image CDN (Cloudinary
             uploads, plan D8) so first image paints don't stall on DNS/TLS. */}
         <link rel="preconnect" href="https://res.cloudinary.com" crossOrigin="anonymous" />
-        {/* Skip link (a11y): first tab stop jumps straight to content
-            (skill UX #45 — no nav-heavy page ships without one). */}
+        {/* Skip links (a11y): first tab stops jump past the nav —
+            content for readers, contact for recruiters. On sub-pages
+            #contact resolves via the home hash fallback. */}
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
         >
           Skip to content
         </a>
+        <a
+          href="/\u0023contact"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-44 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+        >
+          Skip to contact
+        </a>
+
+        {/* Page-load reveal curtain — fires once per session */}
+        <PageReveal />
 
         <Header
           name={config.name}
           currentlyLearning={config.currentlyLearning}
           github={config.github}
-          availability={config.availability}
+          sectionsEnabled={config.sectionsEnabled}
         />
         <main id="main" className="flex-1">
           {children}
@@ -115,6 +144,7 @@ export default async function RootLayout({
           name={config.name}
           github={config.github}
           socialLinks={config.socialLinks}
+          sectionsEnabled={config.sectionsEnabled}
         />
         {/* Theme no-flash script — injected outside React's tree (see above) */}
         <ThemeInit />
@@ -149,6 +179,7 @@ export default async function RootLayout({
           <Toaster />
           <Shortcuts />
           <RouteProgress />
+          <ScrollProgressBar />
           <CursorGlow />
         </IdleMount>
       </body>

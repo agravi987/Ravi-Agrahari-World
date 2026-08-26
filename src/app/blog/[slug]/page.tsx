@@ -110,7 +110,8 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { posts } = await getContent();
+  const { posts, config } = await getContent();
+  const configName = config.name;
   const post = posts.find((p) => p.slug === slug);
   if (!post) return notFound();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
@@ -135,6 +136,22 @@ export default async function BlogPostPage({
   const galaxy = await getGalaxy();
   const learningPlanet = planetForTags(post.tags, galaxy.planets);
 
+  // SEO: typed BlogPosting entity — search engines get author, dates
+  // and tags as data, not just prose. Server component, so a plain
+  // script tag is SSR-streamed safely (same escaping rule as JsonLd).
+  const blogPosting = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt || undefined,
+    datePublished: post.publishedAt || undefined,
+    dateModified: (post.updatedAt as string | undefined) || post.publishedAt || undefined,
+    keywords: post.tags.join(", ") || undefined,
+    url: `${siteUrl}/blog/${post.slug}`,
+    mainEntityOfPage: `${siteUrl}/blog/${post.slug}`,
+    author: { "@type": "Person", name: configName },
+  };
+
   // Phase 17 (#13): show "updated" only when the doc was meaningfully
   // edited after publish (Mongo timestamps; seed fallback has none).
   const updatedAt = post.updatedAt ? parseDate(post.updatedAt) : null;
@@ -152,6 +169,11 @@ export default async function BlogPostPage({
       {/* P8: scroll reading-progress bar (accent gradient, hidden for
           reduced-motion users). */}
       <ReadingProgress />
+      {/* SEO: typed entity for this post (see blogPosting above) */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPosting).replace(/</g, "\\u003c") }}
+      />
       {/* Breadcrumbs — hierarchy navigation for deep pages */}
       <Breadcrumbs
         items={[

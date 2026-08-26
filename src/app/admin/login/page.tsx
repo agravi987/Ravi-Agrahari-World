@@ -10,11 +10,14 @@ import { Eye, EyeOff } from "lucide-react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 
-/** Phase 11: password field with a show/hide toggle (Eye/EyeOff). */
+/** Phase 11: password field with a show/hide toggle (Eye/EyeOff) —
+ *  plus a caps-lock warning (tiny QoL: failed logins from CAPS are
+ *  indistinguishable from wrong passwords and burn limiter attempts). */
 function PasswordInput() {
   const [show, setShow] = useState(false);
+  const [capsOn, setCapsOn] = useState(false);
   return (
     <div className="relative">
       <input
@@ -23,6 +26,8 @@ function PasswordInput() {
         type={show ? "text" : "password"}
         required
         autoComplete="current-password"
+        onKeyUp={(e) => setCapsOn(e.getModifierState("CapsLock"))}
+        onBlur={() => setCapsOn(false)}
         className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 pr-11 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
         placeholder="••••••••"
       />
@@ -39,6 +44,11 @@ function PasswordInput() {
           <Eye className="h-4 w-4" aria-hidden="true" />
         )}
       </button>
+      {capsOn && (
+        <p role="status" className="mt-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+          Caps Lock is on.
+        </p>
+      )}
     </div>
   );
 }
@@ -48,6 +58,26 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // Opt-in "remember email": pre-fills the field on this machine only.
+  // Never stores the password — just spares typing on a private machine.
+  const [rememberEmail, setRememberEmail] = useState(false);
+  const emailRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    // Deferred one tick — sync localStorage reads stay out of hydration.
+    const t = setTimeout(() => {
+      try {
+        const saved = localStorage.getItem("admin-login-email");
+        if (saved) {
+          setRememberEmail(true);
+          if (emailRef.current && !emailRef.current.value) emailRef.current.value = saved;
+        }
+      } catch {
+        /* storage unavailable */
+      }
+    }, 0);
+    return () => clearTimeout(t);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -55,6 +85,12 @@ function LoginForm() {
     setError(null);
 
     const form = new FormData(e.currentTarget);
+    try {
+      if (rememberEmail) localStorage.setItem("admin-login-email", String(form.get("email") ?? ""));
+      else localStorage.removeItem("admin-login-email");
+    } catch {
+      /* storage unavailable */
+    }
     const res = await signIn("credentials", {
       email: String(form.get("email") ?? ""),
       password: String(form.get("password") ?? ""),
@@ -63,7 +99,14 @@ function LoginForm() {
 
     setPending(false);
     if (res?.error) {
-      setError("Invalid email or password.");
+      // The limiter's lockout carries a distinct code — show it honestly
+      // instead of "invalid credentials" while the account is just
+      // cooling down for 30s.
+      setError(
+        res?.code === "account_locked"
+          ? "Too many attempts — this email is locked for 30 seconds. Try again shortly."
+          : "Invalid email or password."
+      );
       return;
     }
     // Preserve callbackUrl (e.g. deep link into a CMS page) if provided.
@@ -99,6 +142,7 @@ function LoginForm() {
               Email
             </label>
             <input
+              ref={emailRef}
               id="email"
               name="email"
               type="email"
@@ -109,6 +153,16 @@ function LoginForm() {
               placeholder="admin@example.com"
             />
           </div>
+          {/* Opt-in convenience — email only, never the password. */}
+          <label className="flex cursor-pointer items-center gap-2 text-xs text-ink-soft">
+            <input
+              type="checkbox"
+              checked={rememberEmail}
+              onChange={(e) => setRememberEmail(e.target.checked)}
+              className="h-3.5 w-3.5 accent-[var(--color-accent)]"
+            />
+            Remember my email on this device
+          </label>
           <div>
             <label htmlFor="password" className="mb-1.5 block text-sm font-medium text-ink">
               Password

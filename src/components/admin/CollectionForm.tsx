@@ -8,14 +8,15 @@
  */
 "use client";
 
-import { ImageIcon, UploadCloud, Bold, Italic, Code, Code2, List, Type, Quote, Link2, Image as ImageIconMd, Minus } from "lucide-react";
+import { UploadCloud, Bold, Italic, Code, Code2, List, Type, Quote, Link2, ImageIcon, Minus } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
-import ReactMarkdown from "react-markdown";
+import dynamic from "next/dynamic";
 import type { CollectionField, CollectionSpec } from "@/lib/collections";
 import { emptyDoc } from "@/lib/collections";
 import { showToast } from "@/components/ui/Toast";
+import { SECTION_HELP, type SectionKey } from "@/lib/sections";
 import GalaxySettingsPreview from "./GalaxySettingsPreview";
 
 /** Phase 11: derive a URL-safe slug from a name/title (auto-fill). */
@@ -27,6 +28,16 @@ function slugify(input: string): string {
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 }
+
+/** react-markdown (+ remark stack) is heavy and only needed once the
+ *  admin opens a preview or edits a post — load it on demand so the
+ *  form itself hydrates fast. */
+const ReactMarkdown = dynamic(() => import("react-markdown"), {
+  ssr: false,
+  loading: () => (
+    <p className="px-4 py-3 text-sm text-ink-faint">Loading preview…</p>
+  ),
+});
 
 /** Which collection's slug auto-fills from which field (Phase 11). */
 const SLUG_SOURCE: Record<string, string> = {
@@ -219,10 +230,14 @@ function ImageUpload({
 
 /** 
  * MarkdownField — a markdown textarea with toolbar and preview.
- * Manages its own ref internally to avoid lint issues with refs in render functions.
+ * NOTE: receives the field key as an explicit `fieldKey` PROP — React
+ * strips `key` from props before a component ever sees it, so the old
+ * `key: fieldKey` destructure was always undefined (every markdown
+ * textarea rendered id="field-undefined", breaking label htmlFor and
+ * focus-on-required-error).
  */
 function MarkdownField({
-  key: fieldKey,
+  fieldKey,
   value,
   onChange,
   previewMode,
@@ -230,7 +245,7 @@ function MarkdownField({
   label,
   placeholder,
 }: {
-  key: string;
+  fieldKey: string;
   value: string;
   onChange: (v: string) => void;
   previewMode: boolean;
@@ -323,7 +338,7 @@ function MarkdownField({
     { icon: <List className="h-4 w-4" />, title: "Numbered list", action: "numbered" as const },
     { icon: <Quote className="h-4 w-4" />, title: "Blockquote", action: "quote" as const },
     { icon: <Link2 className="h-4 w-4" />, title: "Link", action: "link" as const },
-    { icon: <ImageIconMd className="h-4 w-4" />, title: "Image", action: "image" as const },
+    { icon: <ImageIcon className="h-4 w-4" />, title: "Image", action: "image" as const },
     { icon: <Minus className="h-4 w-4" />, title: "Horizontal rule", action: "hr" as const },
   ];
 
@@ -401,16 +416,21 @@ function useAutoSaveDraft({
   isNew,
   form,
   spec,
+  enabled,
 }: {
   collection: string;
   id?: string;
   isNew: boolean;
   form: Record<string, unknown>;
   spec: { fields: Array<{ key: string; type: string }> };
+  /** Only true once the admin actually edits something — an untouched
+   *  document must never grow a "draft" (the old behavior wrote the
+   *  pristine doc to localStorage on mount, so EVERY edit page showed
+   *  a phantom unsaved-draft banner). */
+  enabled: boolean;
 }) {
   const draftKey = `draft:${collection}:${isNew ? "new" : id}`;
   const [hasDraft, setHasDraft] = useState(false);
-  const [restored, setRestored] = useState(false);
   const saveTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Load draft on mount
@@ -435,13 +455,14 @@ function useAutoSaveDraft({
     }
   }, [draftKey]);
 
-  // Save draft on form change (debounced 1s)
+  // Save draft on form change (debounced 1s) — but only after a real
+  // user edit (`enabled`), never on mount.
   useEffect(() => {
+    if (!enabled) return;
     if (saveTimeout.current) clearTimeout(saveTimeout.current);
     saveTimeout.current = setTimeout(() => {
       try {
         localStorage.setItem(draftKey, JSON.stringify({ data: form, ts: Date.now() }));
-        setHasDraft(true);
       } catch {
         // quota exceeded, ignore
       }
@@ -449,7 +470,7 @@ function useAutoSaveDraft({
     return () => {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
     };
-  }, [form, draftKey]);
+  }, [form, draftKey, enabled]);
 
   // Restore draft into form
   const restoreDraft = () => {
@@ -483,7 +504,7 @@ function useAutoSaveDraft({
     }
   };
 
-  return { hasDraft, restored, setRestored, restoreDraft, clearDraft };
+  return { hasDraft, restoreDraft, clearDraft };
 }
 
 interface CollectionFormProps {
@@ -553,29 +574,52 @@ export default function CollectionForm({
     return out;
   });
 
-  // Auto-save draft hook
+  // Auto-save draft hook — writes only after real edits (see `dirty`).
+  const [dirty, setDirty] = useState(false);
   const { hasDraft, restoreDraft, clearDraft } = useAutoSaveDraft({
     collection,
     id,
     isNew,
     form,
     spec,
+    enabled: dirty,
   });
-
-  // Restore draft on mount if available
+  // Banner state: hasDraft comes from a PREVIOUS session's localStorage
+  // entry; Restore/Discard both dismiss it. There is deliberately NO
+  // auto-restore effect — the old one silently overwrote the freshly
+  // loaded doc ~1s after mount (and made the banner unreachable).
   const [draftRestored, setDraftRestored] = useState(false);
+
+  // Unsaved-changes guard: once the admin has edited anything, warn
+  // before the browser unloads the page (tab close / hard navigation).
+  // In-app <a>/<Link> navigations aren't covered by beforeunload — but
+  // drafts cover those (autosave is armed by this same `dirty` flag).
   useEffect(() => {
-    if (hasDraft && !draftRestored) {
-      const restored = restoreDraft();
-      // Wrap in setTimeout to avoid synchronous setState in effect
-      setTimeout(() => {
-        setForm(restored);
-        setDraftRestored(true);
-      }, 0);
-    }
-  }, [hasDraft, draftRestored, restoreDraft]);
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = ""; // Chrome requires returnValue to show the dialog
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
+
+  // Ctrl/Cmd+S saves the form without leaving it (standard editor
+  // muscle memory) — requestSubmit runs the same validation + submit.
+  const formRef = useRef<HTMLFormElement | null>(null);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        formRef.current?.requestSubmit();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   function set(key: string, value: unknown) {
+    setDirty(true); // first edit arms the autosave
     setForm((prev) => {
       const next = { ...prev, [key]: value };
       // Phase 11: auto-derive an empty/untouched slug from name/title.
@@ -724,6 +768,7 @@ export default function CollectionForm({
         control = (
           <MarkdownField
             key={key}
+            fieldKey={key}
             value={String(value ?? "")}
             onChange={(v) => set(key, v)}
             previewMode={previewing}
@@ -841,31 +886,59 @@ export default function CollectionForm({
           />
         );
         break;
-      case "sectionsEnabled":
+      case "sectionsEnabled": {
         control = (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="space-y-2" role="group" aria-label="Section visibility">
+            <p className="text-xs text-ink-faint">
+              Hidden sections disappear from the page <em>and</em> from navigation —
+              perfect while content is still in progress.
+            </p>
             {(f.options ?? []).map((section) => {
               const enabled = Boolean((value as Record<string, boolean> | undefined)?.[section]);
               return (
                 <label
                   key={section}
-                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-card-border bg-paper px-3 py-2 text-sm text-ink"
+                  className={`flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-4 py-3 transition-colors ${
+                    enabled
+                      ? "border-accent/30 bg-accent-soft/40"
+                      : "border-card-border bg-paper hover:bg-paper-deep/40"
+                  }`}
                 >
-                  <input
-                    type="checkbox"
-                    checked={enabled}
-                    onChange={(e) =>
-                      set(key, { ...(value as Record<string, boolean>), [section]: e.target.checked })
-                    }
-                    className="h-4 w-4 accent-[var(--color-accent)]"
-                  />
-                  {section}
+                  <span className="min-w-0">
+                    <span className="block text-sm font-medium capitalize text-ink">
+                      {section}
+                    </span>
+                    <span className="block truncate text-xs text-ink-faint">
+                      {SECTION_HELP[section as SectionKey] ?? "Show this section on the site"}
+                    </span>
+                  </span>
+                  {/* iOS-style switch: sr-only checkbox + peer-styled track */}
+                  <span className="relative inline-flex shrink-0 items-center">
+                    <input
+                      type="checkbox"
+                      checked={enabled}
+                      onChange={(e) =>
+                        set(key, { ...(value as Record<string, boolean>), [section]: e.target.checked })
+                      }
+                      className="peer sr-only"
+                      aria-label={`Show ${section} section`}
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="h-6 w-11 rounded-full bg-card-border transition-colors peer-checked:bg-accent peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent"
+                    />
+                    <span
+                      aria-hidden="true"
+                      className="absolute left-1 h-4 w-4 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"
+                    />
+                  </span>
                 </label>
               );
             })}
           </div>
         );
         break;
+      }
       default:
         control = (
           <div className="flex flex-col gap-2">
@@ -911,7 +984,7 @@ export default function CollectionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
       {/* Auto-save draft restore banner */}
       {hasDraft && !draftRestored && (
         <div className="rounded-lg border border-amber-300/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-300 flex items-center justify-between gap-4">
@@ -1046,6 +1119,7 @@ export default function CollectionForm({
         <button
           type="submit"
           disabled={pending}
+          title="Save (Ctrl/Cmd+S)"
           className="rounded-full bg-accent-btn px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-btn-hover disabled:opacity-50"
         >
           {pending ? "Saving…" : isNew ? "Create" : "Save changes"}

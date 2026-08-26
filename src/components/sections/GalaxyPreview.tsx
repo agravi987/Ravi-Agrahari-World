@@ -48,7 +48,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
     <section
       id="galaxy"
       aria-labelledby="galaxy-title"
-      className="py-14"
+      className="py-10 sm:py-12"
     >
       <div className="mx-auto max-w-5xl px-6">
         <Eyebrow label="learning-galaxy" />

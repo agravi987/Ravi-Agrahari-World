@@ -106,6 +106,17 @@ export function applyTheme(choice: ThemeChoice) {
   else stopSystemListener();
 }
 
+/** Live preview WITHOUT persisting — DOM + browser tint only. Used by
+ *  the ⌘K theme rows (hover/focus previews; Escape restores). Does not
+ *  touch the system-preference listener (applyTheme owns it). */
+export function previewTheme(choice: ThemeChoice) {
+  if (typeof document === "undefined") return;
+  const theme = resolve(choice);
+  document.documentElement.setAttribute("data-theme", theme);
+  const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+  if (meta) meta.content = THEMES[theme].paper;
+}
+
 /** Cycle through all themes in order. */
 export function cycleTheme(): ThemeChoice {
   const cur = storedChoice();

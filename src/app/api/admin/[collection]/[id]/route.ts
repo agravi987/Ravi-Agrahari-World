@@ -1,31 +1,22 @@
 /**
- * api/admin/[collection]/[id]/route.ts — plan D10 / ui-ux-design.md P0
+ * api/admin/[collection]/[id]/route.ts -- plan D10 / ui-ux-design.md P0
  * Read (GET), update (PUT), delete (DELETE) a single admin doc.
  * Session-checked; revalidates the site after mutations so edits go
- * live immediately. siteConfig is a singleton — its form uses the
+ * live immediately. siteConfig is a singleton -- its form uses the
  * list route's POST/upsert instead of id-based endpoints.
  */
-import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { getCollection } from "@/lib/collections";
 import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
+import { requireAdmin, revalidateFor } from "@/lib/adminApi";
 
 export const dynamic = "force-dynamic";
 
-async function requireAdmin(): Promise<NextResponse | null> {
-  const session = await auth();
-  if (!session?.user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  return null;
-}
-
-function revalidateFor(collection: string) {
-  revalidatePath("/", "layout");
-  revalidatePath("/detailed-galaxy");
-  revalidatePath(`/admin/${collection}`);
+/** Mongo ObjectIds are 24 hex chars -- anything else would make
+ *  findById throw a CastError (500). Guard so bad ids get a clean 404. */
+function isValidId(id: string): boolean {
+  return /^[0-9a-fA-F]{24}$/.test(id);
 }
 
 export async function GET(
@@ -37,7 +28,7 @@ export async function GET(
 
   const { collection, id } = await params;
   const spec = getCollection(collection);
-  if (!spec || spec.singleDoc) {
+  if (!spec || spec.singleDoc || !isValidId(id)) {
     return NextResponse.json({ error: "Unknown collection" }, { status: 400 });
   }
 
@@ -58,7 +49,7 @@ export async function PUT(
 
   const { collection, id } = await params;
   const spec = getCollection(collection);
-  if (!spec || spec.singleDoc) {
+  if (!spec || spec.singleDoc || !isValidId(id)) {
     return NextResponse.json({ error: "Unknown collection" }, { status: 400 });
   }
 
@@ -76,7 +67,7 @@ export async function PUT(
     return NextResponse.json({ error: layoutError }, { status: 400 });
   }
 
-  // Slugs power deep links — reject URL-unsafe input before it's saved.
+  // Slugs power deep links -- reject URL-unsafe input before it's saved.
   const slugErr = slugError(body.data.slug);
   if (slugErr) return NextResponse.json({ error: slugErr }, { status: 400 });
 
@@ -92,7 +83,7 @@ export async function PUT(
     // can act on instead of a Mongo internals dump.
     const dup = (err as { code?: number })?.code === 11000;
     const message = dup
-      ? "A document with this slug (or name) already exists — pick a unique slug before saving."
+      ? "A document with this slug (or name) already exists -- pick a unique slug before saving."
       : err instanceof Error
         ? err.message
         : "Update failed";
@@ -109,7 +100,7 @@ export async function DELETE(
 
   const { collection, id } = await params;
   const spec = getCollection(collection);
-  if (!spec || spec.singleDoc) {
+  if (!spec || spec.singleDoc || !isValidId(id)) {
     return NextResponse.json({ error: "Unknown collection" }, { status: 400 });
   }
 
@@ -120,7 +111,7 @@ export async function DELETE(
   if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   // Galaxy v4: deleting a planet also deletes its moons (1:N cascade,
-  // plan §4/§33) — no orphaned moons left behind.
+  // plan 4/33) -- no orphaned moons left behind.
   if (collection === "galaxyPlanet") {
     await MODEL_GETTERS.galaxyMoon().deleteMany({ planetId: id });
   }

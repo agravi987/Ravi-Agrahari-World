@@ -13,26 +13,34 @@ import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
 import FooterNav, { type FooterLink } from "@/components/ui/FooterNav";
 import Kbd from "@/components/ui/Kbd";
 import PrintResumeButton from "@/components/PrintResumeButton";
+import type { SectionsEnabled } from "@/types";
 
 interface FooterProps {
   name: string;
   github: string;
   socialLinks: { label: string; url: string }[];
+  /** CMS section toggles — nav links to hidden sections are omitted
+   *  so the footer never offers a dead anchor. */
+  sectionsEnabled: SectionsEnabled;
 }
 
 interface DeployMeta {
   commit?: string;
   builtAt?: string;
+  /** "owner/repo" — written at build time; the old hardcoded
+   *  "portfolio" guess pointed every commit link at a 404. */
+  repo?: string;
 }
 
-const NAV_LINKS: FooterLink[] = [
+/** Which sectionsEnabled key gates each footer link (undefined = always). */
+const NAV_LINKS: (FooterLink & { section?: keyof SectionsEnabled })[] = [
   { href: "#hero", label: "Back to top ↑" }, // P27: quick way home from the footer
-  { href: "#skills", label: "Skills" },
-  { href: "/detailed-galaxy", label: "Galaxy" },
-  { href: "#projects", label: "Projects" },
-  { href: "#experience", label: "Experience" },
-  { href: "/blog", label: "Blog" },
-  { href: "#contact", label: "Contact" },
+  { href: "#skills", label: "Skills", section: "skills" },
+  { href: "/detailed-galaxy", label: "Galaxy", section: "galaxy" },
+  { href: "#projects", label: "Projects", section: "projects" },
+  { href: "#experience", label: "Experience", section: "experience" },
+  { href: "/blog", label: "Blog", section: "blog" },
+  { href: "#contact", label: "Contact", section: "contact" },
 ];
 
 /** Brand icons for social links (simple-icons, same map as Contact). */
@@ -40,6 +48,7 @@ const SOCIAL_BRANDS: Record<string, BrandIconName> = {
   github: "github",
   x: "x",
   twitter: "x",
+  linkedin: "linkedin",
 };
 
 /** Brand-colored hover for the social links (color pass) — parity with
@@ -66,17 +75,24 @@ async function getDeployMeta(): Promise<DeployMeta | null> {
   return deployMetaCache;
 }
 
-export default async function Footer({ name, github, socialLinks }: FooterProps) {
+export default async function Footer({
+  name,
+  github,
+  socialLinks,
+  sectionsEnabled,
+}: FooterProps) {
   const meta = await getDeployMeta();
+  // Hidden sections lose their footer link (no dead anchors).
+  const visibleLinks = NAV_LINKS.filter((l) => !l.section || sectionsEnabled[l.section] !== false);
 
   return (
-    <footer className="relative mt-20 border-t border-card-border bg-paper-deep/50">
+    <footer className="relative mt-12 border-t border-card-border bg-paper-deep/50">
       {/* Gradient hairline — the footer opens with the brand pair (UX pass) */}
       <div
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
       />
-      <div className="mx-auto grid max-w-5xl gap-10 px-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
         {/* Identity */}
         <div className="flex flex-col items-start gap-2">
           <p className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
@@ -112,7 +128,7 @@ export default async function Footer({ name, github, socialLinks }: FooterProps)
 
         {/* Quick links (P23: client island — smart anchors work from
             every page, not just home) */}
-        <FooterNav links={NAV_LINKS} />
+        <FooterNav links={visibleLinks} />
 
         {/* Connect + deploy badge */}
         <div className="flex flex-col items-start gap-3">
@@ -130,7 +146,7 @@ export default async function Footer({ name, github, socialLinks }: FooterProps)
                   href={link.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors ${
+                  className={`link-underline inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors ${
                     brandHover ?? "hover:text-accent"
                   }`}
                 >
@@ -162,7 +178,11 @@ export default async function Footer({ name, github, socialLinks }: FooterProps)
               <span className="text-accent-cyan">●</span>{" "}
               <span className="text-ink-soft">deployed</span>{" "}
               <a
-                href={`https://github.com/${github}/portfolio/commit/${meta.commit}`}
+                href={
+                  meta.repo
+                    ? `https://github.com/${meta.repo}/commit/${meta.commit}`
+                    : `https://github.com/${github}` // no repo slug → profile, never a 404
+                }
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hover:text-accent"

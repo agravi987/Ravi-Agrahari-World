@@ -49,6 +49,8 @@ export default function TiltCard({
     if (!el) return;
     el.style.setProperty("--rx", "0deg");
     el.style.setProperty("--ry", "0deg");
+    el.style.setProperty("--sx", "50%");
+    el.style.setProperty("--sy", "50%");
   }
 
   return (

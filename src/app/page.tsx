@@ -13,7 +13,6 @@
 import MomentumStats from "@/components/ui/MomentumStats";
 import LazyMount from "@/components/ui/LazyMount";
 import SectionPlaceholder from "@/components/ui/SectionPlaceholder";
-import SectionDivider from "@/components/ui/SectionDivider";
 import Blog from "@/components/sections/Blog";
 import Certifications from "@/components/sections/Certifications";
 import Contact from "@/components/sections/Contact";
@@ -56,19 +55,27 @@ export default async function Home() {
       <GithubStrip config={config} />
 
       {/* Real-data stat band (P7) — counts up on scroll, zero-hiding */}
-      {/* P22: each stat is also a jump — counters become navigation */}
+      {/* P22: each stat is also a jump — counters become navigation.
+          Stats for CMS-hidden sections are omitted (no dead anchors). */}
       <MomentumStats
         stats={[
-          { label: "projects", value: projects.length, color: "cloud", href: "#projects" },
-          { label: "notes", value: posts.length, color: "linux", href: "/blog" },
-          { label: "certifications", value: certifications.length, color: "ai", href: "#certifications" },
-          { label: "skill areas", value: skills.length, color: "devops", href: "#skills" },
-          { label: "learning tracks", value: galaxy.planets.length, color: "mars", href: "/detailed-galaxy" },
+          ...(config.sectionsEnabled.projects
+            ? [{ label: "projects", value: projects.length, color: "cloud" as const, href: "#projects" }]
+            : []),
+          ...(config.sectionsEnabled.blog
+            ? [{ label: "notes", value: posts.length, color: "linux" as const, href: "/blog" }]
+            : []),
+          ...(config.sectionsEnabled.certifications
+            ? [{ label: "certifications", value: certifications.length, color: "ai" as const, href: "#certifications" }]
+            : []),
+          ...(config.sectionsEnabled.skills
+            ? [{ label: "skill areas", value: skills.length, color: "devops" as const, href: "#skills" }]
+            : []),
+          ...(config.sectionsEnabled.galaxy
+            ? [{ label: "learning tracks", value: galaxy.planets.length, color: "mars" as const, href: "/detailed-galaxy" }]
+            : []),
         ]}
       />
-
-      {/* P30: colorful section divider — visual rhythm between major sections */}
-      <SectionDivider />
 
       {/* PERF + progressive disclosure: the below-fold sections are
           deferred (LazyMount) — they mount just before scrolling into
@@ -113,9 +120,6 @@ export default async function Home() {
         </LazyMount>
       )}
 
-      {/* P30: colorful section divider — visual rhythm between major sections */}
-      <SectionDivider />
-
       {config.sectionsEnabled.experience && (
         <LazyMount
           fallback={
@@ -151,9 +155,6 @@ export default async function Home() {
           />
         </LazyMount>
       )}
-
-      {/* P30: colorful section divider — visual rhythm between major sections */}
-      <SectionDivider />
 
       {config.sectionsEnabled.blog && (
         <LazyMount

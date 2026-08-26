@@ -16,6 +16,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Keyboard } from "lucide-react";
 import { scrollToSection } from "@/lib/scrollTo";
+import { cycleTheme } from "@/lib/theme";
 
 interface Shortcut {
   keys: string[];
@@ -30,7 +31,7 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["b"], label: "Jump to blog", hue: "text-topic-ai" },
   { keys: ["c"], label: "Jump to contact", hue: "text-topic-mars" },
   { keys: ["x"], label: "Open the galaxy explorer", hue: "text-accent" },
-  { keys: ["t"], label: "Toggle dark / light", hue: "text-accent-cyan" },
+  { keys: ["t"], label: "Cycle theme", hue: "text-accent-cyan" },
   { keys: ["⌘K"], label: "Command palette", hue: "text-ink-soft" },
   { keys: ["esc"], label: "Close this overlay", hue: "text-ink-faint" },
 ];
@@ -149,13 +150,7 @@ export default function Shortcuts() {
           break;
         case "t": {
           e.preventDefault();
-          const dark = document.documentElement.getAttribute("data-theme") === "dark";
-          document.documentElement.setAttribute("data-theme", dark ? "light" : "dark");
-          try {
-            localStorage.setItem("theme", dark ? "light" : "dark");
-          } catch {
-            /* private mode */
-          }
+          cycleTheme();
           break;
         }
       }

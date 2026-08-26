@@ -34,8 +34,9 @@ export default async function GithubStrip({ config }: GithubStripProps) {
 
   return (
     <div
+      role="group"
       aria-label="GitHub activity"
-      className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-3 px-6 py-6"
+      className="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-3 px-6 py-3"
     >
       {repoCount >= 1 && (
         <a

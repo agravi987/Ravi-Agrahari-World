@@ -130,8 +130,9 @@ export default function MomentumStats({ stats }: { stats: Stat[] }) {
   return (
     <div
       ref={wrapRef}
+      role="group"
       aria-label="Portfolio stats"
-      className="mx-auto grid max-w-5xl grid-cols-2 gap-px overflow-hidden rounded-card border border-card-border bg-card-border px-6 py-6 sm:grid-cols-5"
+      className="mx-auto grid max-w-5xl grid-cols-2 gap-px overflow-hidden rounded-card border border-card-border bg-card-border px-6 py-4 sm:grid-cols-5"
     >
       {visible.map((s, i) => {
         const Icon = s.icon ?? ICON_BY_LABEL[s.label] ?? null;

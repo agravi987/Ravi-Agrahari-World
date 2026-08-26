@@ -6,7 +6,7 @@
 import Image from "next/image";
 import type { GalaxyProfile } from "@/types/galaxy";
 import { initials, sunStyle } from "@/lib/galaxyGeometry";
-import { isAllowedImageUrl } from "@/lib/imageHosts";
+import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 
 export default function Sun({
   profile,
@@ -24,13 +24,14 @@ export default function Sun({
       <div className="galaxy-sun-core">
         {hasImage ? (
           <Image
-            src={profile.image as string}
+            src={withCloudinaryOptimizations(profile.image as string)}
             alt={profile.name}
             width={size}
             height={size}
             sizes={`${size}px`}
             className="galaxy-sun-avatar"
             priority
+            fetchPriority="high"
           />
         ) : (
           <span className="galaxy-sun-initials" style={{ fontSize: size * 0.42 }}>

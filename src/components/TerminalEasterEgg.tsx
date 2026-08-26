@@ -76,9 +76,18 @@ export default function TerminalEasterEgg({ name }: { name: string }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  // Focus the input when the terminal opens (DOM-only — allowed).
+  // Focus management: opening moves focus into the input; closing
+  // returns it to wherever the keyboard user was before (a11y dialog
+  // contract — without this, focus is lost to <body> on close).
+  const lastFocused = useRef<HTMLElement | null>(null);
   useEffect(() => {
-    if (open) inputRef.current?.focus();
+    if (open) {
+      lastFocused.current = document.activeElement as HTMLElement | null;
+      inputRef.current?.focus();
+    } else if (lastFocused.current) {
+      lastFocused.current.focus();
+      lastFocused.current = null;
+    }
   }, [open]);
 
   // Close on Escape while the terminal is open.

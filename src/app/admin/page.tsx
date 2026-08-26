@@ -4,10 +4,13 @@
  * so they're real numbers, not client-shuffled), color-coded cards
  * with the topic-hue accents used across the site. Sign-out is the
  * only client island. Full CRUD lives in /admin/[collection].
- * middleware.ts gates this whole /admin subtree behind the session.
+ * proxy.ts gates this whole /admin subtree behind the session.
  */
 import Link from "next/link";
 import SignOutButton from "@/components/admin/SignOutButton";
+import SectionsPanel from "@/components/admin/SectionsPanel";
+import ThemeToggle from "@/components/ThemeToggle";
+import LiveTimeAgo from "@/components/ui/LiveTimeAgo";
 import { connectDb, dbConfigured } from "@/lib/db";
 import { getRecentEdits, MODEL_GETTERS, timeAgo } from "@/lib/collections.server";
 // Single source of truth: the registry in collections.ts drives the cards
@@ -26,11 +29,15 @@ const CARD_HUES = [
 
 export const dynamic = "force-dynamic";
 
-/** Live counts per collection; empty map when Mongo isn't running. */
-async function getCounts(): Promise<Record<string, number>> {
-  if (!dbConfigured()) return {};
+/** Live counts per collection; empty map when Mongo isn't running.
+ *  Also returns the unread contact-message count for the inbox badge. */
+async function getCounts(): Promise<{
+  counts: Record<string, number>;
+  unreadMessages: number;
+}> {
+  if (!dbConfigured()) return { counts: {}, unreadMessages: 0 };
   const mongoose = await connectDb();
-  if (!mongoose) return {};
+  if (!mongoose) return { counts: {}, unreadMessages: 0 };
   try {
     const counts: Record<string, number> = {};
     for (const spec of COLLECTIONS) {
@@ -40,14 +47,23 @@ async function getCounts(): Promise<Record<string, number>> {
         counts[spec.key] = 0; // a single broken collection shouldn't kill the page
       }
     }
-    return counts;
+    let unreadMessages = 0;
+    try {
+      unreadMessages = await MODEL_GETTERS.message().countDocuments({
+        read: { $ne: true },
+      });
+    } catch {
+      // inbox badge is best-effort
+    }
+    return { counts, unreadMessages };
   } catch {
-    return {};
+    return { counts: {}, unreadMessages: 0 };
   }
 }
 
 export default async function AdminDashboard() {
-  const counts = await getCounts();
+  // Session guard is in admin/layout.tsx -- this page inherits it.
+  const { counts, unreadMessages } = await getCounts();
   // Phase 12: cross-collection "recently edited" feed (updatedAt).
   // Empty when Mongo is off — no fake zeros, consistent with the counts.
   const recent = Object.keys(counts).length > 0 ? await getRecentEdits(6) : [];
@@ -60,7 +76,10 @@ export default async function AdminDashboard() {
           <h1 className="mt-2 font-display text-2xl font-semibold text-ink">Mission Control</h1>
           <p className="mt-1 text-sm text-ink-soft">Manage site content — edits go live instantly.</p>
         </div>
-        <SignOutButton />
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <SignOutButton />
+        </div>
       </div>
 
       {/* Why the counts below are missing — never leave the admin guessing
@@ -133,6 +152,15 @@ export default async function AdminDashboard() {
         </a>
       </div>
 
+      {/* Section visibility quick-toggles — the most-used control for a
+          growing portfolio (hide what isn't ready yet). Needs Mongo; the
+          panel's own empty-state covers the seed-mode case otherwise. */}
+      {Object.keys(counts).length > 0 && (
+        <div className="mt-8">
+          <SectionsPanel />
+        </div>
+      )}
+
       {/* Phase 12: recently edited feed — the freshest docs, newest first */}
       {recent.length > 0 && (
         <section className="mt-10" aria-labelledby="recent-edits-heading">
@@ -160,7 +188,9 @@ export default async function AdminDashboard() {
                     className="shrink-0 font-mono text-xs text-ink-faint"
                     title={r.updatedAt.toLocaleString()}
                   >
-                    {timeAgo(r.updatedAt)}
+                    {/* Live island: server value first, then re-renders
+                        every 30s so "just now" doesn't freeze. */}
+                    <LiveTimeAgo iso={r.updatedAt.toISOString()} fallback={timeAgo(r.updatedAt)} />
                   </time>
                   <span
                     aria-hidden="true"
@@ -184,12 +214,21 @@ export default async function AdminDashboard() {
           >
             <div className="flex items-start justify-between gap-3">
               <h2 className="font-mono text-sm font-medium text-accent">~/{c.key}</h2>
-              {/* Live count badge — hidden while Mongo is off (no fake zeros) */}
-              {counts[c.key] !== undefined && (
-                <span className="rounded-full border border-card-border bg-paper-deep px-2 py-0.5 font-mono text-xs text-ink-soft">
-                  {counts[c.key]}
-                </span>
-              )}
+              <div className="flex shrink-0 items-center gap-1.5">
+                {/* Unread-inbox badge — a full inbox is invisible in a raw
+                    count; the amber chip says "someone wrote to you". */}
+                {c.key === "message" && unreadMessages > 0 && (
+                  <span className="rounded-full border border-amber-400/50 bg-amber-500/15 px-2 py-0.5 font-mono text-xs font-medium text-amber-700 dark:text-amber-300">
+                    {unreadMessages} unread
+                  </span>
+                )}
+                {/* Live count badge — hidden while Mongo is off (no fake zeros) */}
+                {counts[c.key] !== undefined && (
+                  <span className="rounded-full border border-card-border bg-paper-deep px-2 py-0.5 font-mono text-xs text-ink-soft">
+                    {counts[c.key]}
+                  </span>
+                )}
+              </div>
             </div>
             <p className="mt-1 text-sm text-ink-soft">{c.description}</p>
             <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors group-hover:text-accent">
