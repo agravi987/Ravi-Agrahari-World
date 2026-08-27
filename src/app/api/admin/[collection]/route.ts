@@ -90,9 +90,13 @@ export async function POST(
   }
 
   // Galaxy v4: reject writes that would break the zero-overlap layout.
-  const layoutError = await assertGalaxyLayoutValid(collection, safeData);
-  if (layoutError) {
-    return NextResponse.json({ error: layoutError }, { status: 400 });
+  // Skip on galaxyPlanet CREATE — the planet doesn't exist yet and will be
+  // auto-positioned by rebalanceGalaxyPlanets() after creation.
+  if (collection !== "galaxyPlanet") {
+    const layoutError = await assertGalaxyLayoutValid(collection, safeData);
+    if (layoutError) {
+      return NextResponse.json({ error: layoutError }, { status: 400 });
+    }
   }
 
   // Slugs power deep links — reject URL-unsafe input before it's saved
