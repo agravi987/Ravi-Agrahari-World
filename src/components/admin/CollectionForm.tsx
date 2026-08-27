@@ -657,6 +657,102 @@ export default function CollectionForm({
     }
   }
 
+  // Auto-fill moon fields when a project is selected (galaxyMoon only).
+  // Runs after the projectId refSelect value changes.
+  const [importingProject, setImportingProject] = useState(false);
+  useEffect(() => {
+    if (collection !== "galaxyMoon") return;
+    const projectId = form.projectId as string | undefined;
+    if (!projectId) return;
+    let alive = true;
+    setImportingProject(true);
+    fetch(`/api/admin/project/${projectId}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((json) => {
+        if (!alive) return;
+        const p = json?.data;
+        if (!p) return;
+        // Map project fields → moon fields
+        const updates: Record<string, unknown> = {
+          name: p.title ?? "",
+          description: p.description ?? "",
+          githubUrl: p.repoUrl ?? "",
+          liveUrl: p.demoUrl ?? "",
+          technologies: Array.isArray(p.tech) ? p.tech.join("\n") : "",
+          // Derive slug from project slug if available, else from title
+          slug: p.slug ? `project-${p.slug}` : slugify(p.title ?? ""),
+          // Use first tech as icon emoji fallback, or a default
+          icon: p.tech?.[0] ? `🛠️` : "📦",
+        };
+        // Only apply fields that are currently empty — don't overwrite user edits
+        setForm((prev) => {
+          const next = { ...prev };
+          for (const [k, v] of Object.entries(updates)) {
+            const current = String(prev[k] ?? "").trim();
+            if (current === "") next[k] = v;
+          }
+          return next;
+        });
+        // Also clear draft since we're importing fresh data
+        if (typeof window !== "undefined") {
+          const draftKey = `draft:galaxyMoon:${isNew ? "new" : id}`;
+          localStorage.removeItem(draftKey);
+        }
+      })
+      .catch((err) => {
+        console.error("[import project]", err);
+      })
+      .finally(() => {
+        if (alive) setImportingProject(false);
+      });
+    return () => { alive = false; };
+  }, [form.projectId, collection, isNew, id]);
+
+  // "＋ New Project" modal state
+  const [newProjectModal, setNewProjectModal] = useState(false);
+  const [newProjectForm, setNewProjectForm] = useState({
+    title: "",
+    description: "",
+    tech: "",
+    repoUrl: "",
+    demoUrl: "",
+  });
+  const [newProjectPending, setNewProjectPending] = useState(false);
+
+  async function handleCreateProject(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setNewProjectPending(true);
+    try {
+      const res = await fetch("/api/admin/project", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            title: newProjectForm.title,
+            description: newProjectForm.description,
+            tech: newProjectForm.tech.split("\n").map((s) => s.trim()).filter(Boolean),
+            repoUrl: newProjectForm.repoUrl || undefined,
+            demoUrl: newProjectForm.demoUrl || undefined,
+            featured: false,
+            order: 0,
+          },
+        }),
+      });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) throw new Error(json?.error || "Create failed");
+      const newProject = json.data;
+      // Close modal, set projectId to the new project, which triggers the import effect
+      setNewProjectForm({ title: "", description: "", tech: "", repoUrl: "", demoUrl: "" });
+      setNewProjectModal(false);
+      set("projectId", newProject._id);
+      showToast("Project created & imported into moon");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Create failed");
+    } finally {
+      setNewProjectPending(false);
+    }
+  }
+
   /** Serialize raw form state → API payload; returns error string on bad JSON. */
   function serialize(): { data: Record<string, unknown> } | { error: string } {
     const data: Record<string, unknown> = {};
@@ -865,14 +961,37 @@ export default function CollectionForm({
         );
         break;
       case "refSelect":
-        control = (
-          <RefSelect
-            field={f}
-            value={String(value ?? "")}
-            onChange={(v) => set(key, v)}
-            inputClasses={inputClasses}
-          />
-        );
+        // projectId on galaxyMoon gets a "＋ New Project" button for inline creation
+        if (key === "projectId" && collection === "galaxyMoon") {
+          control = (
+            <div className="flex items-center gap-2">
+              <RefSelect
+                field={f}
+                value={String(value ?? "")}
+                onChange={(v) => set(key, v)}
+                inputClasses={inputClasses}
+              />
+              <button
+                type="button"
+                onClick={() => setNewProjectModal(true)}
+                disabled={newProjectPending || importingProject}
+                className="shrink-0 rounded-full border border-card-border bg-card px-3 py-2 text-sm font-medium text-ink-soft transition-colors hover:text-accent hover:border-accent disabled:opacity-50"
+                title="Create a new project and import it"
+              >
+                ＋ New Project
+              </button>
+            </div>
+          );
+        } else {
+          control = (
+            <RefSelect
+              field={f}
+              value={String(value ?? "")}
+              onChange={(v) => set(key, v)}
+              inputClasses={inputClasses}
+            />
+          );
+        }
         break;
       case "color":
         control = (
@@ -1160,6 +1279,114 @@ export default function CollectionForm({
         <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </p>
+      )}
+
+      {/* ＋ New Project modal — inline project creation from moon form */}
+      {newProjectModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
+          onClick={() => setNewProjectModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="new-project-title"
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-card-border bg-card shadow-xl p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 id="new-project-title" className="mb-4 text-lg font-semibold text-ink">
+              Create New Project
+            </h3>
+            <p className="mb-4 text-sm text-ink-faint">
+              Fill in the project details — it will be saved and imported into this moon.
+            </p>
+            <form onSubmit={handleCreateProject} className="space-y-4">
+              <div>
+                <label htmlFor="np-title" className="block text-sm font-medium text-ink mb-1">
+                  Title *
+                </label>
+                <input
+                  id="np-title"
+                  type="text"
+                  value={newProjectForm.title}
+                  onChange={(e) => setNewProjectForm({ ...newProjectForm, title: e.target.value })}
+                  className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
+                  placeholder="My Cool Project"
+                  required
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label htmlFor="np-description" className="block text-sm font-medium text-ink mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="np-description"
+                  rows={3}
+                  value={newProjectForm.description}
+                  onChange={(e) => setNewProjectForm({ ...newProjectForm, description: e.target.value })}
+                  className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 resize-y"
+                  placeholder="A brief description of what this project does"
+                />
+              </div>
+              <div>
+                <label htmlFor="np-tech" className="block text-sm font-medium text-ink mb-1">
+                  Tech Stack (one per line)
+                </label>
+                <textarea
+                  id="np-tech"
+                  rows={3}
+                  value={newProjectForm.tech}
+                  onChange={(e) => setNewProjectForm({ ...newProjectForm, tech: e.target.value })}
+                  className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 resize-y font-mono text-xs"
+                  placeholder="Next.js&#10;TypeScript&#10;Tailwind CSS"
+                />
+              </div>
+              <div>
+                <label htmlFor="np-repo" className="block text-sm font-medium text-ink mb-1">
+                  Repo URL
+                </label>
+                <input
+                  id="np-repo"
+                  type="url"
+                  value={newProjectForm.repoUrl}
+                  onChange={(e) => setNewProjectForm({ ...newProjectForm, repoUrl: e.target.value })}
+                  className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
+                  placeholder="https://github.com/you/project"
+                />
+              </div>
+              <div>
+                <label htmlFor="np-demo" className="block text-sm font-medium text-ink mb-1">
+                  Demo URL
+                </label>
+                <input
+                  id="np-demo"
+                  type="url"
+                  value={newProjectForm.demoUrl}
+                  onChange={(e) => setNewProjectForm({ ...newProjectForm, demoUrl: e.target.value })}
+                  className="w-full rounded-card border border-card-border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20"
+                  placeholder="https://my-project.vercel.app"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setNewProjectModal(false)}
+                  className="rounded-full border border-card-border bg-card px-4 py-2 text-sm text-ink-soft transition-colors hover:text-accent"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={newProjectPending || !newProjectForm.title.trim()}
+                  className="rounded-full bg-accent-btn px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-btn-hover disabled:opacity-50"
+                >
+                  {newProjectPending ? "Creating…" : "Create & Import"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       <div className="flex items-center gap-3">

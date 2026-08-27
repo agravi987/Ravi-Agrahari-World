@@ -158,6 +158,13 @@ export const COLLECTIONS: CollectionSpec[] = [
         help: "The planet this moon orbits",
       },
       {
+        key: "projectId",
+        label: "Import from Project",
+        type: "refSelect",
+        refCollection: "project",
+        help: "Pick a project to auto-fill name, description, GitHub URL, demo URL, tech stack, and icon. Fields remain editable after import.",
+      },
+      {
         key: "type",
         label: "Type",
         // moonType: options are LOADED from galaxySettings.moonTypes at
