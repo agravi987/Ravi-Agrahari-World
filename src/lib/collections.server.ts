@@ -6,6 +6,7 @@
  */
 import type { Model } from "mongoose";
 import type { GalaxyMoon, GalaxyPlanet } from "@/types/galaxy";
+import { getCollection } from "@/lib/collections";
 import {
   getCertificationModel,
   getExperienceModel,
@@ -30,6 +31,58 @@ export function slugError(value: unknown): string | null {
   if (value.length > 80) return "Slug must be 80 characters or fewer.";
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
     return "Slug must be lowercase letters, numbers and hyphens — no spaces, capitals, or leading/trailing hyphens.";
+  }
+  return null;
+}
+
+/** #13: Validate JSON-type fields (e.g. socialLinks must be an array of {label, url}). */
+export function jsonFieldError(
+  key: string,
+  value: unknown,
+  collection: string
+): string | null {
+  if (value === null || value === undefined) return null;
+  if (key === "socialLinks" && collection === "siteConfig") {
+    if (!Array.isArray(value)) return `"Social links" must be a JSON array.`;
+    for (const [i, item] of value.entries()) {
+      if (typeof item !== "object" || item === null) {
+        return `"Social links" item ${i + 1} must be an object.`;
+      }
+      if (typeof (item as Record<string, unknown>).label !== "string" || !(item as Record<string, unknown>).label) {
+        return `"Social links" item ${i + 1} is missing a "label" string.`;
+      }
+      if (typeof (item as Record<string, unknown>).url !== "string" || !(item as Record<string, unknown>).url) {
+        return `"Social links" item ${i + 1} is missing a "url" string.`;
+      }
+    }
+  }
+  return null;
+}
+
+/** #14: Validate URL fields must start with https:// (or be empty). */
+export function urlFieldError(key: string, value: unknown): string | null {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value !== "string") return null;
+  const urlKeys = ["repoUrl", "demoUrl", "verifyUrl", "githubUrl", "liveUrl", "documentationUrl"];
+  if (urlKeys.includes(key) && value !== "" && !/^https?:\/\//.test(value)) {
+    return `"${key}" must start with http:// or https://.`;
+  }
+  return null;
+}
+
+/** #13 + #14: Validate all fields in a data payload. Returns first error or null. */
+export function validateData(
+  data: Record<string, unknown>,
+  spec: ReturnType<typeof getCollection>,
+  collection: string
+): string | null {
+  if (!spec) return null;
+  for (const f of spec.fields) {
+    const val = data[f.key];
+    const jsonErr = jsonFieldError(f.key, val, collection);
+    if (jsonErr) return jsonErr;
+    const urlErr = urlFieldError(f.key, val);
+    if (urlErr) return urlErr;
   }
   return null;
 }

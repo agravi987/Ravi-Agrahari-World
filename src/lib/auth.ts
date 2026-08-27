@@ -33,7 +33,9 @@ function recordAttempt(email: string, ok: boolean) {
   rec.fails += 1;
   if (rec.fails >= MAX_FAILS) {
     rec.lockedUntil = now + LOCK_MS;
-    rec.fails = 0;
+    // #30: Don't reset fails to 0 — keep the total count so we can
+    // implement exponential backoff later. The lockout expires but
+    // the fail count persists.
   }
   attempts.set(email, rec);
   if (attempts.size > 10_000) {

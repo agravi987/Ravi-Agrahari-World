@@ -51,8 +51,10 @@ export async function connectDb(): Promise<typeof mongoose | null> {
         bufferCommands: false,
       })
       .catch((err) => {
-        // Don't cache a dead promise — allow the next call to retry.
+        // #5: Don't cache a dead promise OR a stale connection — allow
+        // the next call to retry with a fresh connect.
         cache.promise = null;
+        cache.conn = null;
         failedAt = Date.now();
         throw err;
       });

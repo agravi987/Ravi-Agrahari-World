@@ -86,37 +86,51 @@ async function main() {
     { upsert: true }
   );
 
-  // Projects: upsert by title.
+  // Projects: upsert by title, then delete any not in seed data.
   const Project = getProjectModel();
+  const seedProjectTitles = new Set(seedContent.projects.map((p) => p.title));
   await Promise.all(
     seedContent.projects.map((p) =>
       Project.updateOne({ title: p.title }, { $set: p }, { upsert: true })
     )
   );
+  await Project.deleteMany({ title: { $nin: [...seedProjectTitles] } });
 
-  // Experience: upsert by company+role.
+  // Experience: upsert by company+role, then delete any not in seed data.
   const Experience = getExperienceModel();
   await Promise.all(
     seedContent.experience.map((e) =>
       Experience.updateOne({ company: e.company, role: e.role }, { $set: e }, { upsert: true })
     )
   );
+  await Experience.deleteMany({
+    $or: seedContent.experience.length === 0
+      ? [{}] // delete all if seed has none
+      : seedContent.experience.map((e) => ({
+          company: { $ne: e.company },
+          role: { $ne: e.role },
+        })),
+  });
 
-  // Certifications: upsert by name.
+  // Certifications: upsert by name, then delete any not in seed data.
   const Certification = getCertificationModel();
+  const seedCertNames = new Set(seedContent.certifications.map((c) => c.name));
   await Promise.all(
     seedContent.certifications.map((c) =>
       Certification.updateOne({ name: c.name }, { $set: c }, { upsert: true })
     )
   );
+  await Certification.deleteMany({ name: { $nin: [...seedCertNames] } });
 
-  // Posts: upsert by slug.
+  // Posts: upsert by slug, then delete any not in seed data.
   const Post = getPostModel();
+  const seedSlugs = new Set(seedContent.posts.map((p) => p.slug));
   await Promise.all(
     seedContent.posts.map((p) =>
       Post.updateOne({ slug: p.slug }, { $set: p }, { upsert: true })
     )
   );
+  await Post.deleteMany({ slug: { $nin: [...seedSlugs] } });
 
   // Admin auth: now handled directly by .env credentials in auth.ts
   // — no user document needed in the database.

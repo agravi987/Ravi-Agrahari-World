@@ -76,6 +76,8 @@ const skillSchema = new Schema<Skill>(
   },
   timestamps
 );
+// #29: Index for sort by level in content.ts.
+skillSchema.index({ level: -1 });
 
 /* --- project --- */
 
@@ -91,11 +93,14 @@ const projectSchema = new Schema<Project>(
     order: { type: Number, default: 0 },
     /* Phase 13: optional case-study page — /projects/<slug> renders
        caseStudy markdown (hidden entirely when either is absent). */
-    slug: { type: String, default: undefined },
+    slug: { type: String, unique: true, sparse: true, default: undefined },
     caseStudy: { type: String, default: undefined },
   },
   timestamps
 );
+// #29: Index for sort by order in content.ts.
+projectSchema.index({ order: 1 });
+projectSchema.index({ updatedAt: -1 });
 
 /* --- experience --- */
 
@@ -110,10 +115,13 @@ const experienceSchema = new Schema<Experience>(
     /* Phase 16: optional polish fields — all render only when present. */
     companyLogo: { type: String, default: undefined },
     tools: { type: [String], default: [] },
-    slug: { type: String, default: undefined },
+    slug: { type: String, unique: true, sparse: true, default: undefined },
   },
   timestamps
 );
+// #29: Index for sort by order in content.ts.
+experienceSchema.index({ order: 1 });
+experienceSchema.index({ updatedAt: -1 });
 
 /* --- certification --- */
 
@@ -142,6 +150,9 @@ const postSchema = new Schema<Post>(
   },
   timestamps
 );
+// #29: Index for sort queries in content.ts and dashboard recent edits.
+postSchema.index({ publishedAt: -1 });
+postSchema.index({ updatedAt: -1 });
 
 /* --- message (contact inbox, Phase 13) ---
    Written only by the public /api/contact route; read in the admin.
@@ -158,6 +169,8 @@ const messageSchema = new Schema(
   },
   timestamps
 );
+// #29: Index for sort by updatedAt in dashboard recent edits.
+messageSchema.index({ updatedAt: -1 });
 
 /* --- user (single admin, D7) --- */
 

@@ -7,9 +7,24 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/collections";
-import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError } from "@/lib/collections.server";
+import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError, validateData } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
 import { requireAdmin, revalidateFor } from "@/lib/adminApi";
+import { seedContent } from "@/lib/seed";
+
+/** #3: Filter body.data to only keys the collection spec declares. */
+function whitelistFields(
+  data: Record<string, unknown>,
+  spec: ReturnType<typeof getCollection>
+): Record<string, unknown> {
+  if (!spec) return data;
+  const allowed = new Set(spec.fields.map((f) => f.key));
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(data)) {
+    if (allowed.has(k)) out[k] = v;
+  }
+  return out;
+}
 
 // Admin reads/writes must never be served from a stale static cache.
 export const dynamic = "force-dynamic";
@@ -63,38 +78,48 @@ export async function POST(
     return NextResponse.json({ error: "Body must be { data: {…} }" }, { status: 400 });
   }
 
+  // #3: only allow fields the collection spec declares — prevents
+  // injection of arbitrary keys (e.g. _id, __v, internal fields).
+  const safeData = whitelistFields(body.data as Record<string, unknown>, spec);
+
+  // #13 + #14: Validate JSON structure and URL formats.
+  const validationErr = validateData(safeData, spec, collection);
+  if (validationErr) {
+    return NextResponse.json({ error: validationErr }, { status: 400 });
+  }
+
   // Galaxy v4: reject writes that would break the zero-overlap layout.
-  const layoutError = await assertGalaxyLayoutValid(collection, body.data);
+  const layoutError = await assertGalaxyLayoutValid(collection, safeData);
   if (layoutError) {
     return NextResponse.json({ error: layoutError }, { status: 400 });
   }
 
   // Slugs power deep links — reject URL-unsafe input before it's saved
   // (a "My Cool Post!" slug breaks /blog/<slug> and galaxy anchors).
-  const slugErr = slugError(body.data.slug);
+  const slugErr = slugError(safeData.slug);
   if (slugErr) return NextResponse.json({ error: slugErr }, { status: 400 });
 
   const Model = MODEL_GETTERS[collection]();
 
   try {
     if (spec.singleDoc) {
-      // Singleton: find-or-create pattern. Using upsert with an empty
-      // filter {} is fragile if duplicates somehow exist -- instead,
-      // explicitly find first and create only when no doc exists.
-      let doc = await Model.findOne().lean();
-      if (doc) {
-        doc = await Model.findByIdAndUpdate(doc._id, body.data, {
-          new: true,
-          runValidators: true,
-        }).lean();
-      } else {
-        doc = await Model.create(body.data);
-      }
+      // #27: For singletons, merge seed defaults so the admin never
+      // gets an empty doc. The client sends {} when clicking "Create".
+      const defaults: Record<string, unknown> =
+        collection === "siteConfig" ? { ...seedContent.config } : {};
+      const mergedData = { ...defaults, ...safeData };
+      // #1: Atomic upsert — eliminates the race condition where two
+      // concurrent POSTs both see no doc and both create duplicates.
+      const doc = await Model.findOneAndUpdate({}, mergedData, {
+        upsert: true,
+        new: true,
+        runValidators: true,
+      }).lean();
       revalidateFor(collection);
       return NextResponse.json({ data: doc });
     }
 
-    const doc = await Model.create(body.data);
+    const doc = await Model.create(safeData);
     revalidateFor(collection);
     return NextResponse.json({ data: doc }, { status: 201 });
   } catch (err) {

@@ -37,6 +37,9 @@ export interface CollectionField {
   required?: boolean;
   /** text fields: show a Cloudinary upload button + preview (plan D8). */
   image?: boolean;
+  /** #17: Number fields — HTML min/max attributes for client-side hints. */
+  min?: number;
+  max?: number;
 }
 
 export interface CollectionSpec {
@@ -114,7 +117,7 @@ export const COLLECTIONS: CollectionSpec[] = [
     fields: [
       { key: "name", label: "Name", type: "text", required: true },
       { key: "icon", label: "Icon", type: "text", help: "lucide key: cloud, workflow, bot…" },
-      { key: "level", label: "Level (1–5)", type: "number", required: true },
+      { key: "level", label: "Level (1–5)", type: "number", required: true, min: 1, max: 5 },
       { key: "blurb", label: "Blurb", type: "textarea" },
     ],
   },
@@ -131,7 +134,7 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: "description", label: "Description", type: "textarea" },
       { key: "icon", label: "Icon", type: "text", help: "Emoji or lucide key (☁️ 🐳 ☸️ 🧱 …)" },
       { key: "color", label: "Theme color", type: "color", help: "Planet color — pick a swatch or paste a hex" },
-      { key: "size", label: "Size (px)", type: "number", help: "36–96" },
+      { key: "size", label: "Size (px)", type: "number", help: "36–96", min: 36, max: 96 },
       {
         key: "orbitRadius",
         label: "Orbit radius (px)",
@@ -178,7 +181,7 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: "liveUrl", label: "Live URL", type: "text" },
       { key: "documentationUrl", label: "Docs URL", type: "text" },
       { key: "technologies", label: "Technologies", type: "stringList", help: "One per line" },
-      { key: "size", label: "Size (px)", type: "number", help: "8–24" },
+      { key: "size", label: "Size (px)", type: "number", help: "8–24", min: 8, max: 24 },
       { key: "orbitRadius", label: "Orbit radius (px)", type: "number", help: "Stays inside the parent planet's lane" },
       { key: "orbitSpeed", label: "Orbit speed (s/rev)", type: "number" },
       { key: "orbitAngle", label: "Orbit phase (deg)", type: "number" },

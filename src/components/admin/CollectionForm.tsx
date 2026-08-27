@@ -327,9 +327,10 @@ function MarkdownField({
   };
 
   const buttons = [
-    { icon: <Type className="h-4 w-4" />, title: "Heading 1", action: "heading1" as const },
-    { icon: <Type className="h-4 w-4" />, title: "Heading 2", action: "heading2" as const },
-    { icon: <Type className="h-4 w-4" />, title: "Heading 3", action: "heading3" as const },
+    // #19: Distinct text labels for heading buttons instead of generic Type icon.
+    { icon: <span className="text-[10px] font-bold">H1</span>, title: "Heading 1", action: "heading1" as const },
+    { icon: <span className="text-[10px] font-bold">H2</span>, title: "Heading 2", action: "heading2" as const },
+    { icon: <span className="text-[10px] font-bold">H3</span>, title: "Heading 3", action: "heading3" as const },
     { icon: <Bold className="h-4 w-4" />, title: "Bold", action: "bold" as const },
     { icon: <Italic className="h-4 w-4" />, title: "Italic", action: "italic" as const },
     { icon: <Code className="h-4 w-4" />, title: "Inline code", action: "code" as const },
@@ -478,12 +479,13 @@ function useAutoSaveDraft({
       const raw = localStorage.getItem(draftKey);
       if (raw) {
         const parsed = JSON.parse(raw);
-        // Merge draft with current form (draft wins for non-empty values)
+        // #15: Merge draft with current form — use Object.hasOwn to
+        // detect fields the draft explicitly set, not truthiness checks
+        // that lose `false` and `0` values.
         const merged: Record<string, unknown> = { ...form };
         for (const f of spec.fields) {
-          const draftVal = parsed.data[f.key];
-          if (draftVal !== "" && draftVal !== false && draftVal !== null && draftVal !== undefined) {
-            merged[f.key] = draftVal;
+          if (Object.hasOwn(parsed.data, f.key)) {
+            merged[f.key] = parsed.data[f.key];
           }
         }
         return merged;
@@ -590,10 +592,24 @@ export default function CollectionForm({
   // loaded doc ~1s after mount (and made the banner unreachable).
   const [draftRestored, setDraftRestored] = useState(false);
 
-  // Unsaved-changes guard: once the admin has edited anything, warn
-  // before the browser unloads the page (tab close / hard navigation).
-  // In-app <a>/<Link> navigations aren't covered by beforeunload — but
-  // drafts cover those (autosave is armed by this same `dirty` flag).
+  // #2: Unsaved-changes guard: warn before navigating away when dirty.
+  // The Cancel button checks this via onClick (see below).
+  function handleCancel(e: React.MouseEvent) {
+    if (dirty && !window.confirm("You have unsaved changes. Leave anyway?")) {
+      e.preventDefault();
+    }
+  }
+
+  // Also guard browser-level navigation (tab close, hard refresh).
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
   useEffect(() => {
     if (!dirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -607,6 +623,8 @@ export default function CollectionForm({
   // Ctrl/Cmd+S saves the form without leaving it (standard editor
   // muscle memory) — requestSubmit runs the same validation + submit.
   const formRef = useRef<HTMLFormElement | null>(null);
+  // #21: When true, save stays on the edit page instead of navigating back.
+  const stayOnPage = useRef(false);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
@@ -686,13 +704,18 @@ export default function CollectionForm({
     setError(null);
     // Phase 11: required-field inline validation BEFORE serializing —
     // a red border + message per empty required field, focus the first.
-    const missing = spec.fields.filter(
-      (f) =>
-        f.required &&
-        String(form[f.key] ?? "").trim() === "" &&
-        f.type !== "number" &&
-        f.type !== "boolean"
-    );
+    const missing = spec.fields.filter((f) => {
+      if (!f.required) return false;
+      const raw = form[f.key];
+      // #12: Numbers are required when the field is empty string or NaN.
+      if (f.type === "number") {
+        const s = String(raw ?? "").trim();
+        return s === "" || Number.isNaN(Number(s));
+      }
+      // Booleans always have a value (true/false), never truly "empty".
+      if (f.type === "boolean") return false;
+      return String(raw ?? "").trim() === "";
+    });
     if (missing.length > 0) {
       const errs: Record<string, string> = {};
       for (const f of missing) errs[f.key] = `Required — ${f.label.toLowerCase()} can't be empty.`;
@@ -725,9 +748,15 @@ export default function CollectionForm({
       showToast(isNew ? "Created — the live site is updated" : "Saved — the live site is updated");
       // Clear draft on successful save
       clearDraft();
-      // Back to the list; the API already revalidated the live site.
+      // #21: If "Save and continue" was clicked, stay on the page.
+      if (stayOnPage.current) {
+        stayOnPage.current = false;
+        showToast("Saved — staying on this page");
+        return;
+      }
+      // #11: Back to the list. No router.refresh() needed — the target
+      // page's own fetch-on-mount handles freshness.
       router.push(`/admin/${collection}`);
-      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {
@@ -787,6 +816,8 @@ export default function CollectionForm({
             value={String(value ?? "")}
             onChange={(e) => set(key, e.target.value)}
             className={inputClasses}
+            min={f.min}
+            max={f.max}
           />
         );
         break;
@@ -1124,8 +1155,20 @@ export default function CollectionForm({
         >
           {pending ? "Saving…" : isNew ? "Create" : "Save changes"}
         </button>
+        {/* #21: Save and continue editing — saves without navigating away. */}
+        {!isNew && (
+          <button
+            type="submit"
+            disabled={pending}
+            onClick={() => { stayOnPage.current = true; }}
+            className="rounded-full border border-card-border bg-card px-5 py-2.5 text-sm text-ink-soft transition-colors hover:text-accent disabled:opacity-50"
+          >
+            Save & continue
+          </button>
+        )}
         <a
           href={`/admin/${collection}`}
+          onClick={handleCancel}
           className="rounded-full border border-card-border bg-card px-6 py-2.5 text-sm text-ink-soft transition-colors hover:text-accent"
         >
           Cancel

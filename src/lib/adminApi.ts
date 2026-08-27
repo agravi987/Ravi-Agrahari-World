@@ -17,10 +17,28 @@ export async function requireAdmin(): Promise<NextResponse | null> {
 }
 
 /** Site + admin pages revalidate after any mutation (plan D10).
- *  Galaxy pages too -- the Learning Galaxy renders from the same
- *  content boundary and must reflect edits immediately (v4). */
+ *  #28: Targeted revalidation — only revalidate paths affected by
+ *  the specific collection, not the entire layout. */
 export function revalidateFor(collection: string) {
-  revalidatePath("/", "layout");
-  revalidatePath("/detailed-galaxy");
+  // Always revalidate the admin list for this collection.
   revalidatePath(`/admin/${collection}`);
+
+  // Map collections to their public-facing paths.
+  const publicPaths: Record<string, string[]> = {
+    siteConfig: ["/", "/detailed-galaxy"],
+    skill: ["/"],
+    galaxyPlanet: ["/", "/detailed-galaxy"],
+    galaxyMoon: ["/", "/detailed-galaxy"],
+    galaxySettings: ["/detailed-galaxy"],
+    project: ["/", "/projects"],
+    experience: ["/", "/#experience"],
+    certification: ["/", "/#certifications"],
+    post: ["/", "/blog"],
+    message: [], // messages have no public surface
+  };
+
+  const paths = publicPaths[collection] ?? ["/"];
+  for (const p of paths) {
+    revalidatePath(p);
+  }
 }

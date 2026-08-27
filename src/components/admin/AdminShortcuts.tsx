@@ -18,6 +18,7 @@ const shortcuts = [
   { key: "D", label: "Dashboard" },
   { key: "N", label: "New document" },
   { key: "/", label: "Focus search" },
+  { key: "Ctrl+S", label: "Save form" },
   { key: "?", label: "Toggle shortcuts" },
 ];
 

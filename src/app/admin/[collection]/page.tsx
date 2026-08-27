@@ -18,7 +18,6 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
-import { seedContent } from "@/lib/seed";
 
 type Doc = Record<string, unknown> & { _id?: string };
 
@@ -98,6 +97,20 @@ export default function CollectionListPage() {
   /** Re-entrancy guard for Duplicate — double-clicks used to POST twice
    *  and create two copies (the button has no built-in pending state). */
   const duplicating = useRef(false);
+  /** #6: Track IDs currently being deleted to prevent double-clicks. */
+  const deleting = useRef<Set<string>>(new Set());
+  /** #20: Auto-dismiss error banners after 8 seconds. */
+  const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // #20: Auto-dismiss error after 8 seconds.
+  useEffect(() => {
+    if (!error) return;
+    if (errorTimer.current) clearTimeout(errorTimer.current);
+    errorTimer.current = setTimeout(() => setError(null), 8000);
+    return () => {
+      if (errorTimer.current) clearTimeout(errorTimer.current);
+    };
+  }, [error]);
 
   /** Reload the current collection from the API (used after bulk ops).
    *  Failures are surfaced — a silent no-op left stale rows on screen
@@ -269,14 +282,11 @@ export default function CollectionListPage() {
     async function createDefault() {
       setError(null);
       try {
-        const defaults: Record<string, unknown> =
-          collection === "siteConfig"
-            ? { ...seedContent.config }
-            : {};
+        // #27: Send empty data — the API applies seed defaults server-side.
         const res = await fetch(`/api/admin/${collection}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ data: defaults }),
+          body: JSON.stringify({ data: {} }),
         });
         const json = await res.json().catch(() => null);
         if (!res.ok) throw new Error(json?.error || "Create failed");
@@ -332,22 +342,27 @@ export default function CollectionListPage() {
   }
 
   async function remove(id: string) {
+    if (deleting.current.has(id)) return; // #6: prevent double-click
     const warning = spec?.deleteWarning ?? "Delete this item? This cannot be undone.";
     if (!window.confirm(`${warning} Delete anyway?`)) return;
-    const res = await fetch(`/api/admin/${collection}/${id}`, { method: "DELETE" });
-    const json = await res.json().catch(() => null);
-    if (!res.ok) {
-      setError(json?.error || "Delete failed");
-      return;
+    deleting.current.add(id);
+    try {
+      const res = await fetch(`/api/admin/${collection}/${id}`, { method: "DELETE" });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(json?.error || "Delete failed");
+        return;
+      }
+      setDocs((prev) => (prev ?? []).filter((d) => String(d._id) !== id));
+      setSelected((prev) => {
+        if (!prev.has(id)) return prev;
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    } finally {
+      deleting.current.delete(id);
     }
-    setDocs((prev) => (prev ?? []).filter((d) => String(d._id) !== id));
-    setSelected((prev) => {
-      if (!prev.has(id)) return prev;
-      const next = new Set(prev);
-      next.delete(id);
-      return next;
-    });
-    router.refresh();
   }
 
   async function duplicate(doc: Doc) {
@@ -389,10 +404,12 @@ export default function CollectionListPage() {
           orbitAngle: ((Number(doc.orbitAngle) || 0) + off) % 360,
         }));
       } else {
-        candidates = Array.from({ length: 24 }, (_, i) => ({
+        // #24: Reduced from 24 to 8 candidates — each API call runs
+        // the full galaxy layout validation, so fewer = faster.
+        candidates = Array.from({ length: 8 }, (_, i) => ({
           ...clone,
           displayOrder: maxOrder + 1,
-          orbitAngle: ((Number(doc.orbitAngle) || 0) + i * 30) % 360,
+          orbitAngle: ((Number(doc.orbitAngle) || 0) + i * 45) % 360,
         }));
       }
     }
@@ -406,8 +423,8 @@ export default function CollectionListPage() {
       });
       const json = await res.json().catch(() => null);
       if (res.ok) {
-        // Reload the list so the copy (with its new _id) shows up.
-        router.refresh();
+        // #26: Reload the list via fetch (not router.refresh) to avoid
+        // a flash of stale state between the refresh and setDocs.
         fetch(`/api/admin/${collection}`)
           .then(async (r) => {
             const j = await r.json().catch(() => null);
@@ -434,6 +451,8 @@ export default function CollectionListPage() {
     const key = spec.orderKey!;
     const a = Number(list[idx][key]) || 0;
     const b = Number(other[key]) || 0;
+    // #7: Snapshot original docs before optimistic swap — restored on failure.
+    const originalDocs = docs?.map((d) => ({ ...d })) ?? null;
     // Optimistic local swap first.
     setDocs((prev) => {
       if (!prev) return prev;
@@ -453,8 +472,9 @@ export default function CollectionListPage() {
       });
     const results = await Promise.all([put(id, b), put(String(other._id), a)]);
     if (results.some((r) => !r.ok)) {
-      setError("Reorder failed — refresh to see the current order.");
-      router.refresh();
+      // #7: Roll back to the original state immediately.
+      setDocs(originalDocs);
+      setError("Reorder failed — order restored.");
     }
   }
 
@@ -616,6 +636,10 @@ export default function CollectionListPage() {
                     {col}
                   </th>
                 ))}
+                {/* #22: Always show updatedAt as the last column. */}
+                <th scope="col" className="px-4 py-3 font-mono text-xs font-medium text-ink-faint">
+                  updated
+                </th>
                 <th scope="col" className="px-4 py-3 text-right font-mono text-xs font-medium text-ink-faint">
                   actions
                 </th>
@@ -698,12 +722,28 @@ export default function CollectionListPage() {
                       // Boolean chips: colored pill per state.
                       if (chip && typeof raw === "boolean") {
                         const labels = BOOL_LABELS[col];
+                        // #23: Inline mark-as-read toggle for message collection.
+                        const canToggle = collection === "message" && col === "read";
                         return (
                           <td key={col} className="px-4 py-3">
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-medium ${
+                            <button
+                              type="button"
+                              disabled={!canToggle}
+                              onClick={canToggle ? async () => {
+                                await fetch(`/api/admin/${collection}/${id}`, {
+                                  method: "PUT",
+                                  headers: { "Content-Type": "application/json" },
+                                  body: JSON.stringify({ data: { read: !raw } }),
+                                });
+                                setDocs((prev) =>
+                                  (prev ?? []).map((d) =>
+                                    String(d._id) === id ? { ...d, read: !raw } : d
+                                  )
+                                );
+                              } : undefined}
+                              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[10px] font-medium transition-colors ${
                                 raw ? chip.on : chip.off
-                              }`}
+                              } ${canToggle ? "cursor-pointer hover:opacity-80" : ""}`}
                             >
                               <span
                                 aria-hidden="true"
@@ -712,7 +752,7 @@ export default function CollectionListPage() {
                                 }`}
                               />
                               {raw ? labels[0] : labels[1]}
-                            </span>
+                            </button>
                           </td>
                         );
                       }
@@ -724,6 +764,15 @@ export default function CollectionListPage() {
                         </td>
                       );
                     })}
+                    {/* #22: updatedAt as a relative date in the last data column. */}
+                    <td className="px-4 py-3 font-mono text-xs text-ink-faint whitespace-nowrap">
+                      {(() => {
+                        const u = doc.updatedAt;
+                        if (!u) return "—";
+                        const d = u instanceof Date ? u : new Date(String(u));
+                        return Number.isNaN(d.getTime()) ? "—" : formatCell(d.toISOString());
+                      })()}
+                    </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-3">
                         {/* Phase 11: open the doc exactly as a visitor sees it */}

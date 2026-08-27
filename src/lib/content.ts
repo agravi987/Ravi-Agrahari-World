@@ -71,14 +71,27 @@ async function fetchFromMongo(): Promise<SiteContent> {
     getPostModel,
   } = await import("@/models");
 
+  // #10: Per-collection try/catch so one broken query doesn't nuke
+  // the entire site to seed fallback. Each collection degrades
+  // independently — a skills query failure still returns real
+  // projects, experience, etc.
+  const safe = async <T>(p: Promise<T>): Promise<T | null> => {
+    try {
+      return await p;
+    } catch (err) {
+      console.warn("[content] Mongo query failed:", err);
+      return null;
+    }
+  };
+
   const [configRaw, skillsRaw, projectsRaw, experienceRaw, certificationsRaw, postsRaw] =
     await Promise.all([
-      getSiteConfigModel().findOne().lean(),
-      getSkillModel().find().sort({ level: -1 }).lean(),
-      getProjectModel().find().sort({ order: 1 }).lean(),
-      getExperienceModel().find().sort({ order: 1 }).lean(),
-      getCertificationModel().find().lean(),
-      getPostModel().find().sort({ publishedAt: -1 }).lean(),
+      safe(getSiteConfigModel().findOne().lean()),
+      safe(getSkillModel().find().sort({ level: -1 }).lean()),
+      safe(getProjectModel().find().sort({ order: 1 }).lean()),
+      safe(getExperienceModel().find().sort({ order: 1 }).lean()),
+      safe(getCertificationModel().find().lean()),
+      safe(getPostModel().find().sort({ publishedAt: -1 }).lean()),
     ]);
 
   // Strip _id/__v so every prop is a plain object (client-safe).

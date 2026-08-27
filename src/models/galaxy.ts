@@ -24,6 +24,9 @@ const galaxyPlanetSchema = new Schema<GalaxyPlanet>(
   },
   { timestamps: true }
 );
+// #29: Indexes for sort by displayOrder (content.ts) and updatedAt (dashboard).
+galaxyPlanetSchema.index({ displayOrder: 1 });
+galaxyPlanetSchema.index({ updatedAt: -1 });
 
 const galaxyMoonSchema = new Schema<GalaxyMoon>(
   {
@@ -56,6 +59,9 @@ const galaxyMoonSchema = new Schema<GalaxyMoon>(
   },
   { timestamps: true }
 );
+// #29: Indexes for sort by displayOrder (content.ts) and updatedAt (dashboard).
+galaxyMoonSchema.index({ displayOrder: 1 });
+galaxyMoonSchema.index({ updatedAt: -1 });
 
 const galaxySettingsSchema = new Schema<GalaxySettings>(
   {
