@@ -578,6 +578,12 @@ export default function CollectionForm({
 
   // Auto-save draft hook — writes only after real edits (see `dirty`).
   const [dirty, setDirty] = useState(false);
+
+  // #18: Expose dirty state globally so AdminShortcuts can guard navigation.
+  useEffect(() => {
+    (window as unknown as Record<string, unknown>).__adminFormDirty = dirty;
+    return () => { (window as unknown as Record<string, unknown>).__adminFormDirty = false; };
+  }, [dirty]);
   const { hasDraft, restoreDraft, clearDraft } = useAutoSaveDraft({
     collection,
     id,
@@ -601,15 +607,6 @@ export default function CollectionForm({
   }
 
   // Also guard browser-level navigation (tab close, hard refresh).
-  useEffect(() => {
-    if (!dirty) return;
-    const handler = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [dirty]);
   useEffect(() => {
     if (!dirty) return;
     const handler = (e: BeforeUnloadEvent) => {
@@ -770,9 +767,10 @@ export default function CollectionForm({
     const value = form[key];
     // Phase 11: red border while a required field is missing.
     const invalid = Boolean(fieldErrors[key]);
-    const inputClasses = `w-full rounded-card border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none ${
+    // #15: focus-visible:ring for keyboard users
+    const inputClasses = `w-full rounded-card border bg-paper px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/20 ${
       invalid
-        ? "border-red-500/60 focus:border-red-500 focus:ring-2 focus:ring-red-500/15"
+        ? "border-red-500/60 focus:border-red-500 focus-visible:ring-red-500/15"
         : "border-card-border focus:border-accent"
     }`;
 
@@ -831,7 +829,8 @@ export default function CollectionForm({
               onChange={(e) => set(key, e.target.checked)}
               className="h-4 w-4 accent-[var(--color-accent)]"
             />
-            Enabled
+            {/* #4: Derive boolean label from field key instead of hardcoded "Enabled" */}
+            {f.key === "isVisible" ? "Visible" : f.key === "isFeatured" ? "Featured" : f.key === "read" ? "Read" : f.label}
           </label>
         );
         break;
@@ -843,6 +842,8 @@ export default function CollectionForm({
             onChange={(e) => set(key, e.target.value)}
             className={inputClasses}
           >
+            {/* #9: Leading placeholder option for non-required selects */}
+            {!f.required && <option value="">— Select —</option>}
             {(f.options ?? []).map((opt) => (
               <option key={opt} value={opt}>
                 {opt}

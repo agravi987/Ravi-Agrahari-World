@@ -301,7 +301,7 @@ export default function Certifications({
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={cert.logo}
-              alt=""
+              alt={cert.issuer}
               loading="lazy"
               decoding="async"
               title={cert.issuer}

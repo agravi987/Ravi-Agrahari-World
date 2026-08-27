@@ -226,7 +226,7 @@ export default function Experience({ experience }: ExperienceProps) {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.companyLogo}
-                      alt=""
+                      alt={item.company}
                       loading="lazy"
                       decoding="async"
                       title={item.company}

@@ -207,7 +207,7 @@ export default async function AdminDashboard() {
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {COLLECTIONS.map((c, i) => (
-          <a
+          <Link
             key={c.key}
             href={`/admin/${c.key}`}
             className={`group relative rounded-card border bg-card p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover ${CARD_HUES[i % CARD_HUES.length]}`}
@@ -235,7 +235,7 @@ export default async function AdminDashboard() {
               open
               <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
             </span>
-          </a>
+          </Link>
         ))}
       </div>
     </div>

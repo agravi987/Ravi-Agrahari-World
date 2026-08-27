@@ -7,7 +7,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink } from "lucide-react";
+import Link from "next/link";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
 
@@ -50,7 +51,11 @@ export default function EditCollectionPage() {
   if (!spec) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-12">
-        <h1 className="font-display text-2xl font-semibold text-ink">Unknown collection</h1>
+        <p className="font-mono text-xs text-accent">~/admin</p>
+        <h1 className="mt-2 font-display text-2xl font-semibold text-ink">Unknown collection</h1>
+        <Link href="/admin" className="mt-3 inline-flex items-center gap-1.5 text-sm text-accent hover:underline">
+          <ArrowLeft className="h-3.5 w-3.5" /> Back to Mission Control
+        </Link>
       </div>
     );
   }
@@ -60,8 +65,13 @@ export default function EditCollectionPage() {
     <div className="mx-auto max-w-3xl px-6 py-12">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="font-mono text-xs text-accent">~/admin/{collection}/{id.slice(0, 8)}</p>
+          <Link href={`/admin/${collection}`} className="font-mono text-xs text-accent hover:underline">
+            ~/admin/{collection}
+          </Link>
           <h1 className="mt-2 font-display text-2xl font-semibold text-ink">Edit {spec.label}</h1>
+          <Link href={`/admin/${collection}`} className="mt-1 inline-flex items-center gap-1 text-sm text-ink-soft hover:text-accent">
+            <ArrowLeft className="h-3.5 w-3.5" /> Back to {spec.label}s
+          </Link>
         </div>
         {/* Phase 11: see the doc exactly as a visitor does — the CMS →
             site loop is one click, not a guess. */}

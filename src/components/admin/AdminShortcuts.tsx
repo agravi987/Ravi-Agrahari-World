@@ -52,9 +52,17 @@ export default function AdminShortcuts() {
 
       if (e.key === "d" || e.key === "D") {
         e.preventDefault();
+        // #18: Guard navigation when a form has unsaved changes.
+        if ((window as unknown as Record<string, unknown>).__adminFormDirty) {
+          if (!window.confirm("You have unsaved changes. Leave anyway?")) return;
+        }
         router.push("/admin");
       } else if (e.key === "n" || e.key === "N") {
         e.preventDefault();
+        // #18: Guard navigation when a form has unsaved changes.
+        if ((window as unknown as Record<string, unknown>).__adminFormDirty) {
+          if (!window.confirm("You have unsaved changes. Leave anyway?")) return;
+        }
         // Extract collection from /admin/<collection>...
         const match = pathname.match(/^\/admin\/([^/]+)/);
         if (match && match[1] !== "login") {

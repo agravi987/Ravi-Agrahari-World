@@ -246,3 +246,61 @@ export function validateGalaxyLayout(
 
   return { ok: errors.length === 0, errors, warnings };
 }
+
+/**
+ * #1: Auto-arrange planets in a radial layout.
+ * Given N visible planets sorted by displayOrder, evenly distributes
+ * them across orbit radii and angles so no overlaps occur.
+ * Returns the computed orbitRadius and orbitAngle for each planet.
+ */
+export function autoLayoutPlanets(
+  planets: Partial<GalaxyPlanet>[]
+): { slug: string; orbitRadius: number; orbitAngle: number; orbitSpeed: number }[] {
+  const visible = planets
+    .filter((p) => p.isVisible !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+  const n = visible.length;
+  if (n === 0) return [];
+
+  const minR = GALAXY_CONSTRAINTS.orbitRadiusMin;
+  const maxR = GALAXY_CONSTRAINTS.orbitRadiusMax;
+  // Even radial spacing: if 1 planet, place at minR; if 2+, spread across range.
+  const radialStep = n > 1 ? (maxR - minR) / (n - 1) : 0;
+  // Even angular spacing: stagger planets so they never align.
+  const angleStep = 360 / n;
+  // All planets share the same speed for a locked constellation (no drift overlap).
+  const lockedSpeed = 60;
+
+  return visible.map((p, i) => ({
+    slug: String(p.slug ?? ""),
+    orbitRadius: Math.round(minR + radialStep * i),
+    orbitAngle: Math.round(angleStep * i),
+    orbitSpeed: lockedSpeed,
+  }));
+}
+
+/**
+ * #1: Auto-arrange moons around a single planet.
+ * Evenly distributes moons at a radius just outside the planet disc.
+ */
+export function autoLayoutMoons(
+  planetSize: number,
+  moons: Partial<GalaxyMoon>[]
+): { slug: string; orbitRadius: number; orbitAngle: number }[] {
+  const visible = moons
+    .filter((m) => m.isVisible !== false)
+    .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+  const n = visible.length;
+  if (n === 0) return [];
+
+  const orbitRadius = Math.round(planetSize / 2) + 16;
+  const angleStep = 360 / n;
+
+  return visible.map((m, i) => ({
+    slug: String(m.slug ?? ""),
+    orbitRadius,
+    orbitAngle: Math.round(angleStep * i),
+  }));
+}

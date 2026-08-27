@@ -12,12 +12,13 @@
  */
 "use client";
 
-import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
+import { showToast } from "@/components/ui/Toast";
 
 type Doc = Record<string, unknown> & { _id?: string };
 
@@ -97,8 +98,10 @@ export default function CollectionListPage() {
   /** Re-entrancy guard for Duplicate — double-clicks used to POST twice
    *  and create two copies (the button has no built-in pending state). */
   const duplicating = useRef(false);
-  /** #6: Track IDs currently being deleted to prevent double-clicks. */
-  const deleting = useRef<Set<string>>(new Set());
+  /** #6: Track IDs currently being deleted to prevent double-clicks + show loading state. */
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  /** #1: Loading state for the auto-arrange button. */
+  const [arranging, setArranging] = useState(false);
   /** #20: Auto-dismiss error banners after 8 seconds. */
   const errorTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -185,6 +188,9 @@ export default function CollectionListPage() {
     );
     if (results.some((r) => !r.ok)) {
       setError("Some deletes failed — refresh to see what remains.");
+    } else {
+      // #12: Success feedback after bulk delete.
+      showToast(`${ids.length} item(s) deleted`);
     }
     setSelected(new Set());
     reload();
@@ -342,10 +348,10 @@ export default function CollectionListPage() {
   }
 
   async function remove(id: string) {
-    if (deleting.current.has(id)) return; // #6: prevent double-click
+    if (deletingIds.has(id)) return; // #6: prevent double-click
     const warning = spec?.deleteWarning ?? "Delete this item? This cannot be undone.";
     if (!window.confirm(`${warning} Delete anyway?`)) return;
-    deleting.current.add(id);
+    setDeletingIds((prev) => new Set(prev).add(id));
     try {
       const res = await fetch(`/api/admin/${collection}/${id}`, { method: "DELETE" });
       const json = await res.json().catch(() => null);
@@ -360,8 +366,34 @@ export default function CollectionListPage() {
         next.delete(id);
         return next;
       });
+      // #12: Success feedback after delete.
+      showToast(`${spec?.label ?? "Item"} deleted`);
     } finally {
-      deleting.current.delete(id);
+      setDeletingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
+  }
+
+  /** #1: Auto-arrange all visible planets in a radial layout. */
+  async function autoArrange() {
+    if (arranging) return;
+    setArranging(true);
+    try {
+      const res = await fetch(`/api/admin/${collection}/auto-arrange`, { method: "POST" });
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        setError(json?.error || "Auto-arrange failed");
+        return;
+      }
+      showToast(`✨ Arranged ${json.arranged} planet(s) — zero overlaps`);
+      reload();
+    } catch {
+      setError("Auto-arrange failed — check the connection");
+    } finally {
+      setArranging(false);
     }
   }
 
@@ -521,13 +553,25 @@ export default function CollectionListPage() {
               View the galaxy ↗
             </a>
           )}
-          <a
+          {/* #1: Auto-arrange button — only on the galaxyPlanet list page */}
+          {collection === "galaxyPlanet" && (sorted?.length ?? 0) > 1 && (
+            <button
+              type="button"
+              onClick={autoArrange}
+              disabled={arranging}
+              className={`inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft/50 px-4 py-2.5 text-sm font-medium text-accent transition-colors hover:bg-accent-soft ${arranging ? "pointer-events-none opacity-60" : ""}`}
+            >
+              <Sparkles className={`h-4 w-4 ${arranging ? "animate-spin" : ""}`} aria-hidden="true" />
+              {arranging ? "Arranging…" : "Auto-arrange"}
+            </button>
+          )}
+          <Link
             href={`/admin/${collection}/new`}
             className="inline-flex items-center gap-1.5 rounded-full bg-accent-btn px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-btn-hover"
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
             New {spec.label}
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -542,9 +586,9 @@ export default function CollectionListPage() {
       {sorted !== null && sorted.length === 0 && (
         <div className="mt-8 rounded-card border border-dashed border-card-border bg-card/50 p-10 text-center">
           <p className="text-sm text-ink-soft">No {spec.label.toLowerCase()}s yet.</p>
-          <a href={`/admin/${collection}/new`} className="mt-2 inline-block text-sm font-medium text-accent hover:underline">
+          <Link href={`/admin/${collection}/new`} className="mt-2 inline-block text-sm font-medium text-accent hover:underline">
             Create the first one →
-          </a>
+          </Link>
         </div>
       )}
 
@@ -807,16 +851,17 @@ export default function CollectionListPage() {
                           <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                           <span className="hidden sm:inline">Duplicate</span>
                         </button>
-                        <a
+                        <Link
                           href={`/admin/${collection}/${id}`}
                           className="text-sm font-medium text-accent hover:underline"
                         >
                           Edit
-                        </a>
+                        </Link>
                         <button
                           type="button"
                           onClick={() => remove(id)}
-                          className="text-sm font-medium text-red-500 hover:underline"
+                          disabled={deletingIds.has(id)}
+                          className={`text-sm font-medium text-red-500 hover:underline ${deletingIds.has(id) ? "pointer-events-none opacity-50" : ""}`}
                         >
                           Delete
                         </button>

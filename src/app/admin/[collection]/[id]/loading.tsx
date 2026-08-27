@@ -17,13 +17,10 @@ export default function EditDocLoading() {
       <div className="mt-2 h-4 w-32 animate-pulse rounded bg-paper-deep" />
 
       <div className="mt-8 space-y-6">
-        {Array.from({ length: 6 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i}>
             <div className="mb-2 h-4 w-28 animate-pulse rounded bg-paper-deep" />
-            <div
-              className="animate-pulse rounded-card bg-paper-deep"
-              style={{ height: i === 3 ? 160 : 40, width: "100%" }}
-            />
+            <div className="h-10 w-full animate-pulse rounded-card bg-paper-deep" />
           </div>
         ))}
         <div className="mt-8 flex gap-3">

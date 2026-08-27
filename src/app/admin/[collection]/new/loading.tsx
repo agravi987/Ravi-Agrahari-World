@@ -1,6 +1,6 @@
 /**
  * admin/[collection]/new/loading.tsx — skeleton while the schema-driven
- * form hydrates. Shows field-like pulse bars matching the form layout.
+ * form hydrates. Shows a generic 3-field skeleton (adapts to any collection).
  */
 export default function NewDocLoading() {
   return (
@@ -14,7 +14,7 @@ export default function NewDocLoading() {
       <div className="h-7 w-48 animate-pulse rounded-lg bg-paper-deep" />
 
       <div className="mt-8 space-y-6">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {Array.from({ length: 3 }).map((_, i) => (
           <div key={i}>
             <div className="mb-2 h-4 w-24 animate-pulse rounded bg-paper-deep" />
             <div className="h-10 w-full animate-pulse rounded-card bg-paper-deep" />
