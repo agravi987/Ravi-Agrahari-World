@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
+import { seedContent } from "@/lib/seed";
 
 type Doc = Record<string, unknown> & { _id?: string };
 
@@ -79,6 +80,7 @@ export default function CollectionListPage() {
 
   const [docs, setDocs] = useState<Doc[] | null>(null);
   const [singleDoc, setSingleDoc] = useState<Doc | null>(null);
+  const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   /** P20: client-side list filter — type to find a row in big collections.
    *  The input updates `query` instantly (controlled), but filtering runs
@@ -110,6 +112,7 @@ export default function CollectionListPage() {
     setError(null);
     if (spec?.singleDoc) setSingleDoc((json?.data as Doc) ?? null);
     else setDocs((json?.data as Doc[]) ?? []);
+    setLoaded(true);
   }
 
   /** The boolean field bulk "show/hide" toggles (isVisible → featured → first). */
@@ -189,6 +192,7 @@ export default function CollectionListPage() {
         if (cancelled) return;
         if (spec?.singleDoc) setSingleDoc((json.data as Doc) ?? null);
         else setDocs((json.data as Doc[]) ?? []);
+        setLoaded(true);
       })
       .catch((err) => {
         if (!cancelled) setError(err.message);
@@ -262,6 +266,26 @@ export default function CollectionListPage() {
 
   // Singleton (siteConfig): the page IS the edit form.
   if (spec.singleDoc) {
+    async function createDefault() {
+      setError(null);
+      try {
+        const defaults: Record<string, unknown> =
+          collection === "siteConfig"
+            ? { ...seedContent.config }
+            : {};
+        const res = await fetch(`/api/admin/${collection}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ data: defaults }),
+        });
+        const json = await res.json().catch(() => null);
+        if (!res.ok) throw new Error(json?.error || "Create failed");
+        setSingleDoc((json.data as Doc) ?? null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Create failed");
+      }
+    }
+
     return (
       <div className="mx-auto max-w-3xl px-6 py-12">
         {/* Path doubles as the back-link — no dead-end pages. */}
@@ -275,15 +299,24 @@ export default function CollectionListPage() {
             {error}
           </p>
         )}
-        {!error && singleDoc === null && (
+        {!loaded && !error && (
           <p className="mt-6 text-sm text-ink-faint">Loading…</p>
         )}
-        {/* BUGFIX: only mount the form once the singleton doc has
-            ARRIVED. The useState initializer runs once at mount —
-            rendering with singleDoc=null (still loading) produced an
-            all-defaults form that never refilled, and saving it would
-            overwrite the real config with blanks. */}
-        {!error && singleDoc !== null && (
+        {loaded && !error && singleDoc === null && (
+          <div className="mt-8 rounded-card border border-dashed border-card-border bg-card/50 p-10 text-center">
+            <p className="text-sm text-ink-soft">
+              No {spec.label.toLowerCase()} found in the database.
+            </p>
+            <button
+              type="button"
+              onClick={createDefault}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-accent-btn px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-btn-hover"
+            >
+              Create {spec.label}
+            </button>
+          </div>
+        )}
+        {loaded && singleDoc !== null && (
           <div className="mt-8 rounded-card border border-card-border bg-card p-6 shadow-card">
             <CollectionForm
               key="siteConfig-singleton"
