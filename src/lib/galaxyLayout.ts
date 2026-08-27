@@ -304,3 +304,67 @@ export function autoLayoutMoons(
     orbitAngle: Math.round(angleStep * i),
   }));
 }
+
+/**
+ * Auto-rebalance all visible planets after a create/delete/visibility toggle.
+ * Fetches all planets from MongoDB, runs autoLayoutPlanets(), and bulk-updates
+ * orbitRadius, orbitAngle, and orbitSpeed so no manual positioning is needed.
+ *
+ * Called from the POST, DELETE, and PUT handlers for galaxyPlanet.
+ */
+export async function rebalanceGalaxyPlanets(): Promise<void> {
+  const { connectDb } = await import("@/lib/db");
+  const mongoose = await connectDb();
+  if (!mongoose) return;
+
+  const { getGalaxyPlanetModel } = await import("@/models");
+  const Planet = getGalaxyPlanetModel();
+
+  const allPlanets = await Planet.find({}).sort({ displayOrder: 1 }).lean();
+  const layout = autoLayoutPlanets(allPlanets);
+  if (layout.length === 0) return;
+
+  await Promise.all(
+    layout.map((pos) =>
+      Planet.findOneAndUpdate(
+        { slug: pos.slug },
+        { orbitRadius: pos.orbitRadius, orbitAngle: pos.orbitAngle, orbitSpeed: pos.orbitSpeed },
+        { new: true }
+      )
+    )
+  );
+}
+
+/**
+ * Auto-rebalance all visible moons around a single planet.
+ * Given a planetId, fetches the parent planet's size and all its moons,
+ * then runs autoLayoutMoons() and bulk-updates orbitRadius + orbitAngle.
+ *
+ * Called from the POST, DELETE, and PUT handlers for galaxyMoon.
+ */
+export async function rebalanceGalaxyMoons(planetId: string): Promise<void> {
+  const { connectDb } = await import("@/lib/db");
+  const mongoose = await connectDb();
+  if (!mongoose) return;
+
+  const { getGalaxyPlanetModel, getGalaxyMoonModel } = await import("@/models");
+  const Planet = getGalaxyPlanetModel();
+  const Moon = getGalaxyMoonModel();
+
+  const planet = await Planet.findById(planetId).lean();
+  if (!planet) return;
+
+  const moons = await Moon.find({ planetId }).sort({ displayOrder: 1 }).lean();
+  const layout = autoLayoutMoons(planet.size ?? 48, moons);
+  if (layout.length === 0) return;
+
+  await Promise.all(
+    layout.map((pos) =>
+      Moon.findOneAndUpdate(
+        { slug: pos.slug },
+        { orbitRadius: pos.orbitRadius, orbitAngle: pos.orbitAngle },
+        { new: true }
+      )
+    )
+  );
+}

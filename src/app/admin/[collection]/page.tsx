@@ -388,7 +388,7 @@ export default function CollectionListPage() {
         setError(json?.error || "Auto-arrange failed");
         return;
       }
-      showToast(`✨ Arranged ${json.arranged} planet(s) — zero overlaps`);
+      showToast("✨ Galaxy rebalanced — all orbits evenly spaced");
       reload();
     } catch {
       setError("Auto-arrange failed — check the connection");

@@ -10,6 +10,7 @@ import { getCollection } from "@/lib/collections";
 import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError, validateData } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
 import { requireAdmin, revalidateFor } from "@/lib/adminApi";
+import { rebalanceGalaxyPlanets, rebalanceGalaxyMoons } from "@/lib/galaxyLayout";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,20 @@ export async function PUT(
   }
 
   // #3: only allow fields the collection spec declares.
-  const safeData = whitelistFields(body.data as Record<string, unknown>, spec);
+  let safeData = whitelistFields(body.data as Record<string, unknown>, spec);
+
+  // Auto-computed orbit fields — strip any manual overrides so the
+  // admin can't break the zero-overlap layout.
+  if (collection === "galaxyPlanet") {
+    const { orbitRadius, orbitAngle, orbitSpeed, ...rest } = safeData;
+    void orbitRadius; void orbitAngle; void orbitSpeed;
+    safeData = rest;
+  }
+  if (collection === "galaxyMoon") {
+    const { orbitRadius, orbitAngle, ...rest } = safeData;
+    void orbitRadius; void orbitAngle;
+    safeData = rest;
+  }
 
   // #13 + #14: Validate JSON structure and URL formats.
   const validationErr = validateData(safeData, spec, collection);
@@ -99,6 +113,13 @@ export async function PUT(
       .findByIdAndUpdate(id, safeData, { new: true, runValidators: true })
       .lean();
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    // Auto-rebalance after visibility/order changes so positions stay correct.
+    if (collection === "galaxyPlanet") {
+      await rebalanceGalaxyPlanets();
+    }
+    if (collection === "galaxyMoon" && doc.planetId) {
+      await rebalanceGalaxyMoons(String(doc.planetId));
+    }
     revalidateFor(collection);
     return NextResponse.json({ data: doc });
   } catch (err) {
@@ -142,6 +163,15 @@ export async function DELETE(
     // Moons already deleted — re-create them is impossible, but at
     // least the admin sees a 404 instead of orphaned data.
     return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  // Auto-rebalance remaining planets so spacing stays even after a delete.
+  if (collection === "galaxyPlanet") {
+    await rebalanceGalaxyPlanets();
+  }
+  // Auto-rebalance remaining moons around the parent planet.
+  if (collection === "galaxyMoon" && doc.planetId) {
+    await rebalanceGalaxyMoons(String(doc.planetId));
   }
 
   revalidateFor(collection);

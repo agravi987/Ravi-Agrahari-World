@@ -9,6 +9,7 @@
 "use client";
 
 import { UploadCloud, Bold, Italic, Code, Code2, List, Type, Quote, Link2, ImageIcon, Minus } from "lucide-react";
+import IconPicker from "@/components/admin/IconPicker";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
@@ -972,21 +973,35 @@ export default function CollectionForm({
         break;
       }
       default:
-        control = (
-          <div className="flex flex-col gap-2">
-            <input
+        // #icon: Icon fields get the IconPicker with live preview + browse.
+        if (f.key === "icon") {
+          const iconMode = collection === "skill" ? "lucide" : "emoji";
+          control = (
+            <IconPicker
               id={`field-${key}`}
-              type={f.type === "date" ? "date" : "text"}
               value={String(value ?? "")}
-              onChange={(e) => set(key, e.target.value)}
-              className={inputClasses}
-              placeholder={f.placeholder}
+              onChange={(v) => set(key, v)}
+              mode={iconMode}
+              inputClasses={inputClasses}
             />
-            {f.image && (
-              <ImageUpload value={String(value ?? "")} onChange={(url) => set(key, url)} />
-            )}
-          </div>
-        );
+          );
+        } else {
+          control = (
+            <div className="flex flex-col gap-2">
+              <input
+                id={`field-${key}`}
+                type={f.type === "date" ? "date" : "text"}
+                value={String(value ?? "")}
+                onChange={(e) => set(key, e.target.value)}
+                className={inputClasses}
+                placeholder={f.placeholder}
+              />
+              {f.image && (
+                <ImageUpload value={String(value ?? "")} onChange={(url) => set(key, url)} />
+              )}
+            </div>
+          );
+        }
     }
 
     return (

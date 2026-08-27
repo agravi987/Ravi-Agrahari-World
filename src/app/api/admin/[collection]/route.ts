@@ -11,6 +11,7 @@ import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError, validateData } from 
 import { connectDb } from "@/lib/db";
 import { requireAdmin, revalidateFor } from "@/lib/adminApi";
 import { seedContent } from "@/lib/seed";
+import { rebalanceGalaxyPlanets, rebalanceGalaxyMoons } from "@/lib/galaxyLayout";
 
 /** #3: Filter body.data to only keys the collection spec declares. */
 function whitelistFields(
@@ -120,6 +121,15 @@ export async function POST(
     }
 
     const doc = await Model.create(safeData);
+    // Auto-rebalance galaxy planets so the new planet gets a computed
+    // orbitRadius, orbitAngle, and orbitSpeed (no manual entry needed).
+    if (collection === "galaxyPlanet") {
+      await rebalanceGalaxyPlanets();
+    }
+    // Auto-rebalance moons around the parent planet.
+    if (collection === "galaxyMoon" && safeData.planetId) {
+      await rebalanceGalaxyMoons(String(safeData.planetId));
+    }
     revalidateFor(collection);
     return NextResponse.json({ data: doc }, { status: 201 });
   } catch (err) {
