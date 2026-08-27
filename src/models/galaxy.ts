@@ -16,7 +16,7 @@ const galaxyPlanetSchema = new Schema<GalaxyPlanet>(
     image: { type: String },
     color: { type: String, default: "#4f46e5" },
     size: { type: Number, default: 56, min: 36, max: 96 },
-    orbitRadius: { type: Number, required: true },
+    orbitRadius: { type: Number, default: 150 },
     orbitSpeed: { type: Number, default: 60, min: 20, max: 120 },
     orbitAngle: { type: Number, default: 0 },
     displayOrder: { type: Number, default: 0 },
