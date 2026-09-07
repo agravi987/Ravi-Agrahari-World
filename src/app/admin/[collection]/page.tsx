@@ -15,7 +15,7 @@
 import { ChevronDown, ChevronUp, Copy, ExternalLink, Plus, Search, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import CollectionForm from "@/components/admin/CollectionForm";
 import { getCollection, publicUrlFor } from "@/lib/collections";
 import { showToast } from "@/components/ui/Toast";
@@ -74,7 +74,6 @@ const BOOL_LABELS: Record<string, [string, string]> = {
 
 export default function CollectionListPage() {
   const params = useParams<{ collection: string }>();
-  const router = useRouter();
   const collection = params.collection;
   const spec = getCollection(collection);
 

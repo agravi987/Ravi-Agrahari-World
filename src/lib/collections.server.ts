@@ -229,3 +229,73 @@ export async function assertGalaxyLayoutValid(
   const res = validateGalaxyLayout(planets, otherMoons);
   return res.ok ? null : res.errors[0] ?? "Invalid galaxy layout";
 }
+
+/**
+ * Galaxy v4 CREATE guard. `assertGalaxyLayoutValid` can't be used for
+ * creates: the incoming orbit fields are auto-computed (stripped from the
+ * form registry), so pre-write validation would check placeholder values
+ * that are never stored. Instead this SIMULATES the exact state the
+ * rebalance will write — new planet laid out among the rest, or the new
+ * moon's planet ring re-arranged — and validates THAT. Runs pre-write, so
+ * a layout that can't stay overlap-free is rejected before anything lands.
+ */
+export async function assertGalaxyCreateValid(
+  collection: string,
+  data: Record<string, unknown>
+): Promise<string | null> {
+  if (collection !== "galaxyPlanet" && collection !== "galaxyMoon") return null;
+
+  const [planetsRaw, moonsRaw] = await Promise.all([
+    getGalaxyPlanetModel().find().lean(),
+    getGalaxyMoonModel().find().lean(),
+  ]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const strip = (doc: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { _id, __v, createdAt, updatedAt, ...rest } = doc as Record<string, unknown>;
+    return { _id: String(_id), ...rest };
+  };
+
+  const planets = (planetsRaw as unknown as Record<string, unknown>[]).map(
+    strip
+  ) as unknown as Partial<GalaxyPlanet>[];
+  const moons = (moonsRaw as unknown as Record<string, unknown>[]).map(
+    strip
+  ) as unknown as Partial<GalaxyMoon>[];
+
+  const { autoLayoutMoons, autoLayoutPlanets, validateGalaxyLayout } = await import("./galaxyLayout");
+
+  if (collection === "galaxyPlanet") {
+    const candidate = [...planets, data as Partial<GalaxyPlanet>];
+    const layout = autoLayoutPlanets(candidate, moons);
+    const bySlug = new Map(layout.map((l) => [l.slug, l]));
+    const arranged = candidate.map((p) => ({
+      ...p,
+      orbitRadius: bySlug.get(String(p.slug))?.orbitRadius,
+      orbitAngle: bySlug.get(String(p.slug))?.orbitAngle,
+      orbitSpeed: bySlug.get(String(p.slug))?.orbitSpeed,
+    }));
+    const res = validateGalaxyLayout(arranged, moons);
+    return res.ok ? null : res.errors[0] ?? "Invalid galaxy layout";
+  }
+
+  // galaxyMoon create — re-arrange only the parent planet's ring (the real
+  // route calls rebalanceGalaxyMoons, not rebalanceGalaxyPlanets).
+  const planetId = String(data.planetId ?? "");
+  if (!planetId) return null;
+  const parentPlanet = planets.find((p) => (p as { _id?: string })._id === planetId);
+  const candidateMoons = moons.filter(
+    (m) => typeof m.planetId === "string" && m.planetId === planetId
+  );
+  candidateMoons.push(data as Partial<GalaxyMoon>);
+  const ring = autoLayoutMoons(parentPlanet?.size ?? 48, candidateMoons);
+  const bySlug = new Map(ring.map((r) => [r.slug, r]));
+  const arranged = moons.map((m) =>
+    typeof m.planetId === "string" && m.planetId === planetId
+      ? { ...m, orbitRadius: bySlug.get(String(m.slug))?.orbitRadius, orbitAngle: bySlug.get(String(m.slug))?.orbitAngle }
+      : m
+  );
+  const res = validateGalaxyLayout(planets, arranged);
+  return res.ok ? null : res.errors[0] ?? "Invalid galaxy layout";
+}

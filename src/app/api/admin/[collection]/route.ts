@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getCollection } from "@/lib/collections";
-import { assertGalaxyLayoutValid, MODEL_GETTERS, slugError, validateData } from "@/lib/collections.server";
+import { assertGalaxyCreateValid, MODEL_GETTERS, slugError, validateData } from "@/lib/collections.server";
 import { connectDb } from "@/lib/db";
 import { requireAdmin, revalidateFor } from "@/lib/adminApi";
 import { seedContent } from "@/lib/seed";
@@ -90,13 +90,13 @@ export async function POST(
   }
 
   // Galaxy v4: reject writes that would break the zero-overlap layout.
-  // Skip on galaxyPlanet CREATE — the planet doesn't exist yet and will be
-  // auto-positioned by rebalanceGalaxyPlanets() after creation.
-  if (collection !== "galaxyPlanet") {
-    const layoutError = await assertGalaxyLayoutValid(collection, safeData);
-    if (layoutError) {
-      return NextResponse.json({ error: layoutError }, { status: 400 });
-    }
+  // For creates, orbit fields are auto-computed by rebalance AFTER the
+  // insert — so we simulate the post-rebalance layout (new planet laid
+  // out among the rest, or the new moon's planet ring re-arranged) and
+  // validate THAT. This keeps the guard accurate for compact layouts.
+  const layoutError = await assertGalaxyCreateValid(collection, safeData);
+  if (layoutError) {
+    return NextResponse.json({ error: layoutError }, { status: 400 });
   }
 
   // Slugs power deep links — reject URL-unsafe input before it's saved

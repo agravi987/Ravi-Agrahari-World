@@ -8,7 +8,7 @@
  */
 "use client";
 
-import { UploadCloud, Bold, Italic, Code, Code2, List, Type, Quote, Link2, ImageIcon, Minus } from "lucide-react";
+import { UploadCloud, Bold, Italic, Code, Code2, List, Quote, Link2, ImageIcon, Minus } from "lucide-react";
 import IconPicker from "@/components/admin/IconPicker";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -665,7 +665,12 @@ export default function CollectionForm({
     const projectId = form.projectId as string | undefined;
     if (!projectId) return;
     let alive = true;
-    setImportingProject(true);
+    // Show the fetching state without a synchronous setState in the effect
+    // body (react-hooks/set-state-in-effect): queue a microtask so the state
+    // write happens after this render's effects flush.
+    queueMicrotask(() => {
+      if (alive) setImportingProject(true);
+    });
     fetch(`/api/admin/project/${projectId}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((json) => {

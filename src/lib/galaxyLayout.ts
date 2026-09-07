@@ -1,7 +1,9 @@
 /**
- * galaxyLayout.ts — Galaxy v4 zero-overlap validator (plan §4)
- * PURE functions (no DB, no server imports) — usable from admin
- * forms and API routes alike.
+ * galaxyLayout.ts — Galaxy v4 zero-overlap validator + auto-arrange (plan §4)
+ * The validator + layout fns (validateGalaxyLayout, autoLayoutPlanets,
+ * autoLayoutMoons) are PURE — no DB, no server imports — usable from
+ * admin forms and API routes alike. The rebalanceGalaxy* wrappers below
+ * are the only DB-touching parts (dynamic imports, server-only).
  *
  * The guarantee: with a LOCKED constellation (all planets share one
  * orbit speed, fixed phases), relative positions never change, so we
@@ -35,6 +37,15 @@ export const GALAXY_CONSTRAINTS = {
   orbitRadiusMax: 2000,
   orbitSpeedMin: 20,
   orbitSpeedMax: 120,
+  /**
+   * Compact auto-arrange band (px). Kept well under the validation max
+   * (orbitRadiusMax) so the whole system fits the ~720px stage without
+   * far-flung planets. A freshly added planet lands inside THIS band,
+   * never out at the rim.
+   */
+  autoRadiusMax: 480,
+  /** Smallest radial gap between neighbouring planets during auto-arrange, px. */
+  autoMinStep: 12,
 } as const;
 
 const num = (v: unknown, d: number): number =>
@@ -248,13 +259,67 @@ export function validateGalaxyLayout(
 }
 
 /**
- * #1: Auto-arrange planets in a radial layout.
- * Given N visible planets sorted by displayOrder, evenly distributes
- * them across orbit radii and angles so no overlaps occur.
- * Returns the computed orbitRadius and orbitAngle for each planet.
+ * Key a moon group by the same thing the validator does: the parent's
+ * Mongo `_id` when present, else its slug (seed-style placeholder).
+ */
+const planetKey = (p: Partial<GalaxyPlanet>): string =>
+  (p as { _id?: unknown })._id != null ? String((p as { _id?: unknown })._id) : String(p.slug ?? "");
+
+/** Max outward reach of a planet's VISIBLE moons (moon ring + half moon). */
+function moonSweepOf(planet: Partial<GalaxyPlanet>, moons: Partial<GalaxyMoon>[]): number {
+  const key = planetKey(planet);
+  let sweep = 0;
+  for (const m of moons) {
+    if (m.isVisible === false) continue;
+    const pid = typeof m.planetId === "string" ? m.planetId : "";
+    if (pid !== key && pid !== String(planet.slug ?? "")) continue;
+    sweep = Math.max(sweep, num(m.orbitRadius, 16) + num(m.size, 12) / 2);
+  }
+  return sweep;
+}
+
+/**
+ * Minimum outer radius needed so planet `b` (at angle `aB`, size `sB`,
+ * sweep `wB`) clears planet `a` (radius `rA`, angle `aA`, size `sA`,
+ * sweep `wA`) by the required chord distance. If the two are already far
+ * enough apart because of their angle separation, returns a small value.
+ */
+function minRadiusForChord(
+  rA: number,
+  aA: number,
+  sA: number,
+  wA: number,
+  aB: number,
+  sB: number,
+  wB: number
+): number {
+  const need = sA / 2 + sB / 2 + wA + wB + GALAXY_CONSTRAINTS.gap;
+  let d = Math.abs(((aB - aA) % 360) + 360) % 360;
+  d = Math.min(d, 360 - d);
+  if (d <= 0.0001) return rA + need; // same ray — must stack outside the previous lane
+  const rad = (d * Math.PI) / 180;
+  const sin2 = Math.sin(rad) * Math.sin(rad);
+  const inner = need * need - rA * rA * sin2;
+  if (inner <= 0) return 0; // already clears at radius <= current — keep compact
+  return rA * Math.cos(rad) + Math.sqrt(inner);
+}
+
+/**
+ * #1: Auto-arrange planets in a compact, zero-overlap radial layout.
+ * Given N visible planets sorted by displayOrder, distributes them on an
+ * even angle ladder (radius steps with angle → a subtle spiral look; the
+ * smallest guaranteed angular gap keeps orbits as tight as they can be)
+ * and grows each planet's orbit outward just enough to clear every
+ * previously-placed planet (including BOTH planets' moon sweeps). All
+ * share one locked speed, so relative positions never change and the
+ * constellation can never drift into an overlap — matching the
+ * validator's locked rule.
+ *
+ * Returns computed orbitRadius / orbitAngle / orbitSpeed for each planet.
  */
 export function autoLayoutPlanets(
-  planets: Partial<GalaxyPlanet>[]
+  planets: Partial<GalaxyPlanet>[],
+  moons: Partial<GalaxyMoon>[] = []
 ): { slug: string; orbitRadius: number; orbitAngle: number; orbitSpeed: number }[] {
   const visible = planets
     .filter((p) => p.isVisible !== false)
@@ -263,26 +328,62 @@ export function autoLayoutPlanets(
   const n = visible.length;
   if (n === 0) return [];
 
-  const minR = GALAXY_CONSTRAINTS.orbitRadiusMin;
-  const maxR = GALAXY_CONSTRAINTS.orbitRadiusMax;
-  // Even radial spacing: if 1 planet, place at minR; if 2+, spread across range.
-  const radialStep = n > 1 ? (maxR - minR) / (n - 1) : 0;
-  // Even angular spacing: stagger planets so they never align.
-  const angleStep = 360 / n;
-  // All planets share the same speed for a locked constellation (no drift overlap).
+  const { orbitRadiusMin, autoRadiusMax, autoMinStep, sunRadius, gap } =
+    GALAXY_CONSTRAINTS;
   const lockedSpeed = 60;
+  // Round angles FIRST so the clearance math matches the exact angles that
+  // get stored (a 27.69° spread stored as 28° vs 55° narrows it to 27° and
+  // would otherwise shave the chord by a few px).
+  const angleOf = (i: number) => Math.round((360 / n) * i);
+
+  const radii: number[] = [];
+  const sweeps = visible.map((p) => moonSweepOf(p, moons));
+
+  for (let i = 0; i < n; i++) {
+    const p = visible[i];
+    const size = num(p.size, 56);
+    const sweep = sweeps[i];
+
+    // Sun clearance: inner edge of the planet's occupied lane must clear
+    // the sun by `gap`. This fixes the first few radii for small systems.
+    let r = i === 0 ? orbitRadiusMin : Math.max(orbitRadiusMin, radii[i - 1] + autoMinStep);
+    const sunLane = sunRadius + size / 2 + sweep + gap;
+    if (orbitRadiusMin < sunLane) r = Math.max(r, sunLane);
+
+    // Clear every earlier planet at its fixed angle (locked constellation).
+    const aCur = angleOf(i);
+    for (let j = 0; j < i; j++) {
+      const needR = minRadiusForChord(
+        radii[j],
+        angleOf(j),
+        num(visible[j].size, 56),
+        sweeps[j],
+        aCur,
+        size,
+        sweep
+      );
+      if (needR > r) r = needR;
+    }
+
+    // Don't pierce the compact band — if planets genuinely can't fit it's
+    // a data problem the post-rebalance validator will surface.
+    radii.push(Math.min(Math.ceil(r), autoRadiusMax));
+  }
 
   return visible.map((p, i) => ({
     slug: String(p.slug ?? ""),
-    orbitRadius: Math.round(minR + radialStep * i),
-    orbitAngle: Math.round(angleStep * i),
+    orbitRadius: radii[i],
+    orbitAngle: Math.round(angleOf(i)),
     orbitSpeed: lockedSpeed,
   }));
 }
 
 /**
  * #1: Auto-arrange moons around a single planet.
- * Evenly distributes moons at a radius just outside the planet disc.
+ * Places moons on ONE ring, evenly spaced by angle, with a ring radius
+ * large enough that even the biggest two moons clear each other at their
+ * fixed angles (locked constellation ⇒ never drifts into overlap). The
+ * ring also always sits outside the planet disc.
  */
 export function autoLayoutMoons(
   planetSize: number,
@@ -295,12 +396,28 @@ export function autoLayoutMoons(
   const n = visible.length;
   if (n === 0) return [];
 
-  const orbitRadius = Math.round(planetSize / 2) + 16;
-  const angleStep = 360 / n;
+  const halves = visible.map((m) => num(m.size, 12) / 2);
+  const maxHalf = Math.max(...halves, 4);
+  const { moonSweepMax, gap } = GALAXY_CONSTRAINTS;
 
+  // Ring must clear the planet disc: r - maxHalf >= planetSize/2 + gap.
+  let radius = Math.ceil(planetSize / 2 + maxHalf + gap);
+
+  if (n > 1) {
+    // Worst adjacent pair = the two biggest moons at even angular spread.
+    const sorted = [...halves].sort((a, b) => b - a);
+    const need = sorted[0] + (sorted[1] ?? sorted[0]) + gap;
+    const neededForChord = need / (2 * Math.sin(Math.PI / n));
+    radius = Math.max(radius, Math.ceil(neededForChord));
+  }
+
+  // Never exceed the sweep cap (validator enforces orbit + half ≤ 60).
+  radius = Math.min(radius, moonSweepMax - maxHalf);
+
+  const angleStep = 360 / n;
   return visible.map((m, i) => ({
     slug: String(m.slug ?? ""),
-    orbitRadius,
+    orbitRadius: radius,
     orbitAngle: Math.round(angleStep * i),
   }));
 }
@@ -317,11 +434,15 @@ export async function rebalanceGalaxyPlanets(): Promise<void> {
   const mongoose = await connectDb();
   if (!mongoose) return;
 
-  const { getGalaxyPlanetModel } = await import("@/models");
+  const { getGalaxyPlanetModel, getGalaxyMoonModel } = await import("@/models");
   const Planet = getGalaxyPlanetModel();
+  const Moon = getGalaxyMoonModel();
 
-  const allPlanets = await Planet.find({}).sort({ displayOrder: 1 }).lean();
-  const layout = autoLayoutPlanets(allPlanets);
+  const [allPlanets, allMoons] = await Promise.all([
+    Planet.find({}).sort({ displayOrder: 1 }).lean(),
+    Moon.find({}).lean(),
+  ]);
+  const layout = autoLayoutPlanets(allPlanets, allMoons);
   if (layout.length === 0) return;
 
   await Promise.all(

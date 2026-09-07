@@ -6,18 +6,16 @@
  * fresher content for GitHub user `agravi987` — replace freely in
  * the CMS later.
  *
- * Galaxy seed (v4): orbit radii are spaced to satisfy the lane math
- * (plan §4.2 — no planet/moon/sun overlap). Sample URLs are marked
- * `SAMPLE` so it's obvious what to replace in the admin.
- *
- * Motion (P6): two speed tiers — the inner 6 planets orbit fast (28 s),
- * the outer 6 slow (64 s), with a lane-clearance gap at the tier
- * boundary (per-pair validator §4.4). Within a tier all planets share
- * one speed, so relative positions are locked and overlap is impossible.
+ * Galaxy seed (v4): positions are AUTO-COMPUTED with the same
+ * autoLayoutPlanets/autoLayoutMoons the admin uses, so the seeded
+ * system is always compact and zero-overlap (plan §4.2). All planets
+ * share one locked orbit speed — relative positions are fixed, so
+ * overlap is mathematically impossible.
  */
 import type { SiteContent } from "@/types";
 import type { GalaxyData, GalaxyPlanetWithMoons } from "@/types/galaxy";
 import { DEFAULT_GALAXY_SETTINGS } from "@/types/galaxy";
+import { autoLayoutMoons, autoLayoutPlanets } from "@/lib/galaxyLayout";
 
 export const seedContent: SiteContent = {
   config: {
@@ -227,6 +225,7 @@ interface SeedPlanet {
   icon: string;
   color: string;
   size: number;
+  /** Not used for positioning — kept for history/display size reference. */
   orbitRadius: number;
   moons: Array<{
     name: string;
@@ -348,9 +347,20 @@ const seedPlanets: SeedPlanet[] = [
 /** Builds the public GalaxyData (profile is derived from siteConfig in content.ts). */
 function buildSeedGalaxy(): GalaxyData {
   let moonOrder = 0;
-  const planets: GalaxyPlanetWithMoons[] = seedPlanets.map((p, i) => {
-    const count = p.moons.length;
-    const moons = p.moons.map((m, j) => ({
+  // Spiral placeholder so displayOrder drives the layout order.
+  const planets: GalaxyPlanetWithMoons[] = seedPlanets.map((p, i) => ({
+    name: p.name,
+    slug: p.slug,
+    description: p.description,
+    icon: p.icon,
+    color: p.color,
+    size: p.size,
+    orbitRadius: 0, // filled by autoLayoutPlanets below
+    orbitSpeed: 60,
+    orbitAngle: 0,
+    displayOrder: i,
+    isVisible: true,
+    moons: p.moons.map((m, j) => ({
       planetId: p.slug, // seed placeholder — real ObjectIds come from Mongo
       name: m.name,
       slug: m.slug,
@@ -362,31 +372,46 @@ function buildSeedGalaxy(): GalaxyData {
       documentationUrl: m.documentationUrl,
       technologies: m.technologies,
       size: 12,
-      orbitRadius: Math.round(p.size / 2) + 16, // outside the planet disc — visible
+      orbitRadius: 0, // filled by autoLayoutMoons below
       orbitSpeed: 60,
-      orbitAngle: (360 / count) * j, // fixed offsets — moons never collide
+      orbitAngle: 0,
       isFeatured: j === 0,
       isVisible: true,
       displayOrder: moonOrder++,
-    }));
-    return {
-      name: p.name,
-      slug: p.slug,
-      description: p.description,
-      icon: p.icon,
-      color: p.color,
-      size: p.size,
-      orbitRadius: p.orbitRadius,
-      // P6 motion tiers: inner 6 fast (28 s/rev), outer 6 slow (64 s).
-      // Pairs sharing a speed stay locked (validator §4.4 per-pair rule);
-      // the tier boundary has full lane clearance in the seed radii.
-      orbitSpeed: i < 6 ? 28 : 64,
-      orbitAngle: i * 30,
-      displayOrder: i,
-      isVisible: true,
-      moons,
-    };
-  });
+    })),
+  }));
+
+  // Compact auto-arrange — the SAME pure math the admin's galaxy edit
+  // runs, so the seed baseline matches what rebalance produces on any
+  // later create/edit. All planets share one locked speed (60 s), so the
+  // constellation can never drift into an overlap.
+  // Order matters: moon rings first (they set each planet's real sweep,
+  // which the planet layout needs to clear), then planet positions.
+  for (const p of planets) {
+    const ring = autoLayoutMoons(p.size, p.moons);
+    const moonPos = new Map(ring.map((l) => [l.slug, l]));
+    for (const m of p.moons) {
+      const mp = moonPos.get(m.slug);
+      if (mp) {
+        m.orbitRadius = mp.orbitRadius;
+        m.orbitAngle = mp.orbitAngle;
+      }
+    }
+  }
+
+  const allMoons = planets.flatMap((p) => p.moons);
+  const planetLayout = autoLayoutPlanets(planets, allMoons);
+  const planetPos = new Map(planetLayout.map((l) => [l.slug, l]));
+
+  for (const p of planets) {
+    const pos = planetPos.get(p.slug);
+    if (pos) {
+      p.orbitRadius = pos.orbitRadius;
+      p.orbitAngle = pos.orbitAngle;
+      p.orbitSpeed = pos.orbitSpeed;
+    }
+  }
+
   return { profile: { name: "", tagline: "" }, settings: DEFAULT_GALAXY_SETTINGS, planets };
 }
 
