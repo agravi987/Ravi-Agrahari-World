@@ -38,14 +38,17 @@ export const GALAXY_CONSTRAINTS = {
   orbitSpeedMin: 20,
   orbitSpeedMax: 120,
   /**
-   * Compact auto-arrange band (px). Kept well under the validation max
+   * Auto-arrange band (px). Kept well under the validation max
    * (orbitRadiusMax) so the whole system fits the ~720px stage without
    * far-flung planets. A freshly added planet lands inside THIS band,
-   * never out at the rim.
+   * never out at the rim. 720 = "medium" solar-system spacing (12 seed
+   * planets span ~140→627px, ~45px average lane gap) — a visible step
+   * up from the old cramped 480px band, but nowhere near the original
+   * 2000px "planets too far" uniform spread.
    */
-  autoRadiusMax: 480,
+  autoRadiusMax: 720,
   /** Smallest radial gap between neighbouring planets during auto-arrange, px. */
-  autoMinStep: 12,
+  autoMinStep: 32,
 } as const;
 
 const num = (v: unknown, d: number): number =>

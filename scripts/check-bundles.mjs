@@ -2,16 +2,18 @@
 /**
  * check-bundles.mjs — Galaxy v4 bundle-budget check (plan §10, P5 exit check).
  *
- * Runs AFTER `npm run build` (CI + locally). Verifies the three-tier
+ * Runs AFTER `npm run build` (CI + locally). Verifies the tiered
  * rendering promise at the bundle level:
  *
  *   1. three.js is bundled in one (or more) LAZY chunks — loaded only
- *      when the user opens /detailed-galaxy (next/dynamic ssr:false).
- *   2. The home page's client chunk graph never contains three.js
- *      (home stays LCP-cheap — this is the "home bundle unchanged"
- *      guarantee, statically enforced instead of via network capture).
- *   3. The three chunk is reachable only from the /detailed-galaxy
- *      chunk graph, and its gzip size stays under the budget.
+ *      when a WebGL surface is actually requested (the home 3D preview
+ *      AND /detailed-galaxy, both via next/dynamic ssr:false).
+ *   2. The home page's SYNCHRONOUS client chunk graph never contains
+ *      three.js — the page itself stays LCP-cheap; WebGL is fetched on
+ *      demand the moment the preview scrolls into view.
+ *   3. The three chunk is reachable only from the /detailed-galaxy and
+ *      home-preview chunk graphs (one shared lazy payload), and its gzip
+ *      size stays under the budget.
  *
  * Exits non-zero on any violation → CI fails the build.
  *
@@ -22,7 +24,7 @@
  *     chunks its components reference; a lazy chunk's URL is baked
  *     into the parent chunk that dynamic-imports it, so we find
  *     "parents of three" by filename reference and assert those
- *     parents belong only to the detail route's chunk graph.
+ *     parents belong only to the route chunk graphs that may load it.
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -31,7 +33,7 @@ import zlib from "node:zlib";
 const NEXT_DIR = ".next";
 const CHUNKS_DIR = path.join(NEXT_DIR, "static", "chunks");
 const THREE_MARKERS = ["WebGLRenderer", "PerspectiveCamera"]; // three class names
-const BUDGET_BYTES = 250 * 1024; // detailed-page three payload, gzipped
+const BUDGET_BYTES = 250 * 1024; // three payload, gzipped (shared by both surfaces)
 
 const out = (msg) => console.log(msg);
 const ok = (msg) => console.log("  \u2705 " + msg);
@@ -85,7 +87,7 @@ if (threeChunks.length === 0) {
   out("  \u26a0\ufe0f No three.js marker found in any chunk — the 3D tier may have been");
   out("    tree-shaken or renamed. The budget is vacuous; verify the WebGL tier still works.");
 } else {
-  // 1. Budget
+  // 1. Budget — the whole three payload staying lazy AND small.
   const total = threeChunks.reduce((n, f) => n + gzipSize(f), 0);
   const kb = (total / 1024).toFixed(1);
   if (total <= BUDGET_BYTES) {
@@ -94,28 +96,32 @@ if (threeChunks.length === 0) {
     fail(`three.js payload ${kb} KB gzip EXCEEDS ${(BUDGET_BYTES / 1024).toFixed(0)} KB budget`);
   }
 
-  // 2. Home must never ship three — neither directly nor via a parent chunk.
-  const homeLeak = homeChunks.filter(
-    (c) => threeChunks.includes(c) || parentsOfThree.includes(c)
+  // 2. Home must ship three only LAZILY — never in its synchronous bundle.
+  // The dynamic loader parent (GalaxyPreviewStage → Galaxy3D) is allowed
+  // to reference the lazy chunk; the three code itself must not.
+  const homeSync = homeChunks.filter(
+    (c) => threeChunks.includes(c) || THREE_MARKERS.some((m) => read(c).includes(m))
   );
-  const homeDirect = homeChunks.filter((c) => THREE_MARKERS.some((m) => read(c).includes(m)));
-  const leaked = [...new Set([...homeLeak, ...homeDirect])];
-  if (leaked.length === 0) {
-    ok("home page ships zero three.js chunks (bundle unchanged)");
+  if (homeSync.length === 0) {
+    ok("home page ships three.js only via the shared lazy preview (no sync bundle)");
   } else {
-    fail(`home page references three.js chunks: ${leaked.join(", ")}`);
+    fail(`home page bundles three.js synchronously: ${homeSync.join(", ")}`);
   }
 
-  // 3. The lazy chunk must be reachable only from the detail route's graph.
+  // 3. The lazy chunk must be reachable from the detail route's graph and/or
+  // the home preview's graph (shared chunk), never from an unrelated route.
   const detailParents = parentsOfThree.filter((c) => detailChunks.includes(c));
-  const strayParents = parentsOfThree.filter((c) => !detailChunks.includes(c));
-  if (detailParents.length > 0) {
-    ok("three.js reachable only from /detailed-galaxy chunk graph");
+  const homeParents = parentsOfThree.filter((c) => homeChunks.includes(c));
+  const strayParents = parentsOfThree.filter(
+    (c) => !detailChunks.includes(c) && !homeChunks.includes(c)
+  );
+  if (detailParents.length > 0 || homeParents.length > 0) {
+    ok("three.js reachable from /detailed-galaxy + home preview (shared lazy chunk)");
   } else {
-    fail("no three.js parent chunk belongs to the /detailed-galaxy graph — the 3D tier may be unreachable");
+    fail("no three.js parent chunk belongs to the /detailed-galaxy or home-preview graph — the 3D tier may be unreachable");
   }
   if (strayParents.length > 0) {
-    fail(`three.js parent chunks outside the detail graph: ${strayParents.join(", ")}`);
+    fail(`three.js parent chunks outside the detail/home graphs: ${strayParents.join(", ")}`);
   }
 }
 

@@ -1,27 +1,24 @@
 /**
  * GalaxyPreview.tsx (SERVER) — home surface of Galaxy v4 (§6.1) + P25
- * Minimal by design: sun + first N planets on a slow, locked CSS
- * orbit, faint orbit lines, a short description and one CTA. No
- * moons, no cards, no tooltips — and ZERO client JS (pure CSS
- * animation + hover states), so the home page stays LCP-cheap.
- * Clicking a planet (or the CTA) goes to /detailed-galaxy.
+ * Minimal by design: sun + first N planets, a short description and one
+ * CTA. The visual stage is GalaxyPreviewStage (client): it swaps in the
+ * REAL 3D system (shared lazy WebGL chunk) when the viewer can support
+ * it, and otherwise falls back to GalaxyStage2D — the zero-JS, pure-CSS
+ * orbit stage, so the home page stays LCP-cheap either way. No moons,
+ * no cards on the preview. Clicking a planet (or the CTA) goes to
+ * /detailed-galaxy.
  *
- * P25: the CTA arrow slides on hover, a "click to explore" hint
- * fades in over the stage on hover (pure CSS), the stage carries an
- * aria-label, the top-3 planet names appear as topic-hued chips
- * ("AWS · Docker · Kubernetes — and N more"), and a soft radial
- * glow sits behind the stage.
+ * P25: the CTA arrow slides on hover, a "click to explore" hint fades in
+ * over the stage on hover (pure CSS), the top-3 planet names appear as
+ * topic-hued chips ("AWS · Docker · Kubernetes — and N more"), and a soft
+ * radial glow sits behind the stage.
  *
  * Rendered only when the galaxy has visible planets (zero-data
  * policy — empty galaxy hides the section).
  */
 import type { GalaxyData } from "@/types/galaxy";
-import { planetStyle, worldSize, worldStyle } from "@/lib/galaxyGeometry";
-import GalaxyBackground from "@/components/galaxy/GalaxyBackground";
-import GalaxyComets from "@/components/galaxy/GalaxyComets";
-import OrbitLine from "@/components/galaxy/OrbitLine";
-import Sun from "@/components/galaxy/Sun";
 import Eyebrow from "@/components/ui/Eyebrow";
+import GalaxyPreviewStage from "@/components/sections/GalaxyPreviewStage";
 
 /** P25: planet-chip hues (cycled by position). TEXT uses the deep-*
  *  tokens — the soft topic-* hues fail AA contrast for 12px text
@@ -34,12 +31,11 @@ const PLANET_HUES = [
 ];
 
 export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
-  const { profile, settings, planets } = galaxy;
+  const { profile, planets } = galaxy;
   if (!planets.length) return null; // zero-data: hide the section
 
-  const shown = planets.slice(0, Math.max(1, settings.homePreviewPlanets || 6));
-  const staticLayout = !settings.animationEnabled;
-  const world = worldSize(shown);
+  const shown = planets.slice(0, Math.max(1, galaxy.settings.homePreviewPlanets || 6));
+  const previewGalaxy: GalaxyData = { ...galaxy, planets: shown };
   const moonCount = planets.reduce((n, p) => n + p.moons.length, 0);
   const topChips = planets.slice(0, 3);
   const moreCount = planets.length - topChips.length;
@@ -66,74 +62,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
 
         <div className="mt-10 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* The system */}
-          <div className="relative mx-auto w-full max-w-[420px]">
-            {/* P25: soft radial glow behind the stage */}
-            <div
-              aria-hidden="true"
-              className="absolute left-1/2 top-1/2 -z-10 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--color-accent)_10%,transparent),transparent_65%)] blur-2xl"
-            />
-            <div
-              className="galaxy-stage group mx-auto w-full transition-shadow duration-300 hover:shadow-orbital"
-              data-static={staticLayout || undefined}
-              aria-label="Learning galaxy preview"
-            >
-              <GalaxyBackground
-                showStars={settings.showStars}
-                density={settings.starDensity}
-                nebula={settings.nebulaVisible}
-              />
-              <div className="galaxy-world" style={worldStyle(world)}>
-                <Sun profile={profile} size={72} />
-                {/* Comets revolve the sun on fixed elliptical orbits —
-                    decorative ambience (like the stars), scales with zoom. */}
-                <GalaxyComets />
-
-                <div className="galaxy-rotator" aria-hidden="true">
-                  {shown.map((p) => (
-                    <div key={p.slug} className="galaxy-orbit-ring" style={planetStyle(p, settings)}>
-                      {settings.showOrbitLines && <OrbitLine />}
-                      <div className="galaxy-planet-holder">
-                        <div className="galaxy-planet-inner">
-                          <div className="galaxy-planet-face">
-                            {/* Decorative duplicate of the CTA below —
-                                inert to keyboard/AT, mouse-clickable. */}
-                            <a
-                              href="/detailed-galaxy"
-                              tabIndex={-1}
-                              aria-hidden="true"
-                              className="galaxy-planet"
-                            >
-                              <span aria-hidden="true">{p.icon}</span>
-                            </a>
-                            {p.moons.length > 0 && (
-                              <span
-                                aria-hidden="true"
-                                className="galaxy-moon-count absolute -top-2 right-2 flex items-center gap-0.5 rounded-full border border-card-border bg-card/90 px-1.5 py-0.5 text-[9px] font-mono text-ink-faint shadow-card backdrop-blur-sm"
-                              >
-                                <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
-                                {p.moons.length}
-                              </span>
-                            )}
-                          </div>
-                          <span className="galaxy-planet-chip" aria-hidden="true">
-                            {p.name}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* P25: hover hint — pure CSS (server component, zero JS) */}
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute bottom-4 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-card-border bg-card/90 px-3 py-1 text-[11px] text-ink-soft opacity-0 shadow-card backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-100"
-              >
-                click to explore →
-              </span>
-            </div>
-          </div>
+          <GalaxyPreviewStage galaxy={previewGalaxy} />
 
           {/* Description + CTA */}
           <div className="text-center lg:text-left">
