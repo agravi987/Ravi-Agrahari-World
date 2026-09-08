@@ -1,6 +1,6 @@
 /**
  * GalaxyPreviewStage.tsx (CLIENT) — the home preview's renderer switcher.
- * P21: the landing Learning Galaxy now shows the REAL 3D system (same
+ * The landing Learning Galaxy now shows the REAL 3D system (same
  * shared lazy WebGL chunk as /detailed-galaxy) when it makes sense:
  * WebGL available, no prefers-reduced-motion, threeDEffect enabled, and
  * the stage scrolled near the viewport. Otherwise it degrades to the
