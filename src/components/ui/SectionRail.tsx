@@ -5,8 +5,19 @@
  * smooth-scrolls to that section. Only renders on home ("/" pathname)
  * and on desktop (hidden below xl).
  *
- * Gives the portfolio that top-MNC "you are here" navigation feel
- * without cluttering the reading surface.
+ * FIX: the old detector compared `el.offsetTop` (document-relative,
+ * offsetParent-dependent) against a `window.scrollY`-based probe line.
+ * Two things broke it: (1) the home page applies `content-visibility:
+ * auto` to all top-level blocks, so below-fold sections are sized from
+ * `contain-intrinsic-size` (480px) until rendered — their `offsetTop`
+ * therefore drifts until the browser computes the real height; and
+ * (2) any positioned ancestor shifts the offsetParent origin, so the
+ * coordinates never matched the scroll probe. The detector now works
+ * entirely in VIEWPORT coordinates — `getBoundingClientRect().top`
+ * compared against `innerHeight * 0.35` — which is always the live
+ * geometry: immune to lazy sizing, reveal transforms, and ancestor
+ * positioning. `resize` is re-checked too, since lazy layout reflows
+ * and image loads change section heights without a scroll event.
  */
 
 "use client";
@@ -17,16 +28,19 @@ import { usePathname } from "next/navigation";
 interface RailSection {
   id: string;
   label: string;
-  hue: string;
+  /** Topic-hue background class for the dot fill. */
+  bg: string;
+  /** Matching CSS variable, used for the active halo (color-mix). */
+  ring: string;
 }
 
 const RAIL_SECTIONS: RailSection[] = [
-  { id: "skills", label: "Skills", hue: "bg-topic-cloud" },
-  { id: "projects", label: "Projects", hue: "bg-topic-devops" },
-  { id: "experience", label: "Experience", hue: "bg-topic-linux" },
-  { id: "certifications", label: "Certs", hue: "bg-topic-ai" },
-  { id: "blog", label: "Blog", hue: "bg-topic-ice" },
-  { id: "contact", label: "Contact", hue: "bg-topic-mars" },
+  { id: "skills", label: "Skills", bg: "bg-topic-cloud", ring: "var(--color-topic-cloud)" },
+  { id: "projects", label: "Projects", bg: "bg-topic-devops", ring: "var(--color-topic-devops)" },
+  { id: "experience", label: "Experience", bg: "bg-topic-linux", ring: "var(--color-topic-linux)" },
+  { id: "certifications", label: "Certs", bg: "bg-topic-ai", ring: "var(--color-topic-ai)" },
+  { id: "blog", label: "Blog", bg: "bg-topic-ice", ring: "var(--color-topic-ice)" },
+  { id: "contact", label: "Contact", bg: "bg-topic-mars", ring: "var(--color-topic-mars)" },
 ];
 
 export default function SectionRail() {
@@ -40,6 +54,23 @@ export default function SectionRail() {
 
   useEffect(() => {
     if (pathname !== "/") return; // home-only
+
+    /** The last section whose top sits above the 35% probe line is the
+     *  one you're in. Viewport-reads only — see the FIX note in the
+     *  file header. rAF-throttled so a pass can't run mid-frame. */
+    const updateActive = () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = requestAnimationFrame(() => {
+        const probeY = window.innerHeight * 0.35;
+        let found: string | null = null;
+        for (const s of RAIL_SECTIONS) {
+          const el = document.getElementById(s.id);
+          if (el && el.getBoundingClientRect().top <= probeY) found = s.id;
+        }
+        setActive(found);
+      });
+    };
+
     // One DOM probe on mount (deferred a frame so the DOM is settled):
     // every rendered section (or its lazy placeholder) carries its
     // anchor id already.
@@ -47,24 +78,16 @@ export default function SectionRail() {
       setExisting(
         new Set(RAIL_SECTIONS.filter((s) => document.getElementById(s.id)).map((s) => s.id))
       );
+      updateActive();
     });
-    const onScroll = () => {
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        const probeY = window.scrollY + window.innerHeight * 0.35;
-        let found: string | null = null;
-        for (const s of RAIL_SECTIONS) {
-          const el = document.getElementById(s.id);
-          if (el && el.offsetTop <= probeY) found = s.id;
-        }
-        setActive(found);
-      });
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
+
+    window.addEventListener("scroll", updateActive, { passive: true });
+    // content-visibility reflows + image loads resize sections w/o scroll.
+    window.addEventListener("resize", updateActive, { passive: true });
     return () => {
       cancelAnimationFrame(mountProbe);
-      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("scroll", updateActive);
+      window.removeEventListener("resize", updateActive);
       cancelAnimationFrame(rafRef.current);
     };
   }, [pathname]);
@@ -93,9 +116,18 @@ export default function SectionRail() {
             <span
               className={`block rounded-full transition-all duration-300 ${
                 isActive
-                  ? `${s.hue} h-3.5 w-3.5 shadow-[0_0_0_3px] shadow-current`
-                  : "h-2 w-2 bg-card-border hover:h-2.5 hover:w-2.5 hover:bg-ink-faint"
+                  ? `${s.bg} h-3.5 w-3.5`
+                  : "h-2 w-2 bg-card-border group-hover:h-2.5 group-hover:w-2.5 group-hover:bg-ink-faint"
               }`}
+              // Phase 9 halo: a soft ring in the section's own topic hue
+              // (was shadow-current = ink — never matched the dot fill).
+              style={
+                isActive
+                  ? {
+                      boxShadow: `0 0 0 3px color-mix(in srgb, ${s.ring} 45%, transparent)`,
+                    }
+                  : undefined
+              }
             />
             <span className="absolute right-full mr-3 whitespace-nowrap rounded-md border border-card-border bg-card px-2 py-1 font-mono text-[10px] text-ink-soft opacity-0 shadow-card transition-opacity duration-200 group-hover:opacity-100">
               {s.label}
