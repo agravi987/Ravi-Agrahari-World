@@ -1,9 +1,12 @@
 /**
  * Button.tsx — UI primitive (plan S2)
  * Variants: primary (indigo), secondary (outlined), ghost.
- * Renders an <a> when href is given, else a <button>.
+ * Renders an <a> when href is given, else a <button>. Internal hrefs
+ * ("/…", "#…") render as next/link so clicks stay in-app — audit #78:
+ * a raw <a> CTA forces a full page reload on internal routes.
  */
 import { clsx } from "clsx";
+import Link from "next/link";
 import type { ComponentPropsWithoutRef } from "react";
 
 type Variant = "primary" | "secondary" | "ghost";
@@ -33,8 +36,18 @@ export default function Button({ variant = "primary", className, href, ...rest }
   const classes = clsx(baseClasses, variantClasses[variant], className);
 
   if (href) {
+    const classes = clsx(baseClasses, variantClasses[variant], className);
+    const anchorProps = rest as ComponentPropsWithoutRef<"a">;
+    // Internal routes + hash anchors → SPA navigation (audit #78).
+    if (href.startsWith("/") || href.startsWith("#")) {
+      return (
+        <Link href={href} className={classes} {...anchorProps}>
+          {rest.children}
+        </Link>
+      );
+    }
     return (
-      <a href={href} className={classes} {...(rest as ComponentPropsWithoutRef<"a">)}>
+      <a href={href} className={classes} {...anchorProps}>
         {rest.children}
       </a>
     );

@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, ChevronLeft, ChevronRight, Cloud, Pause, Play, Workflow } from "lucide-react";
+import Link from "next/link";
 import Card from "@/components/ui/Card";
 import LevelBar from "@/components/ui/LevelBar";
 import LevelRing from "@/components/ui/LevelRing";
@@ -261,7 +262,6 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
                 ? "relative"
                 : "absolute inset-0 opacity-0 pointer-events-none"
               }
-              style={!isActive ? { minHeight: "inherit" } : undefined}
             >
               <TiltCard max={5} className="rounded-card">
                 <Card
@@ -313,13 +313,13 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
                           fillClass={barFor(s.icon).fill}
                         />
                       </div>
-                      <a
+                      <Link
                         href={skillGalaxyHref}
                         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline"
                       >
                         explore in galaxy
                         <span aria-hidden="true">→</span>
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </Card>

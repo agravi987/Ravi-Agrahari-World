@@ -15,6 +15,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import type { GalaxyData } from "@/types/galaxy";
 import GalaxyStage2D from "@/components/galaxy/GalaxyStage2D";
 
@@ -68,7 +69,7 @@ export default function GalaxyPreviewStage({ galaxy }: { galaxy: GalaxyData }) {
       />
 
       {mode === "3d" ? (
-        <a
+        <Link
           href="/detailed-galaxy"
           aria-label="Open the interactive learning galaxy"
           className="galaxy-stage block w-full transition-shadow duration-300 hover:shadow-orbital"
@@ -78,7 +79,7 @@ export default function GalaxyPreviewStage({ galaxy }: { galaxy: GalaxyData }) {
             stageClassName="pointer-events-none"
             onError={() => setMode("2d")} // WebGL failure → CSS fallback
           />
-        </a>
+        </Link>
       ) : (
         <GalaxyStage2D galaxy={galaxy} />
       )}

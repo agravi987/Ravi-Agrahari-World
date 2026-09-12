@@ -1,6 +1,25 @@
 @import "tailwindcss";
 
 /* ============================================================
+   Global reset (P32): zero the UA box model explicitly so every
+   layout starts from the same clean slate. Tailwind's Preflight
+   already does box-sizing + margin zeroing on form/replaceable
+   elements; formalizing margin/padding/box-sizing here guarantees
+   the same baseline regardless of Preflight's exact ruleset, and
+   keeps spacing fully owned by layout utilities (never by UA
+   defaults). Component classes and utilities override this layer.
+   ============================================================ */
+@layer base {
+  *,
+  *::before,
+  *::after {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================================
    globals.css — "Orbital" design tokens (plan §4 / §4.1)
    Light theme first: warm paper bg, one indigo accent, muted
    per-topic hues (shared by skill chips). ONE gradient
@@ -12,6 +31,14 @@
    (Can't live in @theme: that block only allows custom props.) */
 :root {
   color-scheme: light;
+}
+
+/* #104: no gray tap flash on mobile — every interactive element already
+   has real :active/hover feedback, the native highlight just fights it. */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent;
 }
 
 @theme {
@@ -39,6 +66,16 @@
   --color-topic-linux: #f59e0b;  /* amber — Linux */
   --color-topic-mars: #f87171;   /* soft mars-red — networking/systems */
   --color-topic-ice: #38bdf8;    /* ice blue — misc topics */
+
+  /* Status hues (#83): one semantic set instead of ad-hoc emerald/red/
+     amber utilities sprinkled per component. Light theme uses 700-level
+     text on ~10% fills (AA at small sizes); dark themes brighten below. */
+  --color-success: #047857;        /* emerald-700 text */
+  --color-success-soft: rgb(16 185 129 / 0.10);
+  --color-danger: #b91c1c;         /* red-700 text */
+  --color-danger-soft: rgb(239 68 68 / 0.10);
+  --color-warning: #b45309;        /* amber-700 text */
+  --color-warning-soft: rgb(245 158 11 / 0.12);
 
   /* Deep-text variants (P25): the soft topic-* hues fail AA contrast
      for small (<14px) colored text on paper — these 700/800 shades are
@@ -227,20 +264,8 @@
   animation: cue-bob 2.2s ease-in-out infinite;
 }
 
-/* P30: GradientMesh — colorful ambient mesh drift. Each blob
-   uses a unique delay so they move independently, creating an
-   organic, ever-shifting color field behind the hero. */
-@keyframes mesh-drift {
-  0%, 100% {
-    transform: translate(0, 0) scale(1);
-  }
-  33% {
-    transform: translate(30px, -20px) scale(1.08);
-  }
-  66% {
-    transform: translate(-25px, 25px) scale(0.95);
-  }
-}
+/* (audit #17: the mesh-drift keyframes were removed — GradientMesh is
+   static by design now, and nothing consumed this animation.) */
 
 /* P9 cover shine: a soft white streak sweeps across project covers
    on hover (the parent card carries .group). transform-only. */
@@ -273,11 +298,10 @@
 .img-shimmer > img.loaded {
   opacity: 1;
 }
-.img-shimmer > img.loaded + ::before,
-.img-shimmer > img.loaded ~ ::before {
-  animation: none;
-  opacity: 0;
-}
+/* BUGFIX (audit #16): the old "+ ::before" / "~ ::before" rules were
+   invalid CSS (a pseudo-element can't follow a sibling combinator) and
+   never matched. The sweep is instead stopped by removing .img-shimmer
+   once the image loads (see ProjectCover.tsx). */
 @keyframes shimmer-sweep {
   0% {
     background-position: 200% 0;
@@ -301,43 +325,25 @@
   transform: translateX(110%);
 }
 
-/* P9 nav underline: a 2px accent line sweeps in on hover/focus and
-   stays visible for the scrollspy-active link. transform-only (cheap).
-   Phase 9 color: the active link's line uses its section's topic hue
-   (--nav-hue set inline by Header.tsx) — skills=cloud, projects=devops,
-   blog=linux, contact=mars. Falls back to the accent. */
-.nav-link::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--nav-hue, var(--color-accent));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 0.25s var(--ease-smooth);
-}
-.nav-link:hover::after,
-.nav-link:focus-visible::after,
-.nav-link.nav-link-active::after {
-  transform: scaleX(1);
+/* Smart hide-nav (P39): the sticky header slides out of view while the
+   visitor scrolls down into a section and slides back on any scroll-up /
+   cursor at the top edge / open mobile menu. transform-only → compositor;
+   the global reduced-motion override (0.01ms transitions) makes it an
+   instant toggle for those users — and Header never hides it for them. */
+.nav-hidden {
+  transform: translateY(-100%);
 }
 
-/* P9 tech marquee: the track translates by exactly half its width
-   (the chip list is doubled), so the loop is seamless. transform-only
-   → compositor. Pauses on hover; reduced-motion freezes it. */
-.marquee-track {
-  animation: marquee 30s linear infinite;
-  will-change: transform;
-}
-.marquee-track:hover {
-  animation-play-state: paused;
-}
-@keyframes marquee {
+/* Orbit ring + moons around the active planet in the constellation dock
+   (ConstellationDock.tsx). Only ever applied motion-safe, so the global
+   reduced-motion override (animation-duration 0.01ms) freezes it for
+   those users. */
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
   to {
-    transform: translateX(-50%);
+    transform: rotate(360deg);
   }
 }
 
@@ -354,6 +360,23 @@
 
 .animate-toast-in {
   animation: toast-in 0.2s ease-out both;
+}
+
+/* Toast exit (audit #111): faster than the entrance (exit-faster-than-
+   enter rule) — 120ms drop + fade. Reduced-motion users get the global
+   0.01ms override, i.e. instant removal. */
+@keyframes toast-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+.animate-toast-out {
+  animation: toast-out 0.12s ease-in both;
 }
 
 @keyframes hero-in {
@@ -380,6 +403,27 @@
 
 .hero-fade {
   animation: hero-fade 0.6s ease-out both;
+}
+
+/* #133: stagger delays as tokens (were magic inline styles in Hero.tsx).
+   Classes instead of style={{ animationDelay }} so reduced-motion can
+   zero them globally (see the delay freeze below). */
+:root {
+  --hero-delay-1: 0.2s;
+  --hero-delay-2: 0.3s;
+  --hero-delay-3: 0.4s;
+}
+
+.delay-hero-1 {
+  animation-delay: var(--hero-delay-1);
+}
+
+.delay-hero-2 {
+  animation-delay: var(--hero-delay-2);
+}
+
+.delay-hero-3 {
+  animation-delay: var(--hero-delay-3);
 }
 
 /* ============================================================
@@ -411,16 +455,19 @@
   pointer-events: none !important;
 }
 
-/* #21 prefers-contrast — stronger edges so text survives harsh screens. */
+/* #21 prefers-contrast — stronger edges so text survives harsh screens.
+   BUGFIX (audit #227): these rules targeted `.hero`, a class that no
+   element carries — they never matched. The hero section has id=hero,
+   so select through that. */
 @media (prefers-contrast: more) {
-  .hero .text-gradient {
+  section#hero .text-gradient {
     -webkit-text-stroke: 0.5px color-mix(in oklab, var(--color-ink) 60%, transparent);
   }
-  .hero p,
-  .hero .text-ink-soft {
+  section#hero p,
+  section#hero .text-ink-soft {
     text-shadow: 0 1px 2px color-mix(in oklab, var(--color-paper) 80%, transparent);
   }
-  .hero .rounded-full {
+  section#hero .rounded-full {
     border-color: color-mix(in oklab, var(--color-ink) 35%, transparent) !important;
   }
 }
@@ -537,7 +584,8 @@ html[data-theme="nord"] .experience-logo {
 }
 
 @media print {
-  .hero-cta-sticky,
+  /* (audit #201: .hero-cta-sticky dropped — that component was removed
+     in an earlier pass; the class had no remaining producer.) */
   .photo-composition,
   .skills-deco-chips {
     display: none !important;
@@ -619,6 +667,22 @@ body {
   border-radius: 2px;
 }
 
+/* --- Touch targets (a11y — audit #41) ---------------------------------
+   Dozens of text-xs pills (tags, filters, share/copy, footer links) are
+   <24px tall — below every touch guideline. On coarse pointers only,
+   give interactive inline elements a minimum 40px target. Desktop mouse
+   layouts are untouched; the site's own min-h-9/min-h-10 buttons are
+   unaffected (their computed height already exceeds this). */
+@media (pointer: coarse) {
+  a[href],
+  button,
+  button:not([disabled]),
+  [role="tab"],
+  [role="option"] {
+    min-height: 40px;
+  }
+}
+
 /* ============================================================
    Dark mode (plan §4: optional toggle via CSS variables)
    Light is default; html[data-theme="dark"] overrides tokens.
@@ -630,7 +694,6 @@ body {
 @media print {
   header,
   footer,
-  .marquee-track,
   .galaxy-stage,
   #galaxy,
   .hero-in,
@@ -694,6 +757,13 @@ html[data-theme="dark"] {
   --color-topic-linux-deep: #fcd34d;
   --color-topic-mars-deep: #fca5a5;
   --color-topic-ice-deep: #7dd3fc;
+  /* Status hues — brightened for dark backgrounds (#83) */
+  --color-success: #34d399;      /* emerald-400 */
+  --color-success-soft: rgb(16 185 129 / 0.15);
+  --color-danger: #f87171;       /* red-400 */
+  --color-danger-soft: rgb(239 68 68 / 0.15);
+  --color-warning: #fbbf24;      /* amber-400 */
+  --color-warning-soft: rgb(245 158 11 / 0.15);
 }
 
 /* ============================================================
@@ -728,6 +798,13 @@ html[data-theme="midnight"] {
   --color-topic-linux-deep: #fcd34d;
   --color-topic-mars-deep: #fca5a5;
   --color-topic-ice-deep: #7dd3fc;
+  /* Status hues — brightened for dark backgrounds (#83) */
+  --color-success: #34d399;      /* emerald-400 */
+  --color-success-soft: rgb(16 185 129 / 0.15);
+  --color-danger: #f87171;       /* red-400 */
+  --color-danger-soft: rgb(239 68 68 / 0.15);
+  --color-warning: #fbbf24;      /* amber-400 */
+  --color-warning-soft: rgb(245 158 11 / 0.15);
 }
 
 /* ============================================================
@@ -761,6 +838,13 @@ html[data-theme="nord"] {
   --color-topic-linux-deep: #ebcb8b;
   --color-topic-mars-deep: #bf616a;
   --color-topic-ice-deep: #8fbcbb;
+  /* Status hues — nord's own green/red/yellow family (#83) */
+  --color-success: #a3be8c;      /* nord14 */
+  --color-success-soft: rgb(163 190 140 / 0.15);
+  --color-danger: #bf616a;       /* nord11 */
+  --color-danger-soft: rgb(191 97 106 / 0.15);
+  --color-warning: #ebcb8b;      /* nord13 */
+  --color-warning-soft: rgb(235 203 139 / 0.15);
 }
 
 /* ============================================================
@@ -1212,7 +1296,9 @@ html[data-theme="nord"] .galaxy-stars::after {
   color: var(--color-ink);
 }
 .galaxy-sun-tagline {
-  font-size: 0.72rem;
+  /* #87: 0.72rem was below the 12px readability floor — raised. */
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--color-ink-soft);
   max-width: 230px;
 }
@@ -1373,6 +1459,28 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Experience accordion expand (audit #114): the open role's detail
+   grows via grid-template-rows 0fr→1fr — a height animation without
+   measuring anything. .experience-body wraps the detail; the li owns
+   the grid so the row participates in the timeline layout. */
+.experience-item {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s var(--ease-smooth);
+}
+.experience-item[data-open="true"] {
+  grid-template-rows: 1fr;
+}
+/* Keep the collapsible content out of tab order while collapsed. */
+.experience-item > .experience-collapse {
+  overflow: hidden;
+  min-height: 0;
+}
+.experience-item > .experience-collapse > .experience-detail {
+  animation: skill-swap-in 0.3s ease-out both;
+  animation-delay: 80ms; /* let the row open first */
 }
 
 /* P12: first-visit controls hint — visible for ~6s, then fades out
@@ -1572,15 +1680,22 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   }
 }
 
-/* Project cover zoom-out entrance — the image starts slightly scaled up
-   and settles to 1x as the card enters the viewport. Reveal.tsx adds
-   .is-in-view; reduced-motion kills the transition instantly. */
+/* Project cover entrance — a masked wipe + settle: the cover starts
+   clipped away (inset from the bottom, like the old film curtain) and
+   slightly zoomed, then sweeps fully open + settles to 1x as the card
+   enters the viewport (Reveal.tsx adds .is-in-view). clip-path + scale,
+   so the reveal reads as "the card opens" instead of "it floats up".
+   Reduced-motion kills the transition instantly (global override). */
 .reveal-item .cover-zoom {
   transform: scale(1.06);
-  transition: transform 0.7s var(--ease-smooth);
+  clip-path: inset(0 0 100% 0);
+  transition:
+    transform 0.7s var(--ease-smooth),
+    clip-path 0.7s var(--ease-smooth);
 }
 .reveal-item.is-in-view .cover-zoom {
   transform: scale(1);
+  clip-path: inset(0 0 0 0);
 }
 
 /* Growing timeline line — scaleY driven by --track-progress (set by the
@@ -1613,6 +1728,68 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
 @keyframes rotate360 {
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* P31 lite glass (chrome surfaces only): frosted translucent fill +
+   backdrop blur + a crisp white top bevel, so small surfaces sitting
+   over the colorful ambient layers (hero mesh, photo composition) read
+   as "glass" instead of flat cards. Components set their own radius,
+   padding and layout — this is only the surface treatment. Keep usage
+   to a handful of elements: backdrop-filter is layout-heavy. Falls
+   back to a solid card fill when backdrop-filter is unsupported. */
+.glass-surface {
+  background: color-mix(in oklab, var(--color-paper) 55%, transparent);
+  border: 1px solid color-mix(in oklab, var(--color-ink) 9%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow:
+    0 1px 0 color-mix(in oklab, #fff 60%, transparent) inset,
+    0 12px 32px -14px color-mix(in oklab, var(--color-ink) 30%, transparent);
+}
+@supports not (
+  (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))
+) {
+  .glass-surface {
+    background: var(--color-card);
+    box-shadow: 0 10px 30px -12px color-mix(in oklab, var(--color-ink) 18%, transparent);
+  }
+}
+
+/* P32 cosmic hero — real NASA photography (public domain) + a
+   transparent-3D Saturn render (Wikimedia Commons, CC-BY-SA 4.0). The
+   nebula itself is a full-bleed multiply image; the lightening overlay
+   and starfield are inline in Hero. These are the supporting effects. */
+/* Icy halo hugging the planet's limb so it doesn't sit flat on paper. */
+.hero-planet-glow {
+  background: radial-gradient(
+    circle at 42% 42%,
+    color-mix(in oklab, var(--color-accent-cyan) 55%, transparent),
+    transparent 64%
+  );
+  filter: blur(22px);
+}
+/* Starfield twinkle — three async-ing groups (opacity only; the global
+   reduced-motion override collapses the timings). */
+.twinkle {
+  animation: twinkle 3.6s ease-in-out infinite;
+}
+.twinkle.d1 {
+  animation-delay: 0s;
+}
+.twinkle.d2 {
+  animation-delay: 1.4s;
+}
+.twinkle.d3 {
+  animation-delay: 2.7s;
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.22;
+  }
+  50% {
+    opacity: 0.9;
   }
 }
 
@@ -1658,6 +1835,39 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
 }
 .animate-dialog-in {
   animation: dialog-in 0.2s ease-out;
+}
+
+/* Command palette panel entrance (audit #116): settles down from the
+   search position (top-anchored, like the overlay it sits in). */
+@keyframes palette-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-palette-in {
+  animation: palette-in 0.18s var(--ease-smooth) both;
+}
+
+/* Small anchored menu entrance (ThemeToggle popover — audit #117):
+   grows from its top-right origin to match where it's anchored. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.animate-menu-in {
+  animation: menu-in 0.15s var(--ease-smooth) both;
+  transform-origin: top right;
 }
 
 /* Skeleton pulse for loading states (blog archive + post pages).
@@ -1830,8 +2040,10 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important; /* #133: `both` fill + a pending delay kept elements invisible for the delay window */
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
 }

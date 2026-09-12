@@ -16,8 +16,10 @@
  * Rendered only when the galaxy has visible planets (zero-data
  * policy — empty galaxy hides the section).
  */
+import Link from "next/link";
 import type { GalaxyData } from "@/types/galaxy";
 import Eyebrow from "@/components/ui/Eyebrow";
+import Button from "@/components/ui/Button";
 import GalaxyPreviewStage from "@/components/sections/GalaxyPreviewStage";
 
 /** P25: planet-chip hues (cycled by position). TEXT uses the deep-*
@@ -79,7 +81,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
                 its planet on the explorer page (#planet-<slug>) */}
             <div className="mt-4 flex flex-wrap justify-center gap-1.5 lg:justify-start">
               {topChips.map((p, i) => (
-                <a
+                <Link
                   key={p.slug}
                   href={`/detailed-galaxy#planet-${p.slug}`}
                   title={`Open ${p.name} in the galaxy`}
@@ -87,7 +89,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
                 >
                   <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                   {p.name}
-                </a>
+                </Link>
               ))}
               {moreCount > 0 && (
                 /* P25: ink-soft, not ink-faint — the audit flagged 12px
@@ -98,10 +100,8 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
               )}
             </div>
 
-            <a
-              href="/detailed-galaxy"
-              className="group mt-6 inline-flex items-center gap-2 rounded-full bg-accent-btn px-6 py-3 text-sm font-medium text-white transition-all hover:bg-accent-btn-hover active:translate-y-px"
-            >
+            {/* #78: through the shared Button primitive (still SPA via Link). */}
+            <Button href="/detailed-galaxy" className="group mt-6 px-6 py-3">
               Explore my galaxy
               {/* P25: arrow slides on hover */}
               <span
@@ -110,7 +110,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
               >
                 →
               </span>
-            </a>
+            </Button>
           </div>
         </div>
       </div>

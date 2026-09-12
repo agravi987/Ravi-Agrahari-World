@@ -5,11 +5,12 @@
  */
 "use client";
 
-import { Check, Copy, Mail } from "lucide-react";
+import { Check, Copy, Handshake, Mail, MapPin, MessageCircle, Briefcase } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
 import Button from "@/components/ui/Button";
+import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import Magnetic from "@/components/ui/Magnetic";
+import SocialLink from "@/components/ui/SocialLink";
 import Section from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 
@@ -22,48 +23,29 @@ interface ContactProps {
   location?: string;
 }
 
-/**
- * Brand links use simple-icons (plan §4.1: simple-icons = brands,
- * lucide = UI). Keyed by normalized label; unmapped labels just
- * render without an icon.
- */
-const SOCIAL_BRANDS: Record<string, BrandIconName> = {
-  github: "github",
-  x: "x",
-  twitter: "x",
-  // Phase 17 (#11): quick-message links get real brand marks too.
-  telegram: "telegram",
-  whatsapp: "whatsapp",
-  // linkedin intentionally absent: simple-icons 16 dropped the icon
-};
-
-/** Brand-colored hover for the social pills (color pass) — same
- *  language as the hero/footer: GitHub/X go near-ink, LinkedIn sky,
- *  Telegram sky-blue, WhatsApp green. */
-const BRAND_HOVER: Record<string, string> = {
-  github: "hover:border-ink/40 hover:text-ink",
-  x: "hover:border-ink/40 hover:text-ink",
-  twitter: "hover:border-ink/40 hover:text-ink",
-  linkedin: "hover:border-topic-cloud/50 hover:text-topic-cloud-deep",
-  telegram: "hover:border-topic-cloud/50 hover:text-topic-cloud-deep",
-  whatsapp: "hover:border-emerald-500/50 hover:text-emerald-600",
-};
+/** Social link markup/hover lives in the shared SocialLink primitive
+ *  + lib/social.ts (audit #72/#197) — Contact's local maps are gone. */
 
 /** P14: one-click purpose presets — pick a reason and the form
- *  pre-fills. Removes the blank-page friction of "what do I say?". */
+ *  pre-fills. Removes the blank-page friction of "what do I say?".
+ *  Icons are lucide SVGs, not emoji (the site's own no-emoji rule —
+ *  audit #77); emoji rendered at text sizes look uneven across OSes. */
 const PURPOSE_PRESETS = [
   {
-    label: "🤝 Collaboration",
+    label: "Collaboration",
+    icon: Handshake,
     subject: "Let's collaborate",
     opener: "Hi! I'd love to collaborate on ",
   },
   {
-    label: "💼 Hiring / Internship",
+    label: "Hiring / Internship",
+    icon: Briefcase,
     subject: "Hiring / Internship inquiry",
     opener: "Hi! I'm reaching out about an opportunity at ",
   },
   {
-    label: "💬 Just saying hi",
+    label: "Just saying hi",
+    icon: MessageCircle,
     subject: "Hi!",
     opener: "Hi! Just wanted to say hi — ",
   },
@@ -93,7 +75,9 @@ export default function Contact({
   const [sendError, setSendError] = useState<string | null>(null);
   // A11y: ALL validation problems in ONE live region — per-field inline
   // errors alone force SR users to hunt through the form to find them.
-  const [errorSummary, setErrorSummary] = useState<string[]>([]);
+  // Items carry the field id so the summary can link/jump to each field
+  // (audit #45).
+  const [errorSummary, setErrorSummary] = useState<{ label: string; id: string }[]>([]);
   const [company, setCompany] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   // Success card receives focus after a clean send — otherwise screen
@@ -178,6 +162,7 @@ export default function Contact({
     setEmailInput("");
     setSubject("");
     setMessage("");
+    setCompany(""); // honeypot clears with everything else (zero-data)
     setAttempted(false);
     setSendError(null);
     setErrorSummary([]);
@@ -227,22 +212,15 @@ export default function Contact({
       <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
         <div className="rounded-card border border-card-border bg-paper-deep/40 p-6 shadow-card sm:p-7">
-          {/* P25: availability pill — the same CMS line as the hero */}
-          {availability && (
-            <p className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-              <span
-                className="h-1.5 w-1.5 rounded-full bg-emerald-500"
-                aria-hidden="true"
-              />
-              {availability}
-            </p>
-          )}
+          {/* P25: availability pill — the same CMS line as the hero,
+              now literally the same component (#74) */}
+          {availability && <AvailabilityPill text={availability} />}
 
           {/* Phase 17 (#13): "based in" line from the CMS — hidden when
               empty (zero-data rule). */}
           {location && (
             <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-soft">
-              <span aria-hidden="true">📍</span>
+              <MapPin className="h-4 w-4 text-topic-mars" aria-hidden="true" />
               based in {location}
             </p>
           )}
@@ -277,33 +255,14 @@ export default function Contact({
               Elsewhere
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
-              {socialLinks.map((link) => {
-                const brand =
-                  SOCIAL_BRANDS[link.label.toLowerCase().replace(/\W/g, "")];
-                const brandHover =
-                  BRAND_HOVER[link.label.toLowerCase().replace(/\W/g, "")];
-                return (
-                  <a
-                    key={link.label}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={link.label}
-                    className={`inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-2 text-sm font-medium text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                      brandHover ?? "hover:border-accent/40 hover:text-accent"
-                    }`}
-                  >
-                    {brand && (
-                      <BrandIcon
-                        name={brand}
-                        className="h-4 w-4"
-                        aria-hidden="true"
-                      />
-                    )}
-                    {link.label}
-                  </a>
-                );
-              })}
+              {socialLinks.map((link) => (
+                <SocialLink
+                  key={link.label}
+                  label={link.label}
+                  url={link.url}
+                  variant="pill"
+                />
+              ))}
             </div>
           </div>
 
@@ -319,14 +278,14 @@ export default function Contact({
           <div
             ref={sentRef}
             tabIndex={-1}
-            className="rounded-card border border-emerald-500/30 bg-emerald-500/10 p-8 text-center shadow-card outline-none"
+            className="rounded-card border border-success/30 bg-success-soft p-8 text-center shadow-card outline-none"
             role="status"
           >
             <span
               aria-hidden="true"
-              className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-emerald-500/20 text-2xl"
+              className="mx-auto grid h-12 w-12 place-items-center rounded-full bg-success-soft text-success"
             >
-              ✓
+              <Check className="h-6 w-6" />
             </span>
             <h3 className="mt-4 font-display text-xl font-semibold text-ink">
               Message sent
@@ -345,6 +304,13 @@ export default function Contact({
         ) : (
         <form
           ref={formRef}
+          // noValidate: the inline error system (aria-invalid, per-field
+          // messages, one announced summary, focus-to-first-invalid) owns
+          // validation UX. Without this, native browser bubbles fired
+          // FIRST on submit and fought the inline errors (audit #13).
+          noValidate
+          // SR announcement while the POST is in flight (audit #173).
+          aria-busy={sending}
           onSubmit={(e) => {
             e.preventDefault();
             setAttempted(true);
@@ -354,11 +320,11 @@ export default function Contact({
               showToast("A couple of fields still need your words");
               setErrorSummary(
                 [
-                  !valid.name && "Name needs at least 2 characters.",
-                  !valid.email && "That email doesn't look right.",
-                  !valid.subject && "Subject needs at least 3 characters.",
-                  !valid.message && "Message needs at least 10 characters.",
-                ].filter((s): s is string => Boolean(s))
+                  !valid.name && { label: "Name needs at least 2 characters.", id: "name" },
+                  !valid.email && { label: "That email doesn't look right.", id: "email" },
+                  !valid.subject && { label: "Subject needs at least 3 characters.", id: "subject" },
+                  !valid.message && { label: "Message needs at least 10 characters.", id: "message" },
+                ].filter((s): s is { label: string; id: string } => Boolean(s))
               );
               document.getElementById(firstInvalid ?? "name")?.focus();
               return;
@@ -426,18 +392,20 @@ export default function Contact({
           >
             {PURPOSE_PRESETS.map((p) => {
               const active = activePreset?.subject === p.subject;
+              const PresetIcon = p.icon;
               return (
                 <button
                   key={p.subject}
                   type="button"
                   onClick={() => applyPreset(p.subject, p.opener)}
                   aria-pressed={active}
-                  className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     active
                       ? "border-accent/40 bg-accent-soft text-accent"
                       : "border-card-border bg-paper/60 text-ink-soft hover:border-accent/40 hover:bg-card hover:text-ink"
                   }`}
                 >
+                  <PresetIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   {p.label}
                 </button>
               );
@@ -471,7 +439,11 @@ export default function Contact({
               {nameError && (
                 <p
                   id="name-error"
-                  role="alert"
+                  // role="status" not "alert": the submit summary above is
+                  // the ONE alert (audit #46) — inline messages must not
+                  // double-announce. They're also click-to-jump targets
+                  // for the summary list (audit #45).
+                  role="status"
                   className="mt-1 text-xs font-medium text-red-600 dark:text-red-400"
                 >
                   Name needs at least 2 characters.
@@ -504,7 +476,7 @@ export default function Contact({
               {emailError && (
                 <p
                   id="email-error"
-                  role="alert"
+                  role="status"
                   className="mt-1 text-xs font-medium text-red-600 dark:text-red-400"
                 >
                   That email doesn&apos;t look right.
@@ -539,15 +511,15 @@ export default function Contact({
             {subjectError && (
               <p
                 id="subject-error"
-                role="alert"
+                role="status"
                 className="mt-1 text-xs font-medium text-red-600 dark:text-red-400"
-              >
+
+                >
                 Subject needs at least 3 characters.
               </p>
             )}
             {valid.subject && (
-              <Check
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500"
+              <Check                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
                 aria-hidden="true"
               />
             )}
@@ -584,15 +556,14 @@ export default function Contact({
             {messageError && (
               <p
                 id="message-error"
-                role="alert"
+                role="status"
                 className="mt-1 text-xs font-medium text-red-600 dark:text-red-400"
               >
                 Message needs at least 10 characters.
               </p>
             )}
             {valid.message && (
-              <Check
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500"
+              <Check                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
                 aria-hidden="true"
               />
             )}
@@ -604,14 +575,32 @@ export default function Contact({
                 {sending ? "Sending…" : "Send message"}
               </Button>
             </Magnetic>
-            {/* P26 counter, P27: id wired to the textarea via aria-describedby */}
+            {/* P26 counter, P27: id wired to the textarea via aria-describedby.
+                NOT aria-live (audit #47): it changed on every keystroke and
+                SRs announced the whole form session. Threshold announcements
+                handled by the sr-only live region below. */}
             <span className="flex items-center gap-3">
               <span
                 id="message-counter"
-                aria-live="polite"
-                className="font-mono text-[10px] text-ink-faint"
+                className={`font-mono text-[10px] ${
+                  MESSAGE_MAX - message.length <= 50
+                    ? "text-warning" /* near-limit nudge (audit #170) */
+                    : "text-ink-faint"
+                }`}
               >
                 {message.length}/{MESSAGE_MAX}
+              </span>
+              {/* Announce ONLY at thresholds (audit #47): 200/100/25 chars left. */}
+              <span aria-live="polite" className="sr-only">
+                {message.length === 0
+                  ? ""
+                  : MESSAGE_MAX - message.length === 200
+                    ? "200 characters remaining"
+                    : MESSAGE_MAX - message.length === 100
+                      ? "100 characters remaining"
+                      : MESSAGE_MAX - message.length === 25
+                        ? "25 characters remaining"
+                        : ""}
               </span>
               <span
                 aria-hidden="true"
@@ -621,7 +610,10 @@ export default function Contact({
               </span>
             </span>
           </div>
-          {/* A11y: single announced summary of everything still wrong */}
+          {/* A11y: single announced summary of everything still wrong —
+              THE one role=alert on the form (audit #46). Items are links
+              so keyboard/SR users can jump straight to the field
+              (audit #45). */}
           {errorSummary.length > 0 && (
             <div
               role="alert"
@@ -633,7 +625,19 @@ export default function Contact({
               </p>
               <ul className="mt-1 list-disc space-y-0.5 pl-5">
                 {errorSummary.map((s) => (
-                  <li key={s}>{s}</li>
+                  <li key={s.id}>
+                    <a
+                      href={`#${s.id}`}
+                      className="underline decoration-dotted underline-offset-2 hover:text-red-800 dark:hover:text-red-300"
+                      // Clicking the link moves focus into the field.
+                      onClick={(e) => {
+                        e.preventDefault();
+                        document.getElementById(s.id)?.focus();
+                      }}
+                    >
+                      {s.label}
+                    </a>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -655,8 +659,10 @@ export default function Contact({
           </p>
 
           {/* Honeypot: hidden from humans, bots fill it — the API ignores
-              filled submissions (keeps the inbox clean). */}
-          <div className="absolute -left-[9999px] top-auto" aria-hidden="true">
+              filled submissions (keeps the inbox clean). The `hidden`
+              attribute is belt-and-suspenders for AT that ignores
+              aria-hidden (audit #174). */}
+          <div hidden className="absolute -left-[9999px] top-auto" aria-hidden="true">
             <label htmlFor="company">Company (leave empty)</label>
             <input
               id="company"

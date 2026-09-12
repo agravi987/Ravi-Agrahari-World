@@ -57,9 +57,9 @@ function ArchiveCard({
           }) ?? "someday"}
           {/* Phase 17 (#22): fresh note — data-driven, fades with time */}
           {isNew && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success">
               <span
-                className="h-1 w-1 animate-pulse rounded-full bg-emerald-500"
+                className="h-1 w-1 animate-pulse rounded-full bg-success"
                 aria-hidden="true"
               />
               new
@@ -198,10 +198,12 @@ export default function BlogArchive({ posts, initialTag }: BlogArchiveProps) {
               placeholder="Search notes…"
               aria-label="Search notes"
               autoComplete="off"
-              className="w-full rounded-full border border-card-border bg-card px-4 py-2 text-sm text-ink placeholder:text-ink-faint focus:border-accent focus:outline-none"
+              className="w-full rounded-full border border-card-border bg-card px-4 py-2 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10"
             />
-            {/* Phase 10: a one-click × clears the search (and the tag
-                filter) — never forces the user to backspace manually. */}
+            {/* Phase 10: a one-click × clears the search. BUGFIX (audit
+                #34): it also silently reset the tag filter while the
+                title said "Clear search" — now it clears both and says
+                so, matching its actual behavior. */}
             {query.trim() !== "" && (
               <button
                 type="button"
@@ -210,7 +212,7 @@ export default function BlogArchive({ posts, initialTag }: BlogArchiveProps) {
                   setFilter("all");
                 }}
                 aria-label="Clear search and filters"
-                title="Clear search"
+                title="Clear search and filters"
                 className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-ink-faint transition-colors hover:bg-paper-deep hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
               >
                 ×

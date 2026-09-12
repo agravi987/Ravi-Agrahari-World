@@ -5,8 +5,11 @@
  * column is a unique "photo on paper" composition — the profile
  * photo in a gradient-hairline card over an offset indigo block,
  * with two floating glass chips (learning streak ≥ 2 + "learning
- * in public"). No orbit ring in the hero (P24): the galaxy owns
- * the orbit motif. Content comes from lib/content.ts, never
+ * in public") floating above a layered cosmic scene — a real NASA
+ * nebula wash (public domain, bundled locally) and Hubble's full-disc
+ * Jupiter rising behind the photo. The galaxy owns the full orbit
+ * motif (P24); the hero keeps just the photos, quiet and deep.
+ * Content comes from lib/content.ts, never
  * hardcoded; no photo → graceful initials fallback.
  *
  * Entrance animations are CSS keyframes (.hero-in / .hero-fade) —
@@ -19,18 +22,19 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Mail, Rocket, Flame } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
 import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 import { scrollToSection } from "@/lib/scrollTo";
 import Button from "@/components/ui/Button";
-import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
-import GradientMesh from "@/components/ui/GradientMesh";
+import AvailabilityPill from "@/components/ui/AvailabilityPill";
+import SocialLink from "@/components/ui/SocialLink";
 import Magnetic from "@/components/ui/Magnetic";
-import ParticleField from "@/components/ui/ParticleField";
 
 interface HeroProps {
   name: string;
@@ -46,24 +50,21 @@ interface HeroProps {
   availability?: string;
   /** Profile photo (Cloudinary URL via the CMS). Falls back to initials. */
   profileImage?: string;
+  /** First CMS-enabled section id — the scroll cue's target so it never
+   *  points at a hidden section (audit #28). */
+  firstEnabledSection?: string;
+  /** Recruiter proof-strip (P31): shipped-project + internship counts,
+   *  passed only when their sections are CMS-enabled (page.tsx passes
+   *  0 for disabled/hidden sections). Zero-data: each chip hides when
+   *  its count is 0. */
+  projectsCount?: number;
+  experienceCount?: number;
 }
 
-/** Brand icons for the social row (same map as the footer). */
-const SOCIAL_BRANDS: Record<string, BrandIconName> = {
-  github: "github",
-  x: "x",
-  twitter: "x",
-};
-
-/** Brand-colored hover for the social pills (color pass): each known
- *  brand greets you in its own color on hover — GitHub/X go near-ink,
- *  LinkedIn goes sky. Unknown labels fall back to the accent. */
-const BRAND_HOVER: Record<string, string> = {
-  github: "hover:border-ink/40 hover:text-ink",
-  x: "hover:border-ink/40 hover:text-ink",
-  twitter: "hover:border-ink/40 hover:text-ink",
-  linkedin: "hover:border-topic-cloud/50 hover:text-topic-cloud-deep",
-};
+/** Brand icons for the social row now live in lib/social.ts +
+ *  SocialLink.tsx — the shared primitive (audit #72/#197). Hero's
+ *  local SOCIAL_BRANDS/BRAND_HOVER maps are gone (they had drifted:
+ *  LinkedIn was missing here but present in Contact/Footer). */
 
 /**
  * Typewriter role: types the current role in, holds it, types it back
@@ -211,14 +212,29 @@ function usePhotoParallax(amount = 5) {
 }
 
 /* --- Phase 14 (backlog §1) extra hooks --------------------------------
-   Scroll drift (name column), tilt (photo card), past-hero (sticky CTA)
-   and the scroll-cue fade. All pointer-fine + reduced-motion guarded.
+   GSAP pass: drift + fade are now ONE ScrollTrigger scrub (see
+   useHeroScrollEffects). Tilt stays hand-rolled on purpose — the
+   photo card's Tailwind transition-all would double-ease against
+   quickTo's tweening.
+   Scroll-cue fade stays CSS. All pointer-fine + reduced-motion guarded.
    ------------------------------------------------------------------- */
 
-/** #5 Scroll-linked parallax: the left column drifts DOWN slightly as
- *  the hero scrolls away (opposite of the photo's mouse parallax).
- *  rAF-throttled, transform-only; pointer-fine + reduced-motion gated. */
-function useScrollDrift(amount = 14) {
+/** #5 Scroll-linked parallax + fade (GSAP ScrollTrigger): the left
+ *  column drifts DOWN slightly and the hero scales 1→0.97 as it
+ *  scrolls out — parallax depth between hero and sections below.
+ *  Phase 14 (#5): deep-lens differential — the photo composition
+ *  drifts FASTER (y:30 vs y:14) so the two columns recede at
+ *  different rates, deepening the stereo gap ("look closer, it all
+ *  moves"). One scrubbed timeline replaces the two hand-rolled scroll
+ *  listeners: scroll position IS the animation clock, so no rAF/
+ *  listener bookkeeping, and refreshes on resize are automatic.
+ *  Transform-only; opacity untouched (LCP: no hero-text opacity
+ *  animation). The photo tween targets the OUTER composition wrapper
+ *  (data-hero-photo) — its own pointer-parallax lives one level down,
+ *  so the two transforms can never fight. Reduced-motion + touch:
+ *  no-op — the GSAP chunk is never fetched (repo pattern:
+ *  useReducedMotion gate). */
+function useHeroScrollEffects() {
   const ref = useRef<HTMLDivElement>(null);
   const reduceMotion = useReducedMotion();
 
@@ -227,61 +243,53 @@ function useScrollDrift(amount = 14) {
     if (!window.matchMedia("(pointer: fine)").matches) return;
     const el = ref.current;
     if (!el) return;
-    let raf = 0;
-    const update = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const r = el.getBoundingClientRect();
-        const vh = window.innerHeight;
-        // 0 while the hero top is at/below mid-viewport → amount when
-        // it has scrolled one viewport-height past.
-        const p = Math.min(1, Math.max(0, (vh * 0.5 - r.top) / (vh * 0.5)));
-        el.style.transform = `translate3d(0, ${(p * amount).toFixed(1)}px, 0)`;
+    let cancelled = false;
+    let dispose: (() => void) | null = null;
+
+    gsapReady()
+      .then(({ gsap }) => {
+        if (cancelled) return;
+        const ctx = gsap.context(() => {
+          const tl = gsap.timeline({
+            scrollTrigger: {
+              trigger: el,
+              // Old curves: drift p = (0.5vh − top)/0.5vh (done by the
+              // time the hero top is half a viewport above the top edge)
+              // and fade p = scrollY/vh (done one viewport scrolled).
+              // "top 50%" → "bottom top" reproduces both with the same
+              // feel while keeping the two tweens perfectly in sync.
+              start: "top 50%",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+          tl.to(el, { y: 14, ease: "none" }, 0).to(
+            document.getElementById("hero"),
+            { scale: 0.97, ease: "none", transformOrigin: "top center" },
+            0
+          );
+          // Deep-lens: the photo recedes ~2.1× faster than the pitch.
+          const section = el.closest("section");
+          const photo = section?.querySelector<HTMLElement>("[data-hero-photo]");
+          if (photo) tl.to(photo, { y: 30, ease: "none" }, 0);
+          // P32: the foreground Saturn drifts the OPPOSITE way (rises as
+          // the hero scrolls out) — foreground parallax, lensing the scene.
+          const planet = section?.querySelector<HTMLElement>("[data-hero-planet]");
+          if (planet) tl.to(planet, { y: -14, ease: "none" }, 0);
+        });
+        dispose = () => ctx.revert();
+      })
+      .catch(() => {
+        /* GSAP failed to load — hero simply doesn't drift */
       });
-    };
-    update();
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update, { passive: true });
+
     return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
-    };
-  }, [reduceMotion, amount]);
-
-  return ref;
-}
-
-/** Scroll-linked fade: drives scale (1→0.97) on the hero section as
- *  it scrolls out of view. Creates parallax depth between hero and
- *  sections below. Opacity omitted to avoid LCP animation penalty.
- *  Reduced-motion: no-op. */
-function useScrollFade() {
-  const reduceMotion = useReducedMotion();
-
-  useEffect(() => {
-    if (reduceMotion) return;
-    let raf = 0;
-    const update = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const vh = window.innerHeight;
-        const p = Math.min(1, Math.max(0, window.scrollY / vh));
-        const el = document.getElementById("hero");
-        if (el) {
-          el.style.transform = `scale(${1 - p * 0.03})`;
-        }
-      });
-    };
-    window.addEventListener("scroll", update, { passive: true });
-    update();
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", update);
+      cancelled = true;
+      dispose?.();
     };
   }, [reduceMotion]);
+
+  return ref;
 }
 
 /** #13 Mouse-tilt on the photo card (pointer-fine only) — the card
@@ -344,36 +352,25 @@ function PhotoComposition({
   return (
     /* Explicit MEDIUM width (P24: was 360px and read as too big) —
        w-fit would collapse the inner aspect box to its content width
-       (the QA caught a 38px photo on mobile). */
+       (the QA caught a 38px photo on mobile).
+       data-hero-photo: the GSAP scroll-drift wrapper (deep-lens
+       parallax). The pointer parallax lives one level DOWN (the inner
+       wrapper holds parallaxRef) so the two transforms never write the
+       same element. */
     <div
-      ref={parallaxRef}
+      data-hero-photo
       className="photo-composition relative mx-auto w-[min(70vw,260px)] lg:mx-0 lg:w-[260px] lg:justify-self-end"
       style={{ willChange: "transform" }}
     >
-      {/* Slow dashed orbit ring + a single accent dot riding it — the
-          hero's quiet orbital nod to the galaxy below. Decorative,
-          transform-only, frozen by reduced-motion. */}
       <div
-        aria-hidden="true"
-        className="rotate-slow pointer-events-none absolute -inset-6 -z-10 text-accent/25"
-        style={{ animationDuration: "28s" }}
+        ref={parallaxRef}
+        className="relative"
+        style={{ willChange: "transform" }}
       >
-        <svg viewBox="0 0 100 100" className="h-full w-full">
-          <circle
-            cx="50"
-            cy="50"
-            r="49"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="0.5"
-            strokeDasharray="0.8 2.2"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className="absolute left-1/2 top-0 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-accent-cyan shadow-[0_0_8px_var(--color-accent-cyan)]" />
-      </div>
-
-      {/* Pulsing halo behind the composition (UX pass) — decorative */}
+      {/* Pulsing halo behind the composition (UX pass) — decorative.
+          P31: the dashed orbit ring + SVG ringed-planet were removed —
+          the real Jupiter rising behind the card is now the orbit
+          accent, and the galaxy below owns the full orbit motif. */}
       <div
         aria-hidden="true"
         className="halo -inset-6 -z-10"
@@ -400,7 +397,7 @@ function PhotoComposition({
               fill
               priority
               fetchPriority="high"
-              sizes="(max-width: 640px) 78vw, 360px"
+              sizes="(max-width: 640px) 78vw, 260px"
               className="object-cover"
             />
           ) : (
@@ -418,19 +415,20 @@ function PhotoComposition({
       {showStreak && (
         <p
           title="Learning streak — the days I've shipped something, back to back"
-          className="animate-float-a absolute -top-4 right-2 flex items-center gap-1.5 rounded-full border border-card-border bg-card/90 px-3 py-1.5 text-xs font-medium text-ink shadow-card backdrop-blur-sm"
+          className="glass-surface animate-float-a absolute -top-4 right-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink"
         >
           <Flame className="h-3.5 w-3.5 text-topic-mars" aria-hidden="true" />
           {streak}-day streak
         </p>
       )}
-      <p className="animate-float-b absolute -bottom-4 left-2 flex items-center gap-1.5 rounded-full border border-card-border bg-card/90 px-3 py-1.5 text-xs font-medium text-ink-soft shadow-card backdrop-blur-sm">
+      <p className="glass-surface animate-float-b absolute -bottom-4 left-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink-soft">
         <span className="relative flex h-2 w-2" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-cyan opacity-60" />
           <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-cyan" />
         </span>
         learning in public
       </p>
+      </div>
     </div>
   );
 }
@@ -445,10 +443,19 @@ export default function Hero({
   streak,
   availability,
   profileImage,
+  firstEnabledSection,
+  projectsCount = 0,
+  experienceCount = 0,
   }: HeroProps) {
   const [cueHidden, setCueHidden] = useState(false);
-  const driftRef = useScrollDrift(14);
+  // GSAP pass: one ScrollTrigger scrub now drives BOTH the name-column
+  // drift (this ref) and the hero-section scale fade (#hero).
+  const driftRef = useHeroScrollEffects();
   const router = useRouter();
+  /** First enabled section id (passed from page.tsx) — the scroll cue
+   *  jumps somewhere that actually exists even when the CMS hides the
+   *  default target (audit #28). */
+  const cueTarget = firstEnabledSection ?? "skills";
 
   /** P19 scroll cue: #section anchors only exist when the section
    *  is enabled AND we're on home. A disabled section made the chips dead
@@ -459,18 +466,18 @@ export default function Hero({
     if (!scrollToSection(href.slice(1))) router.push(`/${href}`);
   };
 
-  /** #11: after the first real scroll the cue gives up its job. */
+  /** #11: after the first real scroll the cue gives up its job — and
+   *  takes it back when you return to the top (audit #112). */
   useEffect(() => {
     const onScroll = () => {
       if (window.scrollY > 24) setCueHidden(true);
+      else setCueHidden(false);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /** Scroll-linked fade: hero content fades + scales down as it scrolls
-   *  out of view, creating parallax depth between hero and sections below. */
-  useScrollFade();
+  // Scroll-linked fade moved into useHeroScrollEffects' scrub timeline.
 
   /** #14: press G (not in a field) → focus the GitHub social link. */
   useEffect(() => {
@@ -493,7 +500,7 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative overflow-hidden px-6 py-14 lg:py-20"
+      className="relative flex min-h-[100svh] items-center overflow-hidden px-6 py-14 lg:py-16"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now
@@ -503,21 +510,87 @@ export default function Hero({
         className="absolute left-1/2 top-1/2 -z-20 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--color-accent-cyan)_15%,transparent),transparent_65%)] blur-2xl lg:left-[72%]"
       />
 
-      {/* P27: soft bottom fade — the hero melts into the marquee */}
+      {/* P27: soft bottom fade — the hero melts into the strip below */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-paper/90 to-transparent"
       />
 
-      {/* P30: colorful gradient mesh — 5 topic-hued blobs drift independently
-          behind the hero, creating depth and color. Replaces the previous
-          2-blob aurora with a richer, more vibrant mesh. */}
-      <GradientMesh />
+      {/* P32 cosmic scene — full-bleed, real photography:
+        1. The JWST "Cosmic Cliffs" nebula spans the ENTIRE hero as a
+           soft multiply wash — no side mask, it fills the screen. A
+           paper-lightened gradient rides on top so the pitch column
+           keeps its readable light ground while the wash deepens
+           toward the right, where the composition floats.
+        2. Starfield — tiny twinkles scattered across the full width.
+        3. Foreground Saturn — a TRANSPARENT 3D render (no black box),
+           rising from the bottom-right behind the profile card.
+        Image licensing: NASA imagery is public domain; the Saturn
+        render is Wikimedia Commons "3D Saturn.png" (Timeline 90
+        Science, CC-BY-SA 4.0 — credit kept in this comment). All
+        decorative (aria-hidden), no extra JS, reduced-motion safe. */}
+      <div
+        aria-hidden="true"
+        className="no-print pointer-events-none absolute inset-0 -z-30"
+      >
+        {/* Warm paper base — the nebula multiplies onto it. */}
+        <div className="absolute inset-0 bg-paper" />
+        <Image
+          src="/images/hero/cosmic-cliffs.jpg"
+          alt=""
+          fill
+          priority
+          fetchPriority="low"
+          sizes="100vw"
+          className="object-cover opacity-45 mix-blend-multiply"
+        />
+        {/* Light ground over the pitch (ink text stays AA-readable). */}
+        <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/60 to-paper/[0.06]" />
+        {/* Starfield — across the whole hero. */}
+        <svg
+          className="h-full w-full opacity-60"
+          viewBox="0 0 1200 700"
+          preserveAspectRatio="xMidYMid slice"
+          aria-hidden="true"
+        >
+          {[
+            [120, 60], [260, 180], [150, 340], [320, 440], [200, 600],
+            [420, 90], [480, 270], [520, 430], [560, 600], [640, 140],
+            [700, 340], [760, 540], [860, 80], [940, 200], [1020, 320],
+            [1100, 440], [1160, 620], [900, 600], [380, 610], [1180, 140],
+          ].map(([cx, cy], i) => (
+            <circle
+              key={i}
+              cx={cx}
+              cy={cy}
+              r={i % 3 === 0 ? 1.6 : 1}
+              fill="currentColor"
+              className={i % 4 === 0 ? "twinkle d1" : i % 4 === 2 ? "twinkle d2" : i % 4 === 3 ? "twinkle d3" : undefined}
+            />
+          ))}
+        </svg>
+      </div>
 
-      {/* Canvas constellation — connected dots drift behind the hero,
-          adding a "connected brain" depth layer. Pointer-fine only,
-          reduced-motion frozen. LCP-neutral (z-0, behind content). */}
-      <ParticleField />
+      {/* Saturn — transparent 3D render (no black frame). Rises from
+          the bottom-right behind the profile composition, above the
+          nebula wash (-z-10) but below all content. */}
+      <div
+        aria-hidden="true"
+        data-hero-planet
+        className="no-print pointer-events-none absolute -bottom-[10%] -right-[4%] -z-10 hidden w-[min(70vw,540px)] md:block"
+      >
+        <div className="hero-planet-glow absolute inset-x-6 bottom-8 top-10 -z-20 scale-110" />
+        <Image
+          src="/images/hero/saturn.png"
+          alt=""
+          width={960}
+          height={361}
+          priority
+          fetchPriority="low"
+          sizes="(max-width: 1024px) 70vw, 540px"
+          className="h-auto w-full drop-shadow-[0_18px_35px_rgba(31,27,79,0.35)]"
+        />
+      </div>
 
       <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         {/* Left — the pitch. Phase 14 (#5): the drift ref gives this
@@ -531,27 +604,21 @@ export default function Hero({
           <div className="hero-in flex flex-wrap items-center justify-center gap-2 lg:justify-start">
             {/* P25: the badge is a shortcut INTO the galaxy — the topic
                 you're learning lives there as a planet (header parity) */}
-            <a
+            <Link
               href="/detailed-galaxy"
               title="See this topic in the learning galaxy"
-              className="inline-flex items-center gap-2 rounded-full border border-card-border bg-card px-4 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-accent"
+              className="glass-surface inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
             >
               <span className="relative flex h-2 w-2">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-cyan opacity-60" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-cyan" />
               </span>
               currently learning: {currentlyLearning}
-            </a>
+            </Link>
             {availability && (
               /* Phase 14 (#4): the pill pulses TWICE on mount, then goes
-                  still (one-shot box-shadow animation). */
-              <p className="pill-pulse-once inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-1.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
-                <span
-                  className="h-1.5 w-1.5 rounded-full bg-emerald-500"
-                  aria-hidden="true"
-                />
-                {availability}
-              </p>
+                  still (one-shot box-shadow animation). Shared pill (#74). */
+              <AvailabilityPill text={availability} pulse />
             )}
           </div>
 
@@ -588,8 +655,7 @@ export default function Hero({
           />
 
           <div
-            className="hero-in mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
-            style={{ animationDelay: "0.3s" }}
+            className="hero-in delay-hero-2 mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
           >
             {/* P25: icons on the CTAs — scanable at a glance.
                 Magnetic hover pulls the buttons toward the cursor. */}
@@ -607,48 +673,82 @@ export default function Hero({
             </Magnetic>
           </div>
 
+          {/* P31 recruiter proof-strip — static mono stat chips under the
+              CTAs (projects + internships from the CMS, streak from the
+              learning momentum). Each jumps to its section; zero-data:
+              the whole strip hides when every chip has nothing to show.
+              Static on purpose — a moving ticker here read as noise. */}
+          {(projectsCount > 0 || experienceCount > 0 || streak >= 2) && (
+            <div
+              aria-label="Highlights"
+              className="hero-fade delay-hero-3 mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 lg:justify-start"
+            >
+              {projectsCount > 0 && (
+                <a
+                  href="#projects"
+                  onClick={(e) => jumpSection(e, "#projects")}
+                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-topic-cloud transition-transform duration-300 group-hover:scale-125"
+                    aria-hidden="true"
+                  />
+                  {projectsCount} shipped {projectsCount === 1 ? "project" : "projects"}
+                </a>
+              )}
+              {experienceCount > 0 && (
+                <a
+                  href="#experience"
+                  onClick={(e) => jumpSection(e, "#experience")}
+                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-topic-mars transition-transform duration-300 group-hover:scale-125"
+                    aria-hidden="true"
+                  />
+                  {experienceCount} {experienceCount === 1 ? "internship" : "internships"}
+                </a>
+              )}
+              {streak >= 2 && (
+                <Link
+                  href="/detailed-galaxy"
+                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span
+                    className="h-1.5 w-1.5 rounded-full bg-accent-cyan transition-transform duration-300 group-hover:scale-125"
+                    aria-hidden="true"
+                  />
+                  {streak}-day streak
+                </Link>
+              )}
+            </div>
+          )}
+
           {/* Social row (P24) — icon pills for known brands (GitHub,
               X), text pill for the rest (LinkedIn etc.). Zero-data:
-              hidden when no links are configured. */}
+              hidden when no links are configured. P31: each pill is
+              wrapped in Magnetic so the icons pull toward the cursor
+              (interactive socials, same primitives as the CTAs). */}
           {socialLinks.length > 0 && (
             <nav
               aria-label="Social links"
-              className="hero-fade mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
-              style={{ animationDelay: "0.4s" }}
+              className="hero-fade delay-hero-3 mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
             >
-              {socialLinks.map((link) => {
-                const brand = SOCIAL_BRANDS[link.label.toLowerCase().replace(/\W/g, "")];
-                const brandHover = BRAND_HOVER[link.label.toLowerCase().replace(/\W/g, "")];
-                return brand ? (
-                  <a
-                    key={link.label}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label={`${link.label} (opens in a new tab)`}
-                    title={link.label}
+              {socialLinks.map((link) => (
+                <Magnetic key={link.label} strength={0.15}>
+                  <SocialLink
+                    label={link.label}
+                    url={link.url}
+                    variant="icon"
                     /* Phase 14 (#14): the "G" shortcut focuses this */
-                    data-hero-github={brand === "github" ? "" : undefined}
-                    className={`hero-github-anchor inline-flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                      brandHover ?? "hover:border-accent/40 hover:text-accent"
-                    }`}
-                  >
-                    <BrandIcon name={brand} className="h-4 w-4" aria-hidden="true" />
-                  </a>
-                ) : (
-                  <a
-                    key={link.label}
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`inline-flex h-9 items-center rounded-full border border-card-border bg-card px-3.5 text-xs font-medium text-ink-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                      brandHover ?? "hover:border-accent/40 hover:text-accent"
-                    }`}
-                  >
-                    {link.label}
-                  </a>
-                );
-              })}
+                    className={
+                      link.label.toLowerCase().replace(/\W/g, "") === "github"
+                        ? "hero-github-anchor"
+                        : undefined
+                    }
+                  />
+                </Magnetic>
+              ))}
             </nav>
           )}
 
@@ -659,11 +759,12 @@ export default function Hero({
       </div>
 
       {/* Scroll cue — desktop only (on mobile the composition sits low
-          and the cue would overlap it) */}
+          and the cue would overlap it). Targets the first ENABLED section
+          (CMS-driven) so it can't be a dead jump (audit #28). */}
       <a
-        href="#skills"
-        aria-label="Scroll to skills"
-        onClick={(e) => jumpSection(e, "#skills")}
+        href={`#${cueTarget}`}
+        aria-label={`Scroll to ${cueTarget}`}
+        onClick={(e) => jumpSection(e, `#${cueTarget}`)}
         /* animate-cue-bob only — hero-fade would override it in the
            cascade (both set the animation shorthand) and kill the bob.
            Phase 14 (#11): the cue hides after the first real scroll. */

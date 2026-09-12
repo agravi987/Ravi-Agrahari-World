@@ -8,7 +8,7 @@
 "use client";
 
 import { ArrowUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 const RING_R = 20;
@@ -18,13 +18,20 @@ export default function BackToTop() {
   const [visible, setVisible] = useState(false);
   const [progress, setProgress] = useState(0);
   const reduceMotion = useReducedMotion();
+  // Last whole-percent written to state — skips 99% of the setState
+  // churn on every scroll frame (audit #121).
+  const lastPctRef = useRef(-1);
 
   useEffect(() => {
     const onScroll = () => {
       const doc = document.documentElement;
       const max = doc.scrollHeight - window.innerHeight;
       setVisible(window.scrollY > window.innerHeight * 1.5);
-      setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+      const pct = max > 0 ? Math.round(Math.min(1, window.scrollY / max) * 100) : 0;
+      if (pct !== lastPctRef.current) {
+        lastPctRef.current = pct;
+        setProgress(pct / 100);
+      }
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -41,7 +48,10 @@ export default function BackToTop() {
       }
       aria-label="Back to top"
       title={`Page progress ${Math.round(progress * 100)}%`}
-      className="group fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      className={`group fixed bottom-5 right-5 z-40 inline-flex h-12 w-12 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+        // Entrance (audit #115): fade + settle instead of a hard pop-in.
+        reduceMotion ? "" : "animate-menu-in"
+      }`}
     >
       {/* Phase 10: the control names itself on hover — a small "top"
           pill slides in beside the button (desktop, pointer users). */}

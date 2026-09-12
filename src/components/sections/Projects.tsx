@@ -16,6 +16,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
+import { SamplePill } from "@/components/ui/Badge";
 import { useSwipe } from "@/lib/useSwipe";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
@@ -110,6 +111,16 @@ export default function Projects({ projects, github }: ProjectsProps) {
   // Progressive disclosure: collapsed by default — INITIAL_COUNT cards,
   // "Explore more" reveals the rest of the (filtered) list.
   const [expanded, setExpanded] = useState(false);
+  // BUGFIX: the share-button title read `navigator` during render, so
+  // the server (no navigator) said "Copy project link" while the client
+  // said "Share this project" → every hydration pass warning. Capability
+  // is now detected AFTER mount (rAF keeps it out of the sync-effect
+  // lint rule); until then both passes agree on "Copy project link".
+  const [canShare, setCanShare] = useState(false);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setCanShare("share" in navigator));
+    return () => cancelAnimationFrame(raf);
+  }, []);
 
   // The tech list is small — a plain computation.
   const techs = Array.from(new Set(projects.flatMap((p) => p.tech))).sort();
@@ -204,6 +215,40 @@ export default function Projects({ projects, github }: ProjectsProps) {
         el.querySelector<HTMLElement>(`[data-project-index="${normalized}"]`)?.focus();
       });
     };
+    // Column-aware vertical navigation: featured cards span the full row
+    // (sm:col-span-2), so the old naive ±cols stepping landed on the
+    // wrong card (audit #12). Walk the shown list and give every card
+    // its actual (row, col) slot, then step rows by nearest column.
+    const slots: { row: number; col: number; idx: number }[] = [];
+    {
+      let row = 0;
+      let col = 0;
+      shownProjects.forEach((p, idx) => {
+        const span = cols === 2 && p.featured ? 2 : 1;
+        if (col > 0 && col + span > cols) {
+          row += 1;
+          col = 0;
+        }
+        slots.push({ row, col, idx });
+        col += span;
+        if (col >= cols) {
+          row += 1;
+          col = 0;
+        }
+      });
+    }
+    const stepRow = (from: number, dir: 1 | -1) => {
+      const cur = slots.find((s) => s.idx === from);
+      if (!cur) return;
+      const targetRow = cur.row + dir;
+      const candidates = slots.filter((s) => s.row === targetRow);
+      if (candidates.length === 0) return; // already on the first/last row
+      move(
+        candidates.reduce((best, s) =>
+          Math.abs(s.col - cur.col) < Math.abs(best.col - cur.col) ? s : best
+        ).idx
+      );
+    };
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (!target || !el.contains(target)) return;
@@ -215,10 +260,10 @@ export default function Projects({ projects, github }: ProjectsProps) {
         move(focusedIdxRef.current - 1);
       } else if (e.key === "ArrowDown") {
         e.preventDefault();
-        move(Math.min(focusedIdxRef.current + cols, shownLenRef.current - 1));
+        stepRow(focusedIdxRef.current, 1);
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        move(Math.max(focusedIdxRef.current - cols, 0));
+        stepRow(focusedIdxRef.current, -1);
       } else if (e.key === "Home") {
         e.preventDefault();
         move(0);
@@ -235,7 +280,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
     };
     el.addEventListener("keydown", onKey);
     return () => el.removeEventListener("keydown", onKey);
-  }, [shownProjects.length, cols]);
+  }, [shownProjects, cols]);
 
   if (projects.length === 0) return null; // auto-hide (§5.2)
 
@@ -298,7 +343,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
               }`}
             >
               <Star
-                className={`h-3 w-3 ${featuredOnly ? "fill-white" : "fill-amber-400 text-amber-400"}`}
+                className={`h-3 w-3 ${featuredOnly ? "fill-white" : "fill-warning text-warning"}`} /* #84 star via status token */
                 aria-hidden="true"
               />
               Featured
@@ -367,7 +412,10 @@ export default function Projects({ projects, github }: ProjectsProps) {
           </button>
         </div>
       ) : (
-        <div ref={gridRef} id="projects-grid" className="projects-grid grid gap-6 sm:grid-cols-2" role="grid" aria-label="Projects">
+        // Plain container (no role): the old role="grid" was invalid ARIA —
+        // it had no role=row/gridcell children (audit #11). Cards are
+        // buttons in a visual grid; keyboard nav is handled above.
+        <div ref={gridRef} id="projects-grid" className="projects-grid grid gap-6 sm:grid-cols-2">
         {shownProjects.map((project, i) => {
           const visibleTech = project.tech.slice(0, 3);
           const hiddenCount = project.tech.length - visibleTech.length;
@@ -427,7 +475,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
                           {project.title}
                           {project.featured && (
                             <Star
-                              className="h-4 w-4 -translate-y-0.5 fill-amber-300 text-amber-300"
+                              className="h-4 w-4 -translate-y-0.5 fill-warning text-warning" /* #84 */
                               role="img"
                               aria-label="Featured project"
                             />
@@ -473,6 +521,9 @@ export default function Projects({ projects, github }: ProjectsProps) {
                         ))}
                         {hiddenCount > 0 && (
                           <Badge variant="neutral">+{hiddenCount}</Badge>
+                        )}
+                        {project.isSample && (
+                          <SamplePill className="ml-1.5">sample</SamplePill>
                         )}
                       </div>
                     </div>
@@ -540,7 +591,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
               {p.repoUrl ? (
                 <>
                   {" — "}
-                  <a href={p.repoUrl}>{p.repoUrl}</a>
+                  <a href={p.repoUrl} rel="noopener noreferrer" target="_blank">{p.repoUrl}</a>
                 </>
               ) : null}
             </li>
@@ -576,6 +627,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
                   tech={selected.tech}
                   className="h-40 rounded-xl"
                 />
+                {selected.isSample && <SamplePill>sample</SamplePill>}
                 {/* Phase 15 (#8): a tech badge FILTERS the wall — click it
                     to see only projects with that tech (dialog closes). */}
                 <div className="mt-4 flex flex-wrap gap-1.5">
@@ -689,8 +741,8 @@ export default function Projects({ projects, github }: ProjectsProps) {
                 <button
                   type="button"
                   onClick={() => void shareProject(selected)}
-                  className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
-                  title={navigator && "share" in navigator ? "Share this project" : "Copy project link"}
+                  className="ml-auto inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  title={canShare ? "Share this project" : "Copy project link"}
                 >
                   <Share2 className="h-3 w-3" aria-hidden="true" />
                   share
@@ -698,7 +750,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
                 <button
                   type="button"
                   onClick={copySectionLink}
-                  className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
+                  className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   copy link
                 </button>

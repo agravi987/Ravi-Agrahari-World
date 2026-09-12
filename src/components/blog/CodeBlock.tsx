@@ -14,22 +14,31 @@ import { useState } from "react";
 import { showToast } from "@/components/ui/Toast";
 
 /** language-<x> class (react-markdown) → label + topic hue. The bar
- *  uses the site's chip style (tint bg + topic text) so the label keeps
- *  AA contrast in both themes — a solid hue bar with white text fails. */
+ *  uses the site's chip style (tint bg + DEEP topic text) so the label
+ *  keeps AA contrast in both themes — a solid hue bar with white text
+ *  fails, and the soft topic-* text fails at 11px too (audit #20).
+ *  Unknown languages fall back to the neutral ink chip instead of
+ *  rendering with no bar at all (audit #93). */
 const LANG_HUES: Record<string, { label: string; bar: string; dot: string }> = {
-  yaml: { label: "yaml", bar: "bg-topic-cloud/10 text-topic-cloud", dot: "bg-topic-cloud" },
-  bash: { label: "bash", bar: "bg-topic-linux/10 text-topic-linux", dot: "bg-topic-linux" },
-  sh: { label: "shell", bar: "bg-topic-linux/10 text-topic-linux", dot: "bg-topic-linux" },
-  js: { label: "javascript", bar: "bg-topic-devops/10 text-topic-devops", dot: "bg-topic-devops" },
-  jsx: { label: "jsx", bar: "bg-topic-devops/10 text-topic-devops", dot: "bg-topic-devops" },
-  ts: { label: "typescript", bar: "bg-topic-ice/10 text-topic-ice", dot: "bg-topic-ice" },
-  tsx: { label: "tsx", bar: "bg-topic-ice/10 text-topic-ice", dot: "bg-topic-ice" },
-  py: { label: "python", bar: "bg-topic-ai/10 text-topic-ai", dot: "bg-topic-ai" },
-  python: { label: "python", bar: "bg-topic-ai/10 text-topic-ai", dot: "bg-topic-ai" },
-  json: { label: "json", bar: "bg-topic-mars/10 text-topic-mars", dot: "bg-topic-mars" },
-  dockerfile: { label: "dockerfile", bar: "bg-topic-cloud/10 text-topic-cloud", dot: "bg-topic-cloud" },
-  css: { label: "css", bar: "bg-topic-ai/10 text-topic-ai", dot: "bg-topic-ai" },
-  html: { label: "html", bar: "bg-topic-mars/10 text-topic-mars", dot: "bg-topic-mars" },
+  yaml: { label: "yaml", bar: "bg-topic-cloud/10 text-topic-cloud-deep", dot: "bg-topic-cloud" },
+  bash: { label: "bash", bar: "bg-topic-linux/10 text-topic-linux-deep", dot: "bg-topic-linux" },
+  sh: { label: "shell", bar: "bg-topic-linux/10 text-topic-linux-deep", dot: "bg-topic-linux" },
+  js: { label: "javascript", bar: "bg-topic-devops/10 text-topic-devops-deep", dot: "bg-topic-devops" },
+  jsx: { label: "jsx", bar: "bg-topic-devops/10 text-topic-devops-deep", dot: "bg-topic-devops" },
+  ts: { label: "typescript", bar: "bg-topic-ice/10 text-topic-ice-deep", dot: "bg-topic-ice" },
+  tsx: { label: "tsx", bar: "bg-topic-ice/10 text-topic-ice-deep", dot: "bg-topic-ice" },
+  py: { label: "python", bar: "bg-topic-ai/10 text-topic-ai-deep", dot: "bg-topic-ai" },
+  python: { label: "python", bar: "bg-topic-ai/10 text-topic-ai-deep", dot: "bg-topic-ai" },
+  json: { label: "json", bar: "bg-topic-mars/10 text-topic-mars-deep", dot: "bg-topic-mars" },
+  dockerfile: { label: "dockerfile", bar: "bg-topic-cloud/10 text-topic-cloud-deep", dot: "bg-topic-cloud" },
+  css: { label: "css", bar: "bg-topic-ai/10 text-topic-ai-deep", dot: "bg-topic-ai" },
+  html: { label: "html", bar: "bg-topic-mars/10 text-topic-mars-deep", dot: "bg-topic-mars" },
+};
+
+/** Neutral fallback for languages not in the map (audit #93). */
+const LANG_FALLBACK = {
+  bar: "bg-paper-deep text-ink-soft",
+  dot: "bg-ink-faint",
 };
 
 export default function CodeBlock({
@@ -49,7 +58,9 @@ export default function CodeBlock({
 
   const langMatch = className?.match(/language-([\w-]+)/);
   const lang = langMatch ? langMatch[1] : null;
-  const meta = lang ? (LANG_HUES[lang] ?? null) : null;
+  const meta = lang
+    ? (LANG_HUES[lang] ?? { label: lang, ...LANG_FALLBACK })
+    : null;
 
   async function copy() {
     try {

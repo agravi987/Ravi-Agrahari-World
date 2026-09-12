@@ -18,6 +18,9 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 interface ToastItem {
   id: number;
   message: string;
+  /** Set when the user (or timer) starts dismissing — drives the exit
+   *  animation. Exit is faster than enter (audit #111). */
+  leaving?: boolean;
 }
 
 const listeners = new Set<() => void>();
@@ -40,10 +43,25 @@ export function showToast(message: string) {
   const id = nextId++;
   toasts = [...toasts, { id, message }];
   notify();
+  // Exit first (faster than enter — audit #111), then unmount.
+  setTimeout(() => {
+    toasts = toasts.map((t) => (t.id === id ? { ...t, leaving: true } : t));
+    notify();
+  }, 2200);
   setTimeout(() => {
     toasts = toasts.filter((t) => t.id !== id);
     notify();
-  }, 2400);
+  }, 2420);
+}
+
+/** Dismiss a toast immediately (click-to-dismiss, audit #48). */
+function dismissToast(id: number) {
+  toasts = toasts.map((t) => (t.id === id ? { ...t, leaving: true } : t));
+  notify();
+  setTimeout(() => {
+    toasts = toasts.filter((t) => t.id !== id);
+    notify();
+  }, 200);
 }
 
 export default function Toaster() {
@@ -56,18 +74,18 @@ export default function Toaster() {
     return subscribe(sync);
   }, []);
 
-  // Escape dismisses the top toast (keyboard parity).
+  // Escape dismisses the top toast (keyboard parity) — via the animated
+  // exit, not an abrupt unmount.
   useEffect(() => {
     if (items.length === 0) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        toasts = toasts.slice(1);
-        notify();
+      if (e.key === "Escape" && items[0]) {
+        dismissToast(items[0].id);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [items.length]);
+  }, [items]);
 
   if (items.length === 0) return null;
 
@@ -78,18 +96,27 @@ export default function Toaster() {
       className="pointer-events-none fixed inset-x-0 bottom-4 z-[95] flex flex-col items-center gap-2 px-4 sm:inset-x-auto sm:right-4 sm:items-end"
     >
       {items.map((t, i) => (
-        <div
+        <button
           key={t.id}
+          type="button"
+          onClick={() => dismissToast(t.id)}
+          aria-label={`Dismiss: ${t.message}`}
           // Slide-up on desktop (transform-only, compositor-friendly);
           // reduced-motion gets a plain fade via opacity transition.
-          className={`pointer-events-auto flex items-center gap-2 rounded-full border border-card-border bg-card px-4 py-2.5 text-sm text-ink shadow-card-hover ${
-            reduceMotion ? "" : "animate-toast-in"
+          // Now a real button — click/tap dismisses (audit #48); Escape
+          // still works for keyboard users.
+          className={`pointer-events-auto flex cursor-pointer items-center gap-2 rounded-full border border-card-border bg-card px-4 py-2.5 text-left text-sm text-ink shadow-card-hover transition-colors hover:border-accent/40 ${
+            reduceMotion
+              ? ""
+              : t.leaving
+                ? "animate-toast-out"
+                : "animate-toast-in"
           }`}
           style={{ zIndex: 95 - i }}
         >
           <Check className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
           {t.message}
-        </div>
+        </button>
       ))}
     </div>
   );

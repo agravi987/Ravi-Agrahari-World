@@ -17,13 +17,24 @@ export default function ReadingProgress() {
 
   useEffect(() => {
     if (reduceMotion) return;
+    // Measure the ARTICLE, not the document (audit #176): on short posts
+    // the footer made the bar never reach 100% (and start part-filled).
+    // The article's top offset is subtracted so the bar starts at 0 when
+    // the article top meets the viewport top (header offset accounted).
     let raf = 0;
     const onScroll = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
+        const article = document.querySelector("article");
         const doc = document.documentElement;
-        const max = doc.scrollHeight - window.innerHeight;
-        setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+        if (article) {
+          const top = article.offsetTop - 80; // clear the sticky header
+          const span = Math.max(1, article.offsetHeight - window.innerHeight + 80);
+          setProgress(Math.min(1, Math.max(0, (window.scrollY - top) / span)));
+        } else {
+          const max = doc.scrollHeight - window.innerHeight;
+          setProgress(max > 0 ? Math.min(1, window.scrollY / max) : 0);
+        }
       });
     };
     onScroll();

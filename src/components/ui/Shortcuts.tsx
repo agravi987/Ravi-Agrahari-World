@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { Keyboard } from "lucide-react";
 import { scrollToSection } from "@/lib/scrollTo";
 import { cycleTheme } from "@/lib/theme";
+import CmdKey from "@/components/ui/CmdKey";
 
 interface Shortcut {
   keys: string[];
@@ -32,9 +33,10 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["c"], label: "Jump to contact", hue: "text-topic-mars" },
   { keys: ["x"], label: "Open the galaxy explorer", hue: "text-accent" },
   { keys: ["t"], label: "Cycle theme", hue: "text-accent-cyan" },
-  { keys: ["⌘K"], label: "Command palette", hue: "text-ink-soft" },
   { keys: ["esc"], label: "Close this overlay", hue: "text-ink-faint" },
 ];
+/** The palette row renders a platform-correct ⌘K / Ctrl K chip (audit
+ *  #27) instead of a hardcoded ⌘K that lies on Windows/Linux. */
 
 /** Section keys must work from ANY page (P23): on home the section
  *  exists → smooth-scroll (reduced-motion-aware — the CSS media query
@@ -197,6 +199,13 @@ export default function Shortcuts() {
                 </kbd>
               </li>
             ))}
+            {/* Command palette — platform-correct key chip (audit #27) */}
+            <li className="flex items-center justify-between gap-4 rounded-lg px-3 py-2">
+              <span className="text-sm text-ink-soft">Command palette</span>
+              <span className="text-[11px] text-ink-soft">
+                <CmdKey />
+              </span>
+            </li>
           </ul>
         </div>
 

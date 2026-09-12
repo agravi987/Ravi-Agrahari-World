@@ -11,10 +11,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function ScrollProgressBar() {
   const [progress, setProgress] = useState(0);
   const rafRef = useRef(0);
+  // Blog post pages render their own ARTICLE-scoped ReadingProgress bar —
+  // two bars at the top edge read as a glitch (audit #24).
+  const pathname = usePathname();
+  const isPostPage = /^\/blog\/[^/]+/.test(pathname ?? "");
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -40,7 +45,8 @@ export default function ScrollProgressBar() {
 
   // Reduced-motion users get nothing — the bar is purely decorative.
   // Touch users get nothing — the bar wastes precious vertical space.
-  if (progress <= 0) return null;
+  // Post pages get nothing — ReadingProgress owns the top edge there.
+  if (progress <= 0 || isPostPage) return null;
 
   return (
     <div

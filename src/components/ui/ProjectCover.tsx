@@ -45,6 +45,8 @@ export default function ProjectCover({
   const initial = (tech[0] ?? title).charAt(0).toUpperCase();
 
   if (image) {
+    // The shimmer class drops once loaded — that stops the sweep (the
+    // CSS-only stop was invalid and never matched, audit #16/#201).
     return (
       <div className={clsx("overflow-hidden bg-card", !loaded && "img-shimmer", className)}>
         {/* CMS-provided URL (Cloudinary) — next/image isn't applicable. */}

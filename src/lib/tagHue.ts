@@ -2,33 +2,37 @@
  * tagHue.ts — P19: blog tags get topic hues instead of grey pills.
  * Known topics map to their token color; unknown tags fall back to
  * neutral (so the CMS can add any tag without breaking the palette).
+ *
+ * TEXT uses the DEEP-* tokens (audit #19): the soft topic-* hues fail
+ * WCAG AA for 12px badge text on paper — the same bug the P25 audit
+ * caught on the marquee/preview chips. Fills/borders stay soft.
  */
 const TAG_HUES: Record<string, string> = {
   // devops family
-  ci: "bg-topic-devops/10 text-topic-devops",
-  "ci-cd": "bg-topic-devops/10 text-topic-devops",
-  cicd: "bg-topic-devops/10 text-topic-devops",
-  devops: "bg-topic-devops/10 text-topic-devops",
-  "github-actions": "bg-topic-devops/10 text-topic-devops",
+  ci: "bg-topic-devops/10 text-topic-devops-deep",
+  "ci-cd": "bg-topic-devops/10 text-topic-devops-deep",
+  cicd: "bg-topic-devops/10 text-topic-devops-deep",
+  devops: "bg-topic-devops/10 text-topic-devops-deep",
+  "github-actions": "bg-topic-devops/10 text-topic-devops-deep",
   // cloud family
-  cloud: "bg-topic-cloud/10 text-topic-cloud",
-  aws: "bg-topic-cloud/10 text-topic-cloud",
-  docker: "bg-topic-cloud/10 text-topic-cloud",
-  kubernetes: "bg-topic-cloud/10 text-topic-cloud",
+  cloud: "bg-topic-cloud/10 text-topic-cloud-deep",
+  aws: "bg-topic-cloud/10 text-topic-cloud-deep",
+  docker: "bg-topic-cloud/10 text-topic-cloud-deep",
+  kubernetes: "bg-topic-cloud/10 text-topic-cloud-deep",
   // ai family
-  ai: "bg-topic-ai/10 text-topic-ai",
-  ml: "bg-topic-ai/10 text-topic-ai",
-  "machine-learning": "bg-topic-ai/10 text-topic-ai",
+  ai: "bg-topic-ai/10 text-topic-ai-deep",
+  ml: "bg-topic-ai/10 text-topic-ai-deep",
+  "machine-learning": "bg-topic-ai/10 text-topic-ai-deep",
   // linux family
-  linux: "bg-topic-linux/10 text-topic-linux",
-  bash: "bg-topic-linux/10 text-topic-linux",
-  shell: "bg-topic-linux/10 text-topic-linux",
-  git: "bg-topic-linux/10 text-topic-linux",
-  terminal: "bg-topic-linux/10 text-topic-linux",
+  linux: "bg-topic-linux/10 text-topic-linux-deep",
+  bash: "bg-topic-linux/10 text-topic-linux-deep",
+  shell: "bg-topic-linux/10 text-topic-linux-deep",
+  git: "bg-topic-linux/10 text-topic-linux-deep",
+  terminal: "bg-topic-linux/10 text-topic-linux-deep",
   // writing / notes family
-  learning: "bg-topic-ice/10 text-topic-ice",
-  writing: "bg-topic-mars/10 text-topic-mars",
-  notes: "bg-topic-mars/10 text-topic-mars",
+  learning: "bg-topic-ice/10 text-topic-ice-deep",
+  writing: "bg-topic-mars/10 text-topic-mars-deep",
+  notes: "bg-topic-mars/10 text-topic-mars-deep",
 };
 
 /** Colored-badge classes for a tag, or undefined to keep neutral. */

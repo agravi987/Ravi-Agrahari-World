@@ -5,6 +5,7 @@
  * visitor is one click from everywhere important — not just home.
  */
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { getContent } from "@/lib/content";
 
@@ -69,14 +70,14 @@ export default async function NotFound() {
       {/* Quick links — one click to everywhere that matters (P17) */}
       <nav aria-label="Quick links" className="mt-10 flex flex-wrap justify-center gap-3">
         {QUICK_LINKS.map((link) => (
-          <a
+          <Link
             key={link.label}
             href={link.href}
             className={`inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-4 py-2 text-sm font-medium text-ink-soft shadow-card transition-colors hover:bg-card/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${link.hue}`}
           >
             {link.label}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-          </a>
+          </Link>
         ))}
       </nav>
     </div>

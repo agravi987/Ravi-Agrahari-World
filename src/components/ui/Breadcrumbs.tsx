@@ -56,13 +56,15 @@ export default function Breadcrumbs({ items, className }: BreadcrumbsProps) {
 
   if (items.length <= 1) return null;
 
+  // DEEP tokens (audit #59): the soft topic hues failed AA contrast at
+  // 14px crumb text — same fix family as the tag badges (audit #19).
   const HUES = [
-    "text-topic-cloud",
-    "text-topic-devops",
-    "text-topic-ai",
-    "text-topic-linux",
-    "text-topic-mars",
-    "text-topic-ice",
+    "text-topic-cloud-deep",
+    "text-topic-devops-deep",
+    "text-topic-ai-deep",
+    "text-topic-linux-deep",
+    "text-topic-mars-deep",
+    "text-topic-ice-deep",
   ];
 
   return (

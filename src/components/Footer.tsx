@@ -9,10 +9,12 @@
 
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import BrandIcon, { type BrandIconName } from "@/components/ui/BrandIcon";
+import ClosingStatement from "@/components/ClosingStatement";
+import CmdKey from "@/components/ui/CmdKey";
 import FooterNav, { type FooterLink } from "@/components/ui/FooterNav";
 import Kbd from "@/components/ui/Kbd";
 import PrintResumeButton from "@/components/PrintResumeButton";
+import SocialLink from "@/components/ui/SocialLink";
 import type { SectionsEnabled } from "@/types";
 
 interface FooterProps {
@@ -37,28 +39,12 @@ const NAV_LINKS: (FooterLink & { section?: keyof SectionsEnabled })[] = [
   { href: "#hero", label: "Back to top ↑" }, // P27: quick way home from the footer
   { href: "#skills", label: "Skills", section: "skills" },
   { href: "/detailed-galaxy", label: "Galaxy", section: "galaxy" },
+  { href: "#certifications", label: "Certifications", section: "certifications" }, // #81 nav parity with the header-side sections
   { href: "#projects", label: "Projects", section: "projects" },
   { href: "#experience", label: "Experience", section: "experience" },
   { href: "/blog", label: "Blog", section: "blog" },
   { href: "#contact", label: "Contact", section: "contact" },
 ];
-
-/** Brand icons for social links (simple-icons, same map as Contact). */
-const SOCIAL_BRANDS: Record<string, BrandIconName> = {
-  github: "github",
-  x: "x",
-  twitter: "x",
-  linkedin: "linkedin",
-};
-
-/** Brand-colored hover for the social links (color pass) — parity with
- *  the hero + contact: GitHub/X go near-ink, LinkedIn goes sky. */
-const BRAND_HOVER: Record<string, string> = {
-  github: "hover:text-ink",
-  x: "hover:text-ink",
-  twitter: "hover:text-ink",
-  linkedin: "hover:text-topic-cloud-deep",
-};
 
 /** Reads the deploy badge file (written at build time by S10 tooling).
  *  Module-cached: the file never changes during a build, so a per-render
@@ -92,6 +78,8 @@ export default async function Footer({
         aria-hidden="true"
         className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent"
       />
+      {/* The signature close: a scrub-in statement above the columns. */}
+      <ClosingStatement />
       <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
         {/* Identity */}
         <div className="flex flex-col items-start gap-2">
@@ -122,7 +110,7 @@ export default async function Footer({
           </p>
           {/* ⌘K / ? hints (P7/P15) — hidden on touch devices (no keyboard). */}
           <p className="hidden font-mono text-[10px] text-ink-faint md:block">
-            <Kbd>⌘K</Kbd> jump · <Kbd>?</Kbd> shortcuts
+            <CmdKey /> jump · <Kbd>?</Kbd> shortcuts
           </p>
         </div>
 
@@ -136,25 +124,14 @@ export default async function Footer({
             Connect
           </p>
           <div className="flex flex-wrap gap-3">
-            {socialLinks.map((link) => {
-              const brand = SOCIAL_BRANDS[link.label.toLowerCase().replace(/\W/g, "")];
-              const brandHover =
-                BRAND_HOVER[link.label.toLowerCase().replace(/\W/g, "")];
-              return (
-                <a
-                  key={link.label}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`link-underline inline-flex items-center gap-1.5 text-sm font-medium text-ink-soft transition-colors ${
-                    brandHover ?? "hover:text-accent"
-                  }`}
-                >
-                  {brand && <BrandIcon name={brand} className="h-4 w-4" aria-hidden="true" />}
-                  {link.label}
-                </a>
-              );
-            })}
+            {socialLinks.map((link) => (
+              <SocialLink
+                key={link.label}
+                label={link.label}
+                url={link.url}
+                variant="text"
+              />
+            ))}
           </div>
 
           <PrintResumeButton />

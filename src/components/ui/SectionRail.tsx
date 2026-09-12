@@ -83,6 +83,11 @@ export default function SectionRail() {
             key={s.id}
             href={`#${s.id}`}
             title={s.label}
+            // Icon-only nav targets need a real accessible name (the
+            // title alone is unreliable — audit #44), and the active dot
+            // should announce itself as the current section.
+            aria-label={s.label}
+            aria-current={isActive ? "true" : undefined}
             className="group relative flex items-center justify-center"
           >
             <span

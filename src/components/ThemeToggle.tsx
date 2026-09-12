@@ -14,7 +14,7 @@
 import { Monitor, Sun, Moon, MoonStar, Snowflake, Flower2, Check } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSyncExternalStore } from "react";
-import { applyTheme, THEME_LIST, type ThemeChoice } from "@/lib/theme";
+import { applyTheme, storedChoice, THEME_LIST, type ThemeChoice } from "@/lib/theme";
 
 /* --- Module-level store (avoids effect-based state sync) --- */
 const listeners = new Set<() => void>();
@@ -64,6 +64,14 @@ export default function ThemeToggle() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
+  // The stored-choice snapshot is read in an effect (not during render —
+  // render must stay pure, audit #26). The selected checkmark reflects
+  // it once mounted; SSR renders all rows unselected.
+  const [stored, setStored] = useState<ThemeChoice | null>(null);
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setStored(storedChoice()));
+    return () => cancelAnimationFrame(raf);
+  }, [open]);
 
   const select = useCallback((choice: ThemeChoice) => {
     applyTheme(choice);
@@ -136,16 +144,17 @@ export default function ThemeToggle() {
           role="listbox"
           aria-label="Select theme"
           onKeyDown={onKeyDown}
-          className="absolute right-0 top-full z-[60] mt-2 w-40 overflow-hidden rounded-card border border-card-border bg-card shadow-card animate-overlay-in"
+          className="absolute right-0 top-full z-[60] mt-2 w-40 overflow-hidden rounded-card border border-card-border bg-card shadow-card animate-menu-in"
         >
           {THEME_LIST.map((choice) => {
-            // Check if this choice is the currently stored one
-            let isSelected = false;
-            try {
-              const stored = localStorage.getItem("theme");
-              if (choice === "system" && (!stored || stored === "system")) isSelected = true;
-              else if (stored === choice) isSelected = true;
-            } catch { /* private */ }
+            // Check if this choice is the currently stored one — read
+            // from effect-populated state, NOT localStorage-during-render
+            // (render purity, audit #26). Before mount: no row selected.
+            const isSelected =
+              stored !== null &&
+              (choice === "system"
+                ? stored === "system"
+                : stored === choice);
 
             const iconName = CHOICE_ICONS[choice];
             const Icon = ICONS[iconName] ?? Sun;

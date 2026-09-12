@@ -22,7 +22,6 @@ import GithubStrip from "@/components/sections/GithubStrip";
 import Hero from "@/components/sections/Hero";
 import Projects from "@/components/sections/Projects";
 import Skills from "@/components/sections/Skills";
-import TechMarquee from "@/components/sections/TechMarquee";
 import { getContent, getGalaxy } from "@/lib/content";
 
 export const revalidate = 3600;
@@ -32,9 +31,25 @@ export default async function Home() {
     await getContent();
   const galaxy = await getGalaxy();
 
+  // First CMS-enabled section, in page order — the hero scroll cue jumps
+  // here so it can never point at a hidden section (audit #28).
+  const firstEnabledSection = (
+    [
+      "skills",
+      "projects",
+      "experience",
+      "certifications",
+      "blog",
+      "contact",
+    ] as const
+  ).find((id) => config.sectionsEnabled[id]);
+
   return (
     <div className="page-home">
       {config.sectionsEnabled.hero && (
+        /* P31 proof-strip counts pass only while a section is CMS-enabled,
+           so disabled sections never leak "0 shipped" chips; Hero's own
+           zero-data policy additionally hides any empty chip. */
         <Hero
           name={config.name}
           headline={config.headline}
@@ -45,11 +60,13 @@ export default async function Home() {
           streak={config.streak}
           availability={config.availability}
           profileImage={config.profileImage}
+          firstEnabledSection={firstEnabledSection}
+          projectsCount={config.sectionsEnabled.projects ? projects.length : 0}
+          experienceCount={
+            config.sectionsEnabled.experience ? experience.length : 0
+          }
         />
       )}
-
-      {/* Tech ticker (P9) — colorful infinite scroll, CSS-only, data-driven */}
-      <TechMarquee skills={skills} galaxy={galaxy} />
 
       {/* Momentum strip: repos + streak (plan S6, §5 — hides on failure/zeros) */}
       <GithubStrip config={config} />

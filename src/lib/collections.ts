@@ -234,6 +234,7 @@ export const COLLECTIONS: CollectionSpec[] = [
         help: "Optional — enables a public /projects/<slug> case-study page (Phase 13)",
         placeholder: "my-cool-project",
       },
+      { key: "isSample", label: "Sample / placeholder", type: "boolean", help: "Mark as a sample repo/placeholder — shows a subtle ‘sample’ label on the card (honest, not misleading)" },
       { key: "description", label: "Description", type: "textarea", placeholder: "A brief description of what this project does" },
       { key: "coverImage", label: "Cover image URL", type: "text", image: true, help: "Optional — upload or paste a Cloudinary URL (plan D8)" },
       { key: "tech", label: "Tech stack", type: "stringList", help: "One per line (e.g. Next.js)", placeholder: "Next.js\nTypeScript\nTailwind CSS" },
@@ -285,6 +286,7 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: "metrics", label: "Metrics / highlights", type: "stringList", help: "One per line" },
       { key: "tools", label: "Tools used", type: "stringList", help: "Optional — one per line (Phase 16)" },
       { key: "order", label: "Order", type: "number" },
+      { key: "isSample", label: "Sample / placeholder", type: "boolean", help: "Mark as a sample/placeholder role — shows a subtle label" },
     ],
   },
   {
@@ -300,6 +302,7 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: "verifyUrl", label: "Verify URL", type: "text", help: "Official badge link — the proof (plan §4.3)" },
       { key: "logo", label: "Logo URL", type: "text", image: true, help: "Optional — upload or paste a URL" },
       { key: "category", label: "Category", type: "text" },
+      { key: "isSample", label: "Sample / placeholder", type: "boolean", help: "Mark as a sample/placeholder certification" },
     ],
   },
   {
@@ -314,6 +317,7 @@ export const COLLECTIONS: CollectionSpec[] = [
       { key: "contentMarkdown", label: "Content (markdown)", type: "markdown" },
       { key: "tags", label: "Tags", type: "stringList", help: "One per line" },
       { key: "publishedAt", label: "Published date", type: "date" },
+      { key: "isSample", label: "Sample / placeholder", type: "boolean", help: "Mark as a sample/placeholder note" },
     ],
   },
 ];

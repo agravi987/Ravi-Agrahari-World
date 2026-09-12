@@ -53,6 +53,16 @@ function stripMongo<T>(docs: T[] | T | null | undefined): T[] | T | null | undef
   return Array.isArray(docs) ? cleaned : cleaned[0];
 }
 
+/** One-line summary of a no-Mongo fallback. The raw Mongoose error is a
+ *  multi-line topology dump that reads like a crash in every build/dev
+ *  log — but falling back to seed data when no DB is running is the
+ *  DESIGNED behavior (D1/D6), so keep the terminal output honest. */
+function summarizeMongoFail(err: unknown): string {
+  const name = err instanceof Error ? err.name : "MongoDBError";
+  const msg = err instanceof Error ? err.message.split("\n")[0] : "";
+  return `${name}${msg ? `: ${msg}` : ""}`.slice(0, 160);
+}
+
 /**
  * Loads all site content from MongoDB.
  * Called only when dbConfigured() — the seed fallback lives in
@@ -79,7 +89,9 @@ async function fetchFromMongo(): Promise<SiteContent> {
     try {
       return await p;
     } catch (err) {
-      console.warn("[content] Mongo query failed:", err);
+      console.warn(
+        `[content] Mongo query failed — collection degraded: ${summarizeMongoFail(err)}`
+      );
       return null;
     }
   };
@@ -101,8 +113,7 @@ async function fetchFromMongo(): Promise<SiteContent> {
   const experience = stripMongo(experienceRaw) as Experience[] | null;
   const certifications = stripMongo(certificationsRaw) as Certification[] | null;
   const posts = stripMongo(postsRaw) as Post[] | null;
-  // Phase 17: expose Mongo updatedAt as an ISO string on each post (the
-  // model has timestamps; the seed fallback has none → hides, zero-data).
+  // Phase 17: expose Mongo updatedAt + isSample as client-safe fields.
   posts?.forEach((p) => {
     const u = (p as Post & { updatedAt?: unknown }).updatedAt as
       | Date
@@ -114,6 +125,25 @@ async function fetchFromMongo(): Promise<SiteContent> {
     } else {
       delete (p as Partial<Post>).updatedAt;
     }
+    const s = (p as Post & { isSample?: unknown }).isSample;
+    if (typeof s === "boolean") (p as Post).isSample = s;
+    else delete (p as Partial<Post>).isSample;
+  });
+  // Same for projects, experience, certifications.
+  projects?.forEach((p) => {
+    const s = (p as Project & { isSample?: unknown }).isSample;
+    if (typeof s === "boolean") (p as Project).isSample = s;
+    else delete (p as Partial<Project>).isSample;
+  });
+  experience?.forEach((e) => {
+    const s = (e as Experience & { isSample?: unknown }).isSample;
+    if (typeof s === "boolean") (e as Experience).isSample = s;
+    else delete (e as Partial<Experience>).isSample;
+  });
+  certifications?.forEach((c) => {
+    const s = (c as Certification & { isSample?: unknown }).isSample;
+    if (typeof s === "boolean") (c as Certification).isSample = s;
+    else delete (c as Partial<Certification>).isSample;
   });
 
   // No config in DB yet → treat as unseeded; fall back to seed so the
@@ -161,7 +191,7 @@ export const getContent = cache(async function getContent(): Promise<SiteContent
       return await fetchFromMongo();
     } catch (err) {
       // DB unreachable (e.g. Docker stopped) → serve seed, don't crash.
-      console.warn("[content] Mongo read failed, falling back to seed:", err);
+      console.warn(`[content] Mongo read failed — serving seed data: ${summarizeMongoFail(err)}`);
       return seedContent;
     }
   }
@@ -255,7 +285,9 @@ export const getGalaxy = cache(async function getGalaxy(): Promise<GalaxyData> {
     try {
       return await fetchGalaxyFromMongo(config);
     } catch (err) {
-      console.warn("[content] Galaxy Mongo read failed, falling back to seed:", err);
+      console.warn(
+        `[content] Galaxy Mongo read failed — serving seed data: ${summarizeMongoFail(err)}`
+      );
     }
   }
   return {

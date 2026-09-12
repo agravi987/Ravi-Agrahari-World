@@ -1,6 +1,7 @@
 import { type Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Orbit } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import CodeBlock from "@/components/blog/CodeBlock";
 import CopyLinkButton from "@/components/blog/CopyLinkButton";
@@ -12,6 +13,7 @@ import BrandIcon from "@/components/ui/BrandIcon";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Breadcrumbs from "@/components/ui/Breadcrumbs";
 import { getContent, getGalaxy } from "@/lib/content";
+import { readTimeMinutes } from "@/lib/readTime";
 import { tagHueClasses } from "@/lib/tagHue";
 import { dateMs, formatDateSafe, parseDate } from "@/lib/date";
 
@@ -55,12 +57,6 @@ export async function generateMetadata({
       description: post.excerpt,
     },
   };
-}
-
-/** Rough read-time from word count, matching the card component. */
-function readTimeMinutes(contentMarkdown: string): number {
-  const words = contentMarkdown.trim().split(/\s+/).filter(Boolean).length;
-  return Math.max(1, Math.round(words / 200));
 }
 
 /** Phase 17 (#24): stable, readable heading id — same algorithm as
@@ -276,7 +272,7 @@ export default async function BlogPostPage({
           href={`/detailed-galaxy#planet-${learningPlanet.slug}`}
           className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-accent/30 bg-accent-soft/60 px-4 py-1.5 text-xs font-medium text-accent transition-colors hover:border-accent/50 hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
         >
-          <span aria-hidden="true">🌌</span>
+          <Orbit className="h-3.5 w-3.5" aria-hidden="true" />
           written while learning {learningPlanet.name} — see it in the galaxy
         </Link>
       )}

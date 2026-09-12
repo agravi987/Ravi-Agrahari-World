@@ -186,7 +186,7 @@ export default function Blog({ posts }: BlogProps) {
             {/* Phase 10: 3D tilt + pointer spotlight on hover — parity
                 with the projects grid (same interaction language). */}
             <TiltCard max={6} className="h-full rounded-card">
-            <a
+            <Link
               href={`/blog/${post.slug}`}
               onMouseMove={(e) => {
                 const el = e.currentTarget as HTMLElement;
@@ -202,7 +202,7 @@ export default function Blog({ posts }: BlogProps) {
                 {post.slug === newestSlug && (
                   <span
                     aria-hidden="true"
-                    className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500"
+                    className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-success"
                   />
                 )}
                 {/* BUGFIX: formatDateSafe never throws — a post saved
@@ -215,7 +215,7 @@ export default function Blog({ posts }: BlogProps) {
                 }) ?? "someday"}
                 {/* Phase 17 (#22): fresh note — fades with time, zero-data */}
                 {isNew(post.publishedAt) && post.slug !== newestSlug && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success">
                     new
                   </span>
                 )}
@@ -245,7 +245,7 @@ export default function Blog({ posts }: BlogProps) {
                 aria-hidden="true"
               />
             </span>
-            </a>
+            </Link>
             </TiltCard>
           </Reveal>
           );

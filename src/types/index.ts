@@ -33,6 +33,9 @@ export interface Project {
   /** Phase 17: Mongo `updatedAt` → ISO string, when present (seed fallback
    *  has none → the "updated" line hides, zero-data policy). */
   updatedAt?: string;
+  /** Honest flag: this project is sample/placeholder content, not a real shipped repo.
+   *  Render a small "sample" chip so visitors aren't misled. Set in the CMS per project. */
+  isSample?: boolean;
 }
 
 export interface Experience {
@@ -48,6 +51,8 @@ export interface Experience {
   tools?: string[];
   /** Phase 16: optional anchor — #experience-<slug> deep-links to the row. */
   slug?: string;
+  /** Honest flag: sample/placeholder entry (not a real role). Shows a subtle label. */
+  isSample?: boolean;
 }
 
 export interface Certification {
@@ -57,6 +62,8 @@ export interface Certification {
   verifyUrl?: string;
   logo?: string;
   category: string;
+  /** Honest flag: sample/placeholder certification (no real verify link). Shows a subtle label. */
+  isSample?: boolean;
 }
 
 export interface Post {
@@ -69,6 +76,8 @@ export interface Post {
   /** Phase 17: Mongo `updatedAt` → ISO string, when present (seed fallback
    *  has none → the "updated" line hides, zero-data policy). */
   updatedAt?: string;
+  /** Honest flag: sample/placeholder note (not a real published piece). Shows a subtle label. */
+  isSample?: boolean;
 }
 
 /** What the CMS can show/hide per section (plan §5.2). */

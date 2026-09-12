@@ -14,7 +14,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Copy, Link2 } from "lucide-react";
+import { Check, ChevronDown, Copy, Link2, Sparkles } from "lucide-react";
+import { gsapReady } from "@/lib/gsap";
 import Section from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import { initials } from "@/lib/galaxyGeometry";
@@ -79,7 +80,10 @@ function durationOf(period: string): string | null {
   const [ye, me] = m[1].split("-").map(Number);
   const months = (ye - ys) * 12 + (me - ms);
   if (!Number.isFinite(months) || months < 1) return null;
-  return months < 12 ? `${months} mo` : `${(months / 12).toFixed(1)}y`;
+  if (months < 12) return `${months} mo`;
+  // "1y" not "1.0y"; "1.5y" for the halves (audit #23).
+  const years = months / 12;
+  return `${Number.isInteger(years) ? years : years.toFixed(1)}y`;
 }
 
 /** Phase 16 (#10): the first 4-digit year in a period string, if any. */
@@ -104,31 +108,55 @@ export default function Experience({ experience }: ExperienceProps) {
   // detail is one click away on every role (progressive disclosure).
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const trackRef = useRef<HTMLOListElement>(null);
+  // Company logos that failed to load (index-keyed) — they fall back to
+  // the monogram tile (audit #33).
+  const [logoFailed, setLogoFailed] = useState<Set<number>>(new Set());
 
-  // Growing timeline (UX pass): --track-progress scales the gradient line
-  // from 0→1 as the timeline scrolls into the viewport. rAF-throttled.
+  // Growing timeline (GSAP ScrollTrigger pass): --track-progress
+  // scrubs 0→1 with scroll progress through the timeline, drawing the
+  // topic-hue gradient line. Replaces the IntersectionObserver +
+  // scroll-listener + manual rAF math (~25 lines) with one declarative
+  // trigger — and carries the audit #14 fix (progress follows scroll,
+  // never draws full-then-shrinks). Reduced-motion users never load
+  // the GSAP chunk: the CSS default (--track-progress: 1) keeps the
+  // line fully drawn, static.
   useEffect(() => {
     const el = trackRef.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    const update = () => {
-      const r = el.getBoundingClientRect();
-      const visible = Math.min(1, Math.max(0, -r.top / Math.max(1, r.height - window.innerHeight)));
-      el.style.setProperty("--track-progress", `${1 - visible}`);
-    };
-    const io = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((e) => e.isIntersecting)) {
-          update();
-          window.addEventListener("scroll", update, { passive: true });
-          io.disconnect();
-        }
-      },
-      { threshold: 0.05 }
-    );
-    io.observe(el);
+    if (!el) return;
+    let cancelled = false;
+    let dispose: (() => void) | null = null;
+
+    gsapReady()
+      .then(({ gsap }) => {
+        if (cancelled) return;
+        const ctx = gsap.context(() => {
+          gsap.fromTo(
+            el,
+            { "--track-progress": 0 },
+            {
+              "--track-progress": 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: el,
+                // Same curve as the old hand-rolled math: 0 when the
+                // timeline top reaches the viewport top, 1 when its
+                // bottom reaches the viewport bottom, clamped outside.
+                start: "top top",
+                end: "bottom bottom",
+                scrub: true,
+              },
+            }
+          );
+        });
+        dispose = () => ctx.revert();
+      })
+      .catch(() => {
+        /* GSAP failed to load — the CSS default keeps the line visible */
+      });
+
     return () => {
-      io.disconnect();
-      window.removeEventListener("scroll", update);
+      cancelled = true;
+      dispose?.();
     };
   }, []);
 
@@ -194,7 +222,10 @@ export default function Experience({ experience }: ExperienceProps) {
               // same company+role rows, which collided as React keys
               key={`${i}-${item.company}-${item.role}`}
               id={item.slug ? `experience-${item.slug}` : undefined}
-              className="group relative scroll-mt-28"
+              // Smooth expand (audit #114): the li is a CSS grid whose
+              // rows animate 0fr→1fr on open (globals.css .experience-item).
+              data-open={open}
+              className="experience-item group relative scroll-mt-28"
             >
               {/* Timeline dot — topic hue cycles per role (P18) */}
               <span
@@ -210,7 +241,8 @@ export default function Experience({ experience }: ExperienceProps) {
                 onClick={() => setOpenIdx(open ? null : i)}
                 aria-expanded={open}
                 aria-controls={`experience-detail-${i}`}
-                title="Click to expand"
+                aria-label={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
+                title={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
                 className={`block w-full cursor-pointer rounded-card p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   // P25: the open row raises — a card with a topic-hued
                   // left accent marking the active role
@@ -222,7 +254,7 @@ export default function Experience({ experience }: ExperienceProps) {
                 <span className="flex items-start gap-3">
                   {/* Company avatar — CMS logo when present, monogram
                       otherwise (Phase 16 #2/#17). */}
-                  {item.companyLogo ? (
+                  {item.companyLogo && !logoFailed.has(i) ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={item.companyLogo}
@@ -230,6 +262,16 @@ export default function Experience({ experience }: ExperienceProps) {
                       loading="lazy"
                       decoding="async"
                       title={item.company}
+                      onError={() =>
+                        // Broken CMS URL → swap to the monogram tile instead
+                        // of a broken-image glyph (audit #33).
+                        setLogoFailed((prev) => {
+                          if (prev.has(i)) return prev;
+                          const next = new Set(prev);
+                          next.add(i);
+                          return next;
+                        })
+                      }
                       className="experience-logo h-10 w-10 shrink-0 rounded-xl border border-card-border bg-card object-contain p-1"
                     />
                   ) : (
@@ -258,7 +300,7 @@ export default function Experience({ experience }: ExperienceProps) {
                       {isActive && (
                         <span
                           role="status"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] text-emerald-600 sm:px-2.5 sm:py-1"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 font-mono text-[10px] text-success sm:px-2.5 sm:py-1"
                         >
                           <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                           active
@@ -267,9 +309,10 @@ export default function Experience({ experience }: ExperienceProps) {
                       {item.metrics.length > 0 && (
                         <span
                           title={`${item.metrics.length} achievements at ${item.company}`}
-                          className="hidden rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:inline-block sm:px-2.5 sm:py-1"
+                          className="hidden items-center gap-1 rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:inline-flex sm:px-2.5 sm:py-1"
                         >
-                          {item.metrics.length} ✦
+                          {item.metrics.length}
+                          <Sparkles className="h-3 w-3" aria-hidden="true" />
                         </span>
                       )}
                       {/* Phase 16 (#13): auto-computed duration, when the
@@ -282,10 +325,13 @@ export default function Experience({ experience }: ExperienceProps) {
                           {dur}
                         </span>
                       )}
-                      {/* P25 chip, P26: now on mobile too (smaller) */}
-                      <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:px-2.5 sm:py-1">
-                        {item.period}
-                      </span>
+                      {/* P25 chip, P26: now on mobile too (smaller) — hidden
+                          when the period is empty (zero-data rule) */}
+                      {item.period && (
+                        <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:px-2.5 sm:py-1">
+                          {item.period}
+                        </span>
+                      )}
                       <ChevronDown
                         aria-hidden="true"
                         className={`mt-1 h-4 w-4 shrink-0 text-ink-faint transition-transform duration-300 ${
@@ -297,8 +343,15 @@ export default function Experience({ experience }: ExperienceProps) {
                 </span>
               </button>
 
-              {open && (
-                <div id={`experience-detail-${i}`} className="project-body px-4 pb-4">
+              {/* Detail stays MOUNTED (unlike the old conditional render)
+                  so the height can animate; inert keeps collapsed content
+                  out of the tab order and hidden from AT. */}
+              <div className="experience-collapse">
+                <div
+                  id={`experience-detail-${i}`}
+                  className="experience-detail project-body px-4 pb-4"
+                  {...(open ? {} : ({ inert: true } as object))}
+                >
                   <p className="text-sm leading-relaxed text-ink-soft">{item.description}</p>
                   {item.metrics.length > 0 && (
                     /* Phase 16 (#4): metrics stagger in when the row opens */
@@ -312,7 +365,7 @@ export default function Experience({ experience }: ExperienceProps) {
                           {/* P25: done-things get emerald checks, not bullets */}
                           <span
                             aria-hidden="true"
-                            className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                            className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-soft text-success"
                           >
                             <Check className="h-3 w-3" />
                           </span>
@@ -349,14 +402,13 @@ export default function Experience({ experience }: ExperienceProps) {
                         type="button"
                         onClick={() => void copyLink(item.slug!)}
                         className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
-                      >
-                        <Link2 className="h-3 w-3" aria-hidden="true" />
-                        copy link
-                      </button>
+                      >                      <Link2 className="h-3 w-3" aria-hidden="true" />
+                      copy link
+                    </button>
                     )}
                   </div>
                 </div>
-              )}
+              </div>
             </li>
           );
         })}

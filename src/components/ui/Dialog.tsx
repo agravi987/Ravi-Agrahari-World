@@ -74,7 +74,13 @@ export function DialogContent({
         <DialogPrimitive.Description className="mt-1 text-sm text-ink-soft">
           {description}
         </DialogPrimitive.Description>
-      ) : null}
+      ) : (
+        /* Radix warns when a dialog has no Description/aria-describedby
+           (audit #37) — keep an sr-only one so every dialog stays valid. */
+        <DialogPrimitive.Description className="sr-only">
+          {title}
+        </DialogPrimitive.Description>
+      )}
       {children}
     </DialogContentPrimitive>
   );

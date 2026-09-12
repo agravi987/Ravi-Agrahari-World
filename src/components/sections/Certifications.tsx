@@ -15,6 +15,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowUpRight, Award, ChevronLeft, ChevronRight, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import Section from "@/components/ui/Section";
@@ -330,13 +331,13 @@ export default function Certifications({
                   </Badge>
                 );
                 return planetSlug ? (
-                  <a
+                  <Link
                     href={`/detailed-galaxy#planet-${planetSlug}`}
                     title="Explore this category in the learning galaxy"
                     className="transition-opacity hover:opacity-80"
                   >
                     {badge}
-                  </a>
+                  </Link>
                 ) : (
                   badge
                 );

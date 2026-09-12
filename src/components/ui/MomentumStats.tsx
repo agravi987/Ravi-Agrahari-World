@@ -10,12 +10,22 @@
  * aria-hidden with an sr-only FINAL value (screen readers hear the
  * number once, not every count-up frame); cells with a destination
  * reveal a "→" hint on hover.
+ *
+ * GSAP pass: the count-up is now a gsap.to tween on a proxy object
+ * (same 0.9s ramp, same ease-out cubic feel, same left→right stagger
+ * via per-cell delay) instead of a hand-rolled rAF loop — one code
+ * path, GSAP's ticker, and the reduced-motion contract is unchanged
+ * (final value rendered directly, no chunk fetched). Fail-safe the
+ * old loop lacked: if GSAP fails to load, the number snaps to the
+ * real value instead of sticking at 0.
  */
 "use client";
 
 import { useEffect, useRef, useState } from "react";
 import { Award, BookOpen, FolderGit2, Orbit, Sparkles, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 import { useReducedMotion } from "@/lib/useReducedMotion";
+import { gsapReady } from "@/lib/gsap";
 
 interface Stat {
   label: string;
@@ -61,27 +71,32 @@ function CountUp({ value, active, delay = 0 }: { value: number; active: boolean;
 
   useEffect(() => {
     if (!active || reduceMotion) return;
-    let raf = 0;
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const duration = 900;
-    const run = () => {
-      const start = performance.now();
-      const tick = (now: number) => {
-        const t = Math.min(1, (now - start) / duration);
-        // ease-out cubic — starts fast, settles gently
-        const eased = 1 - Math.pow(1 - t, 3);
-        setDisplay(Math.round(eased * value));
-        if (t < 1) raf = requestAnimationFrame(tick);
-      };
-      raf = requestAnimationFrame(tick);
-    };
-    // P26: stagger — each cell starts its ramp `delay` ms later, so
-    // the band settles left→right instead of all at once.
-    if (delay > 0) timer = setTimeout(run, delay);
-    else run();
+    let cancelled = false;
+    let kill: (() => void) | null = null;
+    // Proxy target — GSAP tweens the number, onUpdate mirrors it into
+    // React state. aria/sr-only structure around it is unchanged.
+    const counter = { val: 0 };
+
+    gsapReady()
+      .then(({ gsap }) => {
+        if (cancelled) return;
+        const tween = gsap.to(counter, {
+          val: value,
+          duration: 0.9,
+          ease: "power2.out", // fast start, gentle settle ≈ old cubic ease-out
+          delay: delay / 1000, // P26 stagger: cells settle left→right
+          onUpdate: () => setDisplay(Math.round(counter.val)),
+        });
+        kill = () => tween.kill();
+      })
+      .catch(() => {
+        // GSAP unavailable — snap to the real value, never stick at 0.
+        if (!cancelled) setDisplay(value);
+      });
+
     return () => {
-      cancelAnimationFrame(raf);
-      if (timer) clearTimeout(timer);
+      cancelled = true;
+      kill?.();
     };
   }, [active, value, reduceMotion, delay]);
 
@@ -138,7 +153,7 @@ export default function MomentumStats({ stats }: { stats: Stat[] }) {
         const Icon = s.icon ?? ICON_BY_LABEL[s.label] ?? null;
         const inner = (
           <>
-            <p className={`flex items-end justify-center gap-1.5 font-display text-3xl font-semibold tracking-tight ${COLOR_TEXT[s.color]}`}>
+            <p className={`flex items-end justify-center gap-1.5 font-display text-3xl font-semibold tracking-tight tabular-nums ${COLOR_TEXT[s.color]}`}>
               {Icon && (
                 <Icon
                   className="mb-1 h-5 w-5 opacity-80"
@@ -153,17 +168,17 @@ export default function MomentumStats({ stats }: { stats: Stat[] }) {
         );
         // P22: with a destination the cell is a link — hover lifts the
         // whole stat, giving the band a second job as navigation.
+        // Path hrefs (/blog, /detailed-galaxy) use <Link> — a raw <a>
+        // did a FULL page reload and dropped SPA state (audit #2).
+        // Hash hrefs (#projects) stay native anchors — no reload either way.
         if (s.href) {
           const external = /^https?:\/\//.test(s.href);
+          const isHash = s.href.startsWith("#");
           const linkProps = external ? { target: "_blank", rel: "noopener noreferrer" } : {};
-          return (
-            <a
-              key={s.label}
-              href={s.href}
-              {...linkProps}
-              title={`Jump to ${s.label}`}
-              className="group bg-card px-4 py-2 text-center transition-colors hover:bg-paper-deep/40 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
-            >
+          const anchorCls =
+            "group bg-card px-4 py-2 text-center transition-colors hover:bg-paper-deep/40 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent";
+          const body = (
+            <>
               {inner}
               {/* P25: hover reveals a "→" hint on navigable cells */}
               <span
@@ -172,6 +187,20 @@ export default function MomentumStats({ stats }: { stats: Stat[] }) {
               >
                 →
               </span>
+            </>
+          );
+          if (!external && !isHash) {
+            return (
+              <Link key={s.label} href={s.href} title={`Jump to ${s.label}`} className={anchorCls}>
+                {body}
+                <span className="sr-only">— jump to {s.label}</span>
+              </Link>
+            );
+          }
+          return (
+            <a key={s.label} href={s.href} {...linkProps} title={`Jump to ${s.label}`} className={anchorCls}>
+              {body}
+              <span className="sr-only">— jump to {s.label}</span>
             </a>
           );
         }

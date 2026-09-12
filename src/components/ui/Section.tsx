@@ -6,13 +6,24 @@
  * useInView (P5 — replaces framer-motion's whileInView; the section
  * starts visible in SSR so the reveal never hides no-JS content,
  * and reduced-motion users get no transition at all).
+ *
+ * GSAP pass: the h2 title gets a masked word-rise (SplitText, free
+ * since 3.13) on a one-shot ScrollTrigger. Layered safely INSIDE the
+ * existing reveal stack: .section-reveal still fades the section,
+ * StaggerReveal still staggers the header parts, and the title-sweep
+ * underline (::after on the h2) still draws via CSS — SplitText only
+ * rebuilds the h2's inner text nodes. Below-fold titles ONLY (same
+ * invariant as useInView: on-screen content is never hidden), and
+ * reduced-motion users never fetch the GSAP chunk.
  */
 "use client";
 
 import { clsx } from "clsx";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { useInView } from "@/lib/useInView";
+import { useReducedMotion } from "@/lib/useReducedMotion";
+import { gsapReady } from "@/lib/gsap";
 import { showToast } from "./Toast";
 import GradientMesh from "./GradientMesh";
 import Eyebrow from "./Eyebrow";
@@ -119,6 +130,57 @@ export default function Section({
 }: SectionProps) {
   const { ref, inView } = useInView<HTMLElement>();
   const t = TONES[tone];
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const reduceMotion = useReducedMotion();
+
+  /** GSAP pass: masked word-rise on the title (below-fold only).
+   *  SplitText wraps each word in an overflow-hidden mask; words rise
+   *  yPercent 110→0 with a slight stagger while the section itself
+   *  fades up — a coherent, premium cascade. One-shot ScrollTrigger.
+   *  SplitText 3.13+ keeps the h2 accessible (aria-label on the
+   *  heading, splits hidden from AT) and .revert() restores the
+   *  original HTML on unmount. If GSAP fails to load the title simply
+   *  stays static — the sweep underline still draws via CSS. */
+  useEffect(() => {
+    if (reduceMotion) return;
+    const el = titleRef.current;
+    if (!el) return;
+    // Repo invariant (useInView): never hide content already on screen.
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+
+    let cancelled = false;
+    let dispose: (() => void) | null = null;
+
+    gsapReady()
+      .then(({ gsap }) =>
+        import("gsap/SplitText").then(({ SplitText }) => {
+          if (cancelled) return;
+          gsap.registerPlugin(SplitText); // idempotent
+          const split = SplitText.create(el, { type: "words", mask: "words" });
+          const tween = gsap.from(split.words, {
+            yPercent: 110,
+            duration: 0.55,
+            ease: "power3.out",
+            stagger: 0.045,
+            delay: 0.05,
+            scrollTrigger: { trigger: el, start: "top 85%", once: true },
+          });
+          dispose = () => {
+            tween.scrollTrigger?.kill();
+            tween.kill();
+            split.revert();
+          };
+        })
+      )
+      .catch(() => {
+        /* GSAP failed to load — title stays static, nothing breaks */
+      });
+
+    return () => {
+      cancelled = true;
+      dispose?.();
+    };
+  }, [reduceMotion]);
 
   /** Phase 9: copy a stable deep link to this section (Linear/Notion-
    *  grade affordance). Appears on hover next to the title. */
@@ -186,6 +248,7 @@ export default function Section({
            </div>
             <div className="flex items-center gap-2.5">
               <h2
+                ref={titleRef}
                 id={`${id}-title`}
                 className="title-sweep animated mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
                 style={{ "--sweep": t.sweep } as CSSProperties}

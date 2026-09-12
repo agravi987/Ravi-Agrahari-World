@@ -95,6 +95,8 @@ const projectSchema = new Schema<Project>(
        caseStudy markdown (hidden entirely when either is absent). */
     slug: { type: String, unique: true, sparse: true, default: undefined },
     caseStudy: { type: String, default: undefined },
+    /* Honest flag: sample/placeholder content — rendered as a subtle badge. */
+    isSample: { type: Boolean, default: false },
   },
   timestamps
 );
@@ -116,6 +118,8 @@ const experienceSchema = new Schema<Experience>(
     companyLogo: { type: String, default: undefined },
     tools: { type: [String], default: [] },
     slug: { type: String, unique: true, sparse: true, default: undefined },
+    /* Honest flag: sample/placeholder entry — rendered as a subtle badge. */
+    isSample: { type: Boolean, default: false },
   },
   timestamps
 );
@@ -133,6 +137,8 @@ const certificationSchema = new Schema<Certification>(
     verifyUrl: { type: String, default: undefined }, // official verify link (§4.3)
     logo: { type: String, default: undefined },
     category: { type: String, default: "" },
+    /* Honest flag: sample/placeholder certification. */
+    isSample: { type: Boolean, default: false },
   },
   timestamps
 );
@@ -147,6 +153,8 @@ const postSchema = new Schema<Post>(
     contentMarkdown: { type: String, default: "" },
     tags: { type: [String], default: [] },
     publishedAt: { type: String, default: "" },
+    /* Honest flag: sample/placeholder note. */
+    isSample: { type: Boolean, default: false },
   },
   timestamps
 );

@@ -105,12 +105,13 @@ I can ship full-stack — so the site itself is the demo:
     {
       title: "Lambda Image Processor",
       description:
-        "Serverless image processing pipeline on AWS Lambda + S3 with an API Gateway front (SAMPLE data).",
+        "Serverless image processing pipeline on AWS Lambda + S3 with an API Gateway front.",
       tech: ["AWS", "Lambda", "S3", "Python"],
-      repoUrl: "https://github.com/agravi987/lambda-image-processor-SAMPLE",
+      repoUrl: "https://github.com/agravi987/lambda-image-processor",
       featured: false,
       order: 1,
       slug: "lambda-image-processor",
+      isSample: true,
       caseStudy: `## The shape of a serverless pipeline
 
 This sample walks a thumbnail pipeline end to end — the kind of thing a
@@ -160,27 +161,30 @@ Next step: a queue (SQS) so big batches don't drop events.`,
   ],
 
   certifications: [
-    {
-      name: "AWS Cloud Practitioner",
-      issuer: "Amazon Web Services",
-      date: "2026-06",
-      verifyUrl: "https://www.credly.com/badges/agravi987",
-      category: "Cloud",
-    },
-    {
-      name: "GitHub Actions (seed sample)",
-      issuer: "Sample Issuer",
-      date: "2026-03",
-      verifyUrl: "https://example.com/verify/gh-actions",
-      category: "DevOps",
-    },
-    {
-      name: "AI Fundamentals (seed sample)",
-      issuer: "Sample Issuer",
-      date: "2025-11",
-      verifyUrl: "https://example.com/verify/ai-fundamentals",
-      category: "AI",
-    },
+  {
+    name: "AWS Cloud Practitioner",
+    issuer: "Amazon Web Services",
+    date: "2026-06",
+    verifyUrl: "",
+    category: "Cloud",
+    isSample: true,
+  },
+  {
+    name: "GitHub Actions Fundamentals",
+    issuer: "GitHub",
+    date: "2026-03",
+    verifyUrl: "https://github.com/agravi987",
+    category: "DevOps",
+    isSample: true,
+  },
+  {
+    name: "AI Fundamentals",
+    issuer: "Self-study",
+    date: "2025-11",
+    verifyUrl: "https://github.com/agravi987",
+    category: "AI",
+    isSample: true,
+  },
   ],
 
   posts: [
@@ -192,18 +196,20 @@ Next step: a queue (SQS) so big batches don't drop events.`,
       contentMarkdown:
         "# What I learned\n\nSetting up CI for this portfolio taught me three small things that each cost a debug session.\n\n## Lint before you build\n\nOne `npm run lint` pass catches what Turbopack happily bundles — a stale import, an unused variable, a broken type. It takes seconds and it's the cheapest feedback loop in the whole pipeline.\n\n## Typecheck in CI, not just locally\n\n`tsc --noEmit` is cheap and finds the drift that only shows up on a clean machine. Your laptop accumulates state; the runner doesn't.\n\n## The deploy badge is just build metadata\n\nRead the env at build time, don't fake it. VERCEL_GIT_COMMIT_SHA + build time is all the badge needs.\n\nA tiny pipeline to start from:\n\n```yaml\nname: ci\non: push\njobs:\n  build:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run: npm ci\n      - run: npm run lint\n      - run: npm run build\n```\n\nThat's it — every push now has a green or red dot instead of a surprise.",
       tags: ["ci-cd", "github-actions", "learning"],
-      publishedAt: "2026-08-10",
-    },
-    {
-      title: "Why I write notes in public",
+    publishedAt: "2026-08-10",
+    isSample: true,
+  },
+  {
+    title: "Why I write notes in public",
       slug: "why-i-write-notes-in-public",
       excerpt:
         "Learning in public is uncomfortable — and that's exactly why it works. A short case for the habit.",
-      contentMarkdown:
-        "# Why I write notes in public\n\nSharing half-formed ideas feels risky. The payoff: feedback, a searchable trail, and a record of how I actually learn.\n\n1. **It forces clarity** — you can't hand-wave in writing.\n2. **It builds a trail** — six months later the notes show the path.\n3. **It attracts the right people** — recruiters and engineers who value curiosity.\n\nConsistency beats polish: short notes, often, beats perfect essays never.\n",
-      tags: ["learning", "writing"],
-      publishedAt: "2026-08-05",
-    },
+    contentMarkdown:
+      "# Why I write notes in public\r\n\r\nSharing half-formed ideas feels risky. The payoff: feedback, a searchable trail, and a record of how I actually learn.\r\n\r\n1. **It forces clarity** — you can't hand-wave in writing.\r\n2. **It builds a trail** — six months later the notes show the path.\r\n3. **It attracts the right people** — recruiters and engineers who value curiosity.\r\n\r\nConsistency beats polish: short notes, often, beats perfect essays never.\r\n",
+    tags: ["learning", "writing"],
+    publishedAt: "2026-08-05",
+    isSample: true,
+  },
   ],
 };
 
@@ -237,6 +243,7 @@ interface SeedPlanet {
     githubUrl?: string;
     liveUrl?: string;
     documentationUrl?: string;
+    isSample?: boolean;
   }>;
 }
 
@@ -245,10 +252,10 @@ const seedPlanets: SeedPlanet[] = [
     name: "AWS", slug: "aws", icon: "☁️", color: "#ff9900", size: 64, orbitRadius: 140,
     description: "Cloud fundamentals — EC2, S3, Lambda, IAM. Cloud Practitioner path.",
     moons: [
-      { name: "Lambda Image Processor", slug: "lambda-image-processor", type: "project", icon: "🚀", description: "Serverless image processing with Lambda + S3 (SAMPLE data).", technologies: ["AWS", "Lambda", "S3", "Python"], githubUrl: SAMPLE("lambda-image-processor") },
-      { name: "API Gateway Lab", slug: "api-gateway-lab", type: "lab", icon: "🛠️", description: "Routing, throttling and auth on API Gateway (SAMPLE).", technologies: ["API Gateway", "Lambda"], githubUrl: SAMPLE("api-gateway-lab") },
-      { name: "S3 Static Hosting", slug: "s3-static-hosting", type: "lab", icon: "🛠️", description: "S3 bucket + CloudFront for a static site (SAMPLE).", technologies: ["S3", "CloudFront"], githubUrl: SAMPLE("s3-static-hosting") },
-      { name: "CloudWatch Notes", slug: "cloudwatch-notes", type: "notes", icon: "🗒️", description: "Metrics, logs and alarms — my running notes (SAMPLE).", technologies: ["CloudWatch"], githubUrl: SAMPLE("cloudwatch-notes") },
+      { name: "Lambda Image Processor", slug: "lambda-image-processor", type: "project", icon: "🚀", description: "Serverless image processing with Lambda + S3 (sample).", technologies: ["AWS", "Lambda", "S3", "Python"], githubUrl: "https://github.com/agravi987/lambda-image-processor", isSample: true },
+      { name: "API Gateway Lab", slug: "api-gateway-lab", type: "lab", icon: "🛠️", description: "Routing, throttling and auth on API Gateway (sample).", technologies: ["API Gateway", "Lambda"], githubUrl: "https://github.com/agravi987/api-gateway-lab", isSample: true },
+      { name: "S3 Static Hosting", slug: "s3-static-hosting", type: "lab", icon: "🛠️", description: "S3 bucket + CloudFront for a static site (sample).", technologies: ["S3", "CloudFront"], githubUrl: "https://github.com/agravi987/s3-static-hosting", isSample: true },
+      { name: "CloudWatch Notes", slug: "cloudwatch-notes", type: "notes", icon: "🗒️", description: "Metrics, logs and alarms — my running notes (sample).", technologies: ["CloudWatch"], githubUrl: "https://github.com/agravi987/cloudwatch-notes", isSample: true },
     ],
   },
   {
