@@ -20,6 +20,7 @@ import { SamplePill } from "@/components/ui/Badge";
 import { useSwipe } from "@/lib/useSwipe";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import ProjectCover from "@/components/ui/ProjectCover";
 import Reveal from "@/components/ui/Reveal";
 import Section from "@/components/ui/Section";
@@ -310,6 +311,16 @@ export default function Projects({ projects, github }: ProjectsProps) {
       description="Small, real, shipped — click one to open it. Every one taught me something I can point to."
       tone="cloud"
     >
+      <CosmicDecor
+        hue="cloud"
+        stars="dense"
+        planet="top-right"
+        planetSrc="/images/planets/jupiter.jpg"
+        ring
+        ship
+        shipSpot="bottom-right"
+      />
+
       {/* Filter row — multi-select tech chips + Featured toggle + clear.
           Chips combine (AND) so you can narrow to e.g. "React AND Docker";
           a × Clear appears once anything is active. */}

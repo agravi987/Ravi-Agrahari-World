@@ -11,6 +11,7 @@ import Button from "@/components/ui/Button";
 import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import Magnetic from "@/components/ui/Magnetic";
 import SocialLink from "@/components/ui/SocialLink";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import Section from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 
@@ -209,7 +210,35 @@ export default function Contact({
       description="Open to internships, collabs, or just talking cloud & AI."
       tone="mars"
     >
-      <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+      <CosmicDecor
+        hue="mars"
+        stars="sparse"
+        planet="top-right"
+        planetSrc="/images/mars.png"
+      />
+
+      {/*
+        Aurora glows — decorative drifting light blobs behind the layout.
+          transform-loop + opacity, RM-frozen via the global override,
+          aria-hidden and pointer-transparent (zero-data: hidden when empty). */}
+      <div className="relative">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 no-print">
+          <div
+            className="aurora-a absolute -left-24 top-8 h-64 w-64 rounded-full opacity-25 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle at 40% 40%, var(--color-topic-ai), transparent 70%)",
+            }}
+          />
+          <div
+            className="aurora-b absolute -right-20 bottom-6 h-72 w-72 rounded-full opacity-25 blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle at 60% 60%, var(--color-topic-mars), transparent 70%)",
+            }}
+          />
+        </div>
+        <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
         <div className="rounded-card border border-card-border bg-paper-deep/40 p-6 shadow-card sm:p-7">
           {/* P25: availability pill — the same CMS line as the hero,
@@ -714,6 +743,7 @@ export default function Contact({
           )}
         </form>
         )}
+        </div>
       </div>
     </Section>
   );

@@ -217,9 +217,9 @@ export default function Section({
         // the viewport instead of fixed steps that feel too airy on
         // phones and too cramped on wide screens.
         SPACING[spacing],
-        "section-reveal",
+        "section-reveal relative",
         inView && "is-in-view",
-        band && "band-bg relative",
+        band && "band-bg",
         className
       )}
       // Phase 9 color: band sections carry a whisper of their topic hue

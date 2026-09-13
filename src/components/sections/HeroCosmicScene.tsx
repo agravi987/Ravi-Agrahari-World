@@ -5,29 +5,30 @@
  *      global body::before nebula rides underneath for a unified look).
  *   2. Starfield — ~60 twinkling stars (existing .twinkle/.d1-3 rhythm)
  *      with a few "sparkle" stars that catch the light.
- *   3. Shooting stars — two rare diagonal dashes (CSS loop, long delays)
- *      that flare and die across the upper sky.
+ *   3. Shooting stars — four diagonal dashes (CSS loop, staggered long
+ *      delays) that flare and die across the upper sky.
  *   4. Floating planets — three topic PNGs (cloud, web-dev, system-design)
- *      bobbing on their own CSS rhythm at the scene edges.
- *   5. The spaceship — banks in ONCE on load (GSAP entrance), then
- *      hovers quietly and recedes on the fastest parallax layer.
+ *      wobbling on their own CSS rhythm at the scene edges; they POP in
+ *      with an elastic stagger on load.
+ *   5. The spaceship — banks in ONCE with a playful swoop (GSAP entrance),
+ *      then rocks side-to-side with a flickering thruster while it hovers
+ *      and recedes on the fastest parallax layer.
  *   6. Saturn — migrated here from Hero so ALL decorative parallax lives
- *      in one place. Rises opposite the ship (foreground lensing).
+ *      in one place. Rises with a springy back-out, drifting opposite the
+ *      ship (foreground lensing).
  *
  * MOTION DESIGN (guards, repo rules):
  *   - All layers aria-hidden + pointer-events-none + no-print.
- *   - CSS loops (bob/shooting) are transform/opacity-only and freeze via
- *     the global reduced-motion override in globals.css.
+ *   - CSS loops (wobble/rock/shooting/thruster) are transform/opacity-only
+ *     and freeze via the global reduced-motion override in globals.css.
  *   - JS motion gates on useReducedMotion() FIRST (never fetches GSAP for
  *     those users) and pointer:fine for pointerdepth + scroll scrub (repo
- *     pattern); the ship's entrance still plays for touch users (it is not
+ *     pattern); the entrances still play for touch users (they are not
  *     pointer-driven, and motion-safe by default).
  *   - GSAP is loaded lazily via gsapReady() and effects clean up with
  *     gsap.context().revert() / killTweensOf — no leaked tweens.
- *   - Perma-hover pulse on the ship is intentionally skipped: a spinning
- *     thruster reads as noise. The entrance is the statement.
  *
- * DEPTH LAYERS (data-depth): back 6 / mid 14 / front 26 — pointer
+ * DEPTH LAYERS (data-depth): back 10 / mid 22 / front 38 — pointer
  * parallax multiplies cursor offset; nearer bodies slide furthest.
  * SCROLL LAYERS (data-scroll-y): separate scripted y-drift per body,
  * positive drifts WITH the page (recedes), negative rises against it.
@@ -78,8 +79,8 @@ const PLANETS: PlanetSpec[] = [
     w: 960,
     h: 378,
     float: "animate-float-c",
-    depth: 6,
-    scrollY: 6,
+    depth: 10,
+    scrollY: 10,
     cls: "left-[4%] top-20 w-14 opacity-80 md:w-24",
   },
   {
@@ -87,8 +88,8 @@ const PLANETS: PlanetSpec[] = [
     w: 779,
     h: 773,
     float: "animate-float-d",
-    depth: 14,
-    scrollY: 16,
+    depth: 22,
+    scrollY: 24,
     cls: "bottom-[30%] left-[1%] w-10 opacity-70 md:w-16",
   },
   {
@@ -96,8 +97,8 @@ const PLANETS: PlanetSpec[] = [
     w: 768,
     h: 768,
     float: "animate-float-e",
-    depth: 26,
-    scrollY: 26,
+    depth: 34,
+    scrollY: 34,
     cls: "top-[34%] right-[3%] w-12 opacity-75 md:w-20",
   },
 ];
@@ -106,7 +107,7 @@ function HeroCosmicScene() {
   const reduceMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
 
-  /* Entrance (ship banks in once) + scroll-scrub depth. */
+  /* Entrance (playful staged arrival) + scroll-scrub depth. */
   useEffect(() => {
     if (reduceMotion) return;
     const hero = rootRef.current?.closest("section#hero") as HTMLElement | null;
@@ -118,22 +119,75 @@ function HeroCosmicScene() {
       .then(({ gsap }) => {
         if (cancelled) return;
         const ctx = gsap.context(() => {
+          // Planets pop in with an elastic bounce, staggered back-to-front.
+          const planets = hero.querySelectorAll<HTMLElement>(
+            '[data-entrance="planet"]'
+          );
+          if (planets.length) {
+            gsap.fromTo(
+              planets,
+              { y: 80, scale: 0.5, opacity: 0 },
+              {
+                y: 0,
+                scale: 1,
+                opacity: 1,
+                duration: 1.1,
+                ease: "back.out(1.7)",
+                stagger: 0.14,
+                delay: 0.35,
+                immediateRender: true,
+                clearProps: "transform,opacity",
+              }
+            );
+          }
+          // The ship swoops in from the right with a banking tilt.
           const ship = hero.querySelector<HTMLElement>("[data-hero-ship]");
           if (ship) {
             gsap.fromTo(
               ship,
-              { xPercent: 65, yPercent: -55, rotation: 18, opacity: 0 },
+              { xPercent: 95, yPercent: -55, rotation: 26, opacity: 0 },
               {
                 xPercent: 0,
                 yPercent: 0,
                 rotation: 0,
                 opacity: 1,
-                duration: 1.6,
+                duration: 1.5,
                 ease: "power3.out",
-                delay: 0.45,
+                delay: 0.9,
                 immediateRender: true,
-                // Entrance finishes clean; the scroll scrub below takes
-                // over the y-drift without a stale transform.
+                clearProps: "transform,opacity",
+              }
+            );
+            // Patrol sway: after it parks, the ship drifts side-to-side
+            // with a light bank (x + rotation on this layer — the scroll
+            // scrub owns `y`, GSAP's component cache merges them safely;
+            // pointer:fine only, spins its own axis, RM-skipped).
+            if (window.matchMedia("(pointer: fine)").matches) {
+              gsap.to(ship, {
+                x: 46,
+                rotation: 8,
+                duration: 2.6,
+                ease: "sine.inOut",
+                yoyo: true,
+                repeat: -1,
+                repeatDelay: 2.6,
+                delay: 3.6,
+              });
+            }
+          }
+          // Saturn springs up from below, opposite the ship.
+          const saturn = hero.querySelector<HTMLElement>("[data-hero-planet]");
+          if (saturn) {
+            gsap.fromTo(
+              saturn,
+              { yPercent: 70, opacity: 0 },
+              {
+                yPercent: 0,
+                opacity: 1,
+                duration: 1.2,
+                ease: "back.out(1.4)",
+                delay: 1.4,
+                immediateRender: true,
                 clearProps: "transform,opacity",
               }
             );
@@ -255,6 +309,8 @@ function HeroCosmicScene() {
         </svg>
         <span className="shoot-a" aria-hidden="true" />
         <span className="shoot-b" aria-hidden="true" />
+        <span className="shoot-c" aria-hidden="true" />
+        <span className="shoot-d" aria-hidden="true" />
       </div>
 
       {/* L2 — foreground floating bodies: above the wash (-z-10) but
@@ -266,6 +322,7 @@ function HeroCosmicScene() {
         {PLANETS.map((p) => (
           <div
             key={p.src}
+            data-entrance="planet"
             data-scroll-y={p.scrollY}
             className={`absolute ${p.cls}`}
             style={{ willChange: "transform" }}
@@ -286,16 +343,17 @@ function HeroCosmicScene() {
           </div>
         ))}
 
-        {/* The spaceship — parks top-right, banks in once, then hovers.
-            Scales down on mobile (still shown — user preference). */}
+        {/* The spaceship — parks top-right, swoops in with a banking tilt,
+            then rocks side-to-side with a flickering thruster while it
+            hovers. Scales down on mobile (still shown — user pref). */}
         <div
           data-hero-ship
-          data-scroll-y={-12}
+          data-scroll-y={-18}
           className="absolute right-[6%] top-8 w-12 md:right-[12%] md:top-12 md:w-20"
           style={{ willChange: "transform" }}
         >
-          <div data-depth={26} className="relative">
-            <div className="animate-float-c relative">
+          <div data-depth={38} className="relative">
+            <div className="animate-ship-rock relative">
               <Image
                 src="/images/spacecraft/spaceship.png"
                 alt=""
@@ -305,6 +363,10 @@ function HeroCosmicScene() {
                 sizes="(max-width: 640px) 48px, 80px"
                 className="h-auto w-full drop-shadow-[0_10px_20px_rgba(31,27,79,0.25)]"
               />
+              <span
+                aria-hidden="true"
+                className="animate-thruster absolute -bottom-1.5 left-1/2 -ml-[2px] h-2.5 w-1 rounded-full bg-accent-cyan/80 blur-[2px]"
+              />
             </div>
           </div>
         </div>
@@ -312,11 +374,11 @@ function HeroCosmicScene() {
         {/* Saturn — now visible on mobile too (smaller), same lensing. */}
         <div
           data-hero-planet
-          data-scroll-y={-14}
+          data-scroll-y={-20}
           className="absolute -bottom-[6%] -right-6 w-[min(48vw,220px)] md:-right-[4%] md:w-[min(70vw,540px)]"
           style={{ willChange: "transform" }}
         >
-          <div data-depth={26} className="relative">
+          <div data-depth={40} className="relative">
             <div className="hero-planet-glow absolute inset-x-6 bottom-8 top-10 -z-20 scale-110" />
             <Image
               src="/images/hero/saturn.png"

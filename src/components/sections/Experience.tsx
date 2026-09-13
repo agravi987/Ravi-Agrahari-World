@@ -16,6 +16,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Copy, Link2, Sparkles } from "lucide-react";
 import { gsapReady } from "@/lib/gsap";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import Section from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import { initials } from "@/lib/galaxyGeometry";
@@ -201,6 +202,13 @@ export default function Experience({ experience }: ExperienceProps) {
       tone="devops"
       band
     >
+      <CosmicDecor
+        hue="devops"
+        stars="dense"
+        planet="bottom-left"
+        planetSrc="/images/planets/system-design.png"
+      />
+
       {/* Phase 16 (#25): honest count — how many roles are on the map */}
       <p className="mb-4 text-center font-mono text-xs text-ink-faint">
         {experience.length} role{experience.length === 1 ? "" : "s"} on the timeline

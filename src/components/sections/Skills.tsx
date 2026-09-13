@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Bot, ChevronLeft, ChevronRight, Cloud, Pause, Play, Workflow } from "lucide-react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import LevelBar from "@/components/ui/LevelBar";
 import LevelRing from "@/components/ui/LevelRing";
 import Section from "@/components/ui/Section";
@@ -153,6 +154,13 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
       band
       mesh
     >
+      <CosmicDecor
+        hue="ai"
+        stars="sparse"
+        planet="bottom-left"
+        planetSrc="/images/planets/ai-agents.png"
+      />
+
       {/* Chip switcher — click a domain to focus it (one at a time).
           P25: proper tabs — roving tabindex + ←/→ keys + aria-controls.
           P28: auto-advance pauses on hover/focus so users can read. */}

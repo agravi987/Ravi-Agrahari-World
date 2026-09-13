@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Search } from "lucide-react";
 import Badge from "@/components/ui/Badge";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import Reveal from "@/components/ui/Reveal";
 import Section from "@/components/ui/Section";
 import TiltCard from "@/components/ui/TiltCard";
@@ -90,6 +91,14 @@ export default function Blog({ posts }: BlogProps) {
       tone="linux"
       band
     >
+      <CosmicDecor
+        hue="devops"
+        stars="sparse"
+        planet="bottom-right"
+        planetSrc="/images/planets/devops.png"
+        ring
+      />
+
       {/* Search (UX pass) — live filter across title/excerpt/tags */}
       <div className="mx-auto mb-6 max-w-md">
         <div className="relative">

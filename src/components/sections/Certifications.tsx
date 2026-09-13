@@ -18,6 +18,7 @@ import { ArrowUpRight, Award, ChevronLeft, ChevronRight, ShieldCheck } from "luc
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
+import CosmicDecor from "@/components/ui/CosmicDecor";
 import Section from "@/components/ui/Section";
 import Tooltip from "@/components/ui/Tooltip";
 import { useSwipe } from "@/lib/useSwipe";
@@ -169,6 +170,13 @@ export default function Certifications({
       description="Verified, with links — check them yourself. Pick one below."
       tone="ai"
     >
+      <CosmicDecor
+        hue="ai"
+        stars="sparse"
+        planet="top-left"
+        planetSrc="/images/planets/web-dev.png"
+      />
+
       {/* Category filter tabs (UX pass) — same interaction language as
           projects & blog; narrows the list before the spotlight switcher. */}
       {categories.length > 1 && (
@@ -294,7 +302,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight flex items-center gap-5 p-6 sm:p-8 border-t-2 ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex items-center gap-5 p-6 sm:p-8 border-t-2 ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           {/* P8: issuer logo when the CMS provides one; topic-hued Award
               tile otherwise (images come from the CMS — Cloudinary). */}
