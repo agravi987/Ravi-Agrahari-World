@@ -5,10 +5,13 @@
  * column is a unique "photo on paper" composition — the profile
  * photo in a gradient-hairline card over an offset indigo block,
  * with two floating glass chips (learning streak ≥ 2 + "learning
- * in public") floating above a layered cosmic scene — a real NASA
- * nebula wash (public domain, bundled locally) and Hubble's full-disc
- * Jupiter rising behind the photo. The galaxy owns the full orbit
- * motif (P24); the hero keeps just the photos, quiet and deep.
+ * in public") floating above a layered cosmic scene — the JWST
+ * nebula wash (public domain, bundled locally), a dense twinkling
+ * starfield with shooting stars, three floating topic planets, the
+ * spaceship, and Hubble-era Saturn rising behind the photo. The
+ * galaxy owns the full orbit motif (P24); the hero keeps just the
+ * photos, quiet and deep — all decorative motion lives in
+ * HeroCosmicScene.tsx.
  * Content comes from lib/content.ts, never
  * hardcoded; no photo → graceful initials fallback.
  *
@@ -35,6 +38,7 @@ import Button from "@/components/ui/Button";
 import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import SocialLink from "@/components/ui/SocialLink";
 import Magnetic from "@/components/ui/Magnetic";
+import HeroCosmicScene from "./HeroCosmicScene";
 
 interface HeroProps {
   name: string;
@@ -272,10 +276,8 @@ function useHeroScrollEffects() {
           const section = el.closest("section");
           const photo = section?.querySelector<HTMLElement>("[data-hero-photo]");
           if (photo) tl.to(photo, { y: 30, ease: "none" }, 0);
-          // P32: the foreground Saturn drifts the OPPOSITE way (rises as
-          // the hero scrolls out) — foreground parallax, lensing the scene.
-          const planet = section?.querySelector<HTMLElement>("[data-hero-planet]");
-          if (planet) tl.to(planet, { y: -14, ease: "none" }, 0);
+          // Saturn's foreground rise now lives in HeroCosmicScene's own
+          // scrub timeline (all decorative parallax shares one home).
         });
         dispose = () => ctx.revert();
       })
@@ -516,74 +518,12 @@ export default function Hero({
         className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-paper/90 to-transparent"
       />
 
-      {/* P32 cosmic scene — full-bleed, real photography:
-        1. The JWST "Cosmic Cliffs" nebula spans the ENTIRE hero as a
-           soft multiply wash — no side mask, it fills the screen. A
-           paper-lightened gradient rides on top so the pitch column
-           keeps its readable light ground while the wash deepens
-           toward the right, where the composition floats.
-        2. Starfield — tiny twinkles scattered across the full width.
-        3. Foreground Saturn — a TRANSPARENT 3D render (no black box),
-           rising from the bottom-right behind the profile card.
-        Image licensing: NASA imagery is public domain; the Saturn
-        render is Wikimedia Commons "3D Saturn.png" (Timeline 90
-        Science, CC-BY-SA 4.0 — credit kept in this comment). All
-        decorative (aria-hidden), no extra JS, reduced-motion safe. */}
-      <div
-        aria-hidden="true"
-        className="no-print pointer-events-none absolute inset-0 -z-30"
-      >
-        {/* Warm paper base — global cosmic-cliffs (body::before) multiplies
-            onto it at low opacity. Hero adds a stronger gradient overlay so
-            the pitch column keeps its readable light ground. */}
-        <div className="absolute inset-0 bg-paper" />
-        {/* Stronger gradient over the global nebula for hero readability. */}
-        <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/70 to-paper/10" />
-        {/* Starfield — across the whole hero. */}
-        <svg
-          className="h-full w-full opacity-60"
-          viewBox="0 0 1200 700"
-          preserveAspectRatio="xMidYMid slice"
-          aria-hidden="true"
-        >
-          {[
-            [120, 60], [260, 180], [150, 340], [320, 440], [200, 600],
-            [420, 90], [480, 270], [520, 430], [560, 600], [640, 140],
-            [700, 340], [760, 540], [860, 80], [940, 200], [1020, 320],
-            [1100, 440], [1160, 620], [900, 600], [380, 610], [1180, 140],
-          ].map(([cx, cy], i) => (
-            <circle
-              key={i}
-              cx={cx}
-              cy={cy}
-              r={i % 3 === 0 ? 1.6 : 1}
-              fill="currentColor"
-              className={i % 4 === 0 ? "twinkle d1" : i % 4 === 2 ? "twinkle d2" : i % 4 === 3 ? "twinkle d3" : undefined}
-            />
-          ))}
-        </svg>
-      </div>
-
-      {/* Saturn — transparent 3D render (no black frame). Rises from
-          the bottom-right behind the profile composition, above the
-          nebula wash (-z-10) but below all content. */}
-      <div
-        aria-hidden="true"
-        data-hero-planet
-        className="no-print pointer-events-none absolute -bottom-[10%] -right-[4%] -z-10 hidden w-[min(70vw,540px)] md:block"
-      >
-        <div className="hero-planet-glow absolute inset-x-6 bottom-8 top-10 -z-20 scale-110" />
-        <Image
-          src="/images/hero/saturn.png"
-          alt=""
-          width={960}
-          height={361}
-          priority
-          fetchPriority="low"
-          sizes="(max-width: 1024px) 70vw, 540px"
-          className="h-auto w-full drop-shadow-[0_18px_35px_rgba(31,27,79,0.35)]"
-        />
-      </div>
+      {/* P32 cosmic scene — the full decorative cosmos (nebula wash,
+          starfield, shooting stars, floating planets, spaceship, Saturn)
+          now lives in HeroCosmicScene.tsx so ALL its GSAP depth (scroll
+          scrub + pointer parallax) shares one home. This layer is
+          aria-hidden, pointer-events-none, behind all content. */}
+      <HeroCosmicScene />
 
       <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
         {/* Left — the pitch. Phase 14 (#5): the drift ref gives this

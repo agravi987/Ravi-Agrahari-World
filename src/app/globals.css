@@ -1837,6 +1837,118 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   }
 }
 
+/* P32b floating bodies — planets + the ship bob on gentle loops,
+   each on its own rhythm (transform-only; the global reduced-motion
+   override collapses the timings). The GSAP scroll/pointer depth
+   lives ONE wrapper up, so the two transforms never fight. */
+@keyframes float-c {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes float-d {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(6px);
+  }
+}
+@keyframes float-e {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-11px);
+  }
+}
+.animate-float-c {
+  animation: float-c 8s ease-in-out infinite;
+}
+.animate-float-d {
+  animation: float-d 7s ease-in-out infinite;
+}
+.animate-float-e {
+  animation: float-e 9s ease-in-out infinite;
+}
+
+/* P32b "sparkle" stars — bright r≥1.7 stars get a soft cross-hatch
+   catchlight instead of a flat dot (filter only, cheap). */
+.sparkle {
+  filter: drop-shadow(0 0 3px rgb(255 255 255 / 0.75));
+}
+
+/* P32c shooting stars — two rare diagonal dashes that flare and die
+   across the upper sky. transform/opacity only, long delays keep them
+   sparse; the global reduced-motion override pins them at the final
+   (invisible) keyframe. */
+.shoot-a,
+.shoot-b {
+  position: absolute;
+  top: 16%;
+  right: 8%;
+  width: 130px;
+  height: 2px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, transparent, #fff 40%, transparent);
+  filter: drop-shadow(0 0 5px rgb(255 255 255 / 0.7));
+  opacity: 0;
+  pointer-events: none;
+}
+.shoot-b {
+  top: 6%;
+  right: 20%;
+  width: 170px;
+}
+.shoot-a {
+  animation: shoot-a 5s ease-out infinite;
+  animation-delay: 6s;
+}
+.shoot-b {
+  animation: shoot-b 6s ease-out infinite;
+  animation-delay: 14s;
+}
+@keyframes shoot-a {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-32deg);
+    opacity: 0;
+  }
+  7% {
+    opacity: 0.95;
+  }
+  24% {
+    transform: translate3d(-42rem, 24rem, 0) rotate(-32deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(-42rem, 24rem, 0) rotate(-32deg);
+    opacity: 0;
+  }
+}
+@keyframes shoot-b {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(-38deg);
+    opacity: 0;
+  }
+  6% {
+    opacity: 0.9;
+  }
+  22% {
+    transform: translate3d(-52rem, 30rem, 0) rotate(-38deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(-52rem, 30rem, 0) rotate(-38deg);
+    opacity: 0;
+  }
+}
+
 /* Tooltip entrance (Radix Tooltip, data-state driven). Transform +
    opacity only; folded into the global reduced-motion override. */
 @keyframes tooltip-in {
