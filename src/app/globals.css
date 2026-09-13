@@ -655,7 +655,7 @@ body {
     z-index: -1;
     pointer-events: none;
     background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
-    opacity: 0.12;
+    opacity: 0.22;
     mix-blend-mode: multiply;
   }
 }
