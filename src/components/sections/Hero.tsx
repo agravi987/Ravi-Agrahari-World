@@ -533,19 +533,12 @@ export default function Hero({
         aria-hidden="true"
         className="no-print pointer-events-none absolute inset-0 -z-30"
       >
-        {/* Warm paper base — the nebula multiplies onto it. */}
+        {/* Warm paper base — global cosmic-cliffs (body::before) multiplies
+            onto it at low opacity. Hero adds a stronger gradient overlay so
+            the pitch column keeps its readable light ground. */}
         <div className="absolute inset-0 bg-paper" />
-        <Image
-          src="/images/hero/cosmic-cliffs.jpg"
-          alt=""
-          fill
-          priority
-          fetchPriority="low"
-          sizes="100vw"
-          className="object-cover opacity-45 mix-blend-multiply"
-        />
-        {/* Light ground over the pitch (ink text stays AA-readable). */}
-        <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/60 to-paper/[0.06]" />
+        {/* Stronger gradient over the global nebula for hero readability. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/70 to-paper/10" />
         {/* Starfield — across the whole hero. */}
         <svg
           className="h-full w-full opacity-60"

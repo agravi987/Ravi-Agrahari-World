@@ -643,6 +643,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Global cosmic background — the JWST "Cosmic Cliffs" nebula as a
+   subtle fixed wash behind all content. Low opacity + multiply blend
+   keeps the warm paper ground readable while adding depth. Respects
+   reduced-motion (static) and high-contrast (hidden). */
+@media (prefers-reduced-motion: no-preference) {
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
+    opacity: 0.12;
+    mix-blend-mode: multiply;
+  }
+}
+
+@media (prefers-contrast: more) {
+  body::before { display: none; }
+}
+
 /* --- Styled scrollbar (plan §4.1 polish) --- */
 ::-webkit-scrollbar {
   width: 10px;
