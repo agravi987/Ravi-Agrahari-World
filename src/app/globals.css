@@ -655,13 +655,36 @@ body {
     z-index: -1;
     pointer-events: none;
     background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
-    opacity: 0.22;
-    mix-blend-mode: multiply;
+    opacity: 0.38;
+    mix-blend-mode: overlay;
   }
 }
 
 @media (prefers-contrast: more) {
   body::before { display: none; }
+}
+
+/* Glassy overlay — a whisper of frosted glass over the nebula to
+   lift brightness and add depth without washing out text. */
+@media (prefers-reduced-motion: no-preference) {
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(255, 255, 255, 0.02) 50%,
+      rgba(255, 255, 255, 0.04) 100%
+    );
+    backdrop-filter: blur(0.5px);
+  }
+}
+
+@media (prefers-contrast: more) {
+  body::after { display: none; }
 }
 
 /* --- Styled scrollbar (plan §4.1 polish) --- */
