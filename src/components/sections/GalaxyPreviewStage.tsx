@@ -18,6 +18,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import type { GalaxyData } from "@/types/galaxy";
 import GalaxyStage2D from "@/components/galaxy/GalaxyStage2D";
+import GalaxyErrorBoundary from "@/components/galaxy/GalaxyErrorBoundary";
 
 // Shared lazy chunk — loaded by BOTH the detail page and this preview,
 // so three.js is downloaded once and cached (scripts/check-bundles.mjs
@@ -74,11 +75,13 @@ export default function GalaxyPreviewStage({ galaxy }: { galaxy: GalaxyData }) {
           aria-label="Open the interactive learning galaxy"
           className="galaxy-stage block w-full transition-shadow duration-300 hover:shadow-orbital"
         >
-          <Galaxy3D
-            galaxy={galaxy}
-            stageClassName="pointer-events-none"
-            onError={() => setMode("2d")} // WebGL failure → CSS fallback
-          />
+          <GalaxyErrorBoundary fallback={<GalaxyStage2D galaxy={galaxy} />}>
+            <Galaxy3D
+              galaxy={galaxy}
+              stageClassName="pointer-events-none"
+              onError={() => setMode("2d")} // WebGL failure → CSS fallback
+            />
+          </GalaxyErrorBoundary>
         </Link>
       ) : (
         <GalaxyStage2D galaxy={galaxy} />

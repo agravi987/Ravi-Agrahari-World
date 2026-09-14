@@ -31,6 +31,7 @@ import System2D from "./System2D";
 import MoonCard, { moonTypeColor } from "./MoonCard";
 import PlanetCard from "./PlanetCard";
 import { useStickyCard } from "./useStickyCard";
+import GalaxyErrorBoundary from "./GalaxyErrorBoundary";
 import type { CameraRigApi, RigState } from "./Galaxy3D/CameraRig";
 
 type Projector = (slug: string) => { x: number; y: number } | null;
@@ -431,18 +432,41 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
 
         <div ref={stageWrapRef} className="relative mx-auto mt-8 w-full max-w-[720px]">
           {mode === "3d" ? (
-            <Galaxy3D
-              galaxy={galaxy}
-              filter={filter}
-              activeId={activeId}
-              triggerHandlers={triggerHandlers}
-              registerProjector={registerProjector}
-              registerFocus={registerFocus}
-              onRigReady={registerRig}
-              onRigState={setRigState}
-              onError={() => setMode("2d")}
-              allowDrag={settings.allowDragRotate !== false}
-            />
+            <GalaxyErrorBoundary
+              fallback={
+                <div className="grid aspect-square w-full max-w-[720px] place-items-center rounded-card border border-card-border bg-card/50">
+                  <div className="mx-6 flex max-w-sm flex-col items-center gap-3 text-center">
+                    <span className="text-base font-semibold text-ink">
+                      3D view isn&apos;t available here
+                    </span>
+                    <p className="text-xs leading-relaxed text-ink-faint">
+                      The WebGL renderer hit an error on this device. You can
+                      still explore every planet and moon in the 2D view.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setMode("2d")}
+                      className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white shadow-card transition-opacity hover:opacity-90"
+                    >
+                      Show 2D view
+                    </button>
+                  </div>
+                </div>
+              }
+            >
+              <Galaxy3D
+                galaxy={galaxy}
+                filter={filter}
+                activeId={activeId}
+                triggerHandlers={triggerHandlers}
+                registerProjector={registerProjector}
+                registerFocus={registerFocus}
+                onRigReady={registerRig}
+                onRigState={setRigState}
+                onError={() => setMode("2d")}
+                allowDrag={settings.allowDragRotate !== false}
+              />
+            </GalaxyErrorBoundary>
           ) : (
             <System2D
               galaxy={galaxy}

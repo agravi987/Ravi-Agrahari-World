@@ -92,7 +92,7 @@ export default function Blog({ posts }: BlogProps) {
       band
     >
       <CosmicDecor
-        hue="devops"
+        hue="linux"
         stars="sparse"
         planet="bottom-right"
         planetSrc="/images/planets/devops.png"
