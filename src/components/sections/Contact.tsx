@@ -22,6 +22,8 @@ interface ContactProps {
   availability?: string;
   /** Phase 17: "based in" line (CMS) — hidden when empty (zero-data). */
   location?: string;
+  /** Slide viewport (Section fit) — Contact is always full-screen on home. */
+  fit?: boolean;
 }
 
 /** Social link markup/hover lives in the shared SocialLink primitive
@@ -57,6 +59,7 @@ export default function Contact({
   socialLinks,
   availability,
   location,
+  fit,
 }: ContactProps) {
   const [copied, setCopied] = useState(false);
   // Phase 17 (#15): the draft survives accidental navigation — restored
@@ -209,6 +212,7 @@ export default function Contact({
       title="Let's connect"
       description="Open to internships, collabs, or just talking cloud & AI."
       tone="mars"
+      fit={fit}
     >
       <CosmicDecor
         hue="mars"
@@ -458,7 +462,7 @@ export default function Contact({
                 autoComplete="name"
                 aria-invalid={nameError}
                 aria-describedby={nameError ? "name-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 ${
+                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   nameError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -495,7 +499,7 @@ export default function Contact({
                 autoComplete="email"
                 aria-invalid={emailError}
                 aria-describedby={emailError ? "email-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 ${
+                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   emailError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -530,7 +534,7 @@ export default function Contact({
               enterKeyHint="next"
               aria-invalid={subjectError}
               aria-describedby={subjectError ? "subject-error" : undefined}
-              className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 ${
+              className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 subjectError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -573,7 +577,7 @@ export default function Contact({
               aria-describedby={
                 messageError ? "message-error message-counter" : "message-counter"
               }
-              className={`w-full resize-none rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 ${
+              className={`w-full resize-none rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 messageError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -599,7 +603,7 @@ export default function Contact({
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Magnetic strength={0.15} className="w-full sm:w-auto">
-              <Button type="submit" disabled={sending} className="w-full sm:w-auto">
+              <Button type="submit" disabled={sending} className="btn-sheen btn-breathe relative w-full overflow-hidden sm:w-auto">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 {sending ? "Sending…" : "Send message"}
               </Button>

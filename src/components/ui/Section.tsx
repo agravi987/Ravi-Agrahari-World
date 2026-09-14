@@ -19,7 +19,8 @@
 "use client";
 
 import { clsx } from "clsx";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { useInView } from "@/lib/useInView";
 import { useReducedMotion } from "@/lib/useReducedMotion";
@@ -58,6 +59,14 @@ interface SectionProps {
    *  Per-section overrides still win: pass pt-, pb- or py- utilities
    *  via className (same specificity, later utilities layer). */
   spacing?: "tight" | "normal" | "roomy";
+  /** Slide viewport: make the section at least one screen tall and
+   *  vertically center its content — the page then reads as one
+   *  section per screen ("curated slides"). Overflow content on a
+   *  section detail page is one ExploreLink away. */
+  fit?: boolean;
+  /** Decorative "keep scrolling" chevron pinned to the bottom of a
+   *  fit section (aria-hidden; safely ignored when motion is off). */
+  cue?: boolean;
 }
 
 /** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
@@ -127,11 +136,30 @@ export default function Section({
   band = false,
   mesh = false,
   spacing = "normal",
+  fit = false,
+  cue = false,
 }: SectionProps) {
   const { ref, inView } = useInView<HTMLElement>();
   const t = TONES[tone];
   const titleRef = useRef<HTMLHeadingElement>(null);
   const reduceMotion = useReducedMotion();
+  // Snap-deck "current tab": only the section centred in the middle 10%
+  // of the viewport is the active one (same band the rail uses). Gates
+  // the top-rim + title-glow flourish (globals.css .snap-current).
+  const [current, setCurrent] = useState(false);
+  useEffect(() => {
+    if (!fit) return;
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) setCurrent(en.isIntersecting);
+      },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [fit, ref]);
 
   /** GSAP pass: masked word-rise on the title (below-fold only).
    *  SplitText wraps each word in an overflow-hidden mask; words rise
@@ -220,19 +248,29 @@ export default function Section({
         "section-reveal relative",
         inView && "is-in-view",
         band && "band-bg",
+        fit && "snap-section flex min-h-svh flex-col justify-center",
+        current && "snap-current",
         className
       )}
       // Phase 9 color: band sections carry a whisper of their topic hue
       // (--band-tint) layered under the paper wash in globals.css.
+      // Snap-deck: --snap-trim feeds the .snap-current top rim colour.
       style={
-        band ? ({ "--band-tint": `color-mix(in oklab, ${t.sweep} 7%, transparent)` } as CSSProperties) : undefined
+        {
+          ...(band
+            ? ({ "--band-tint": `color-mix(in oklab, ${t.sweep} 7%, transparent)` } as CSSProperties)
+            : {}),
+          ...(fit
+            ? ({ "--snap-trim": `color-mix(in oklab, ${t.sweep} 65%, transparent)` } as CSSProperties)
+            : {}),
+        } as CSSProperties
       }
     >
       {mesh && <GradientMesh />}
       <div className="mx-auto max-w-5xl px-6">
         <StaggerReveal staggerMs={60}>
           <div className="group/head">
-            <div className="flex items-center gap-3">
+            <div className="section-scan-line flex items-center gap-3">
               {index && (
                 <span
                   aria-hidden="true"
@@ -244,7 +282,7 @@ export default function Section({
                   {index}
                </span>
               )}
-              <Eyebrow label={eyebrow} className={t.eyebrow} />
+              <Eyebrow label={eyebrow} cursor className={t.eyebrow} />
            </div>
             <div className="flex items-center gap-2.5">
               <h2
@@ -274,6 +312,14 @@ export default function Section({
         </StaggerReveal>
         <div className="mt-[clamp(1.5rem,1rem+2vw,2.5rem)]">{children}</div>
      </div>
+      {cue && (
+        <span
+          aria-hidden="true"
+          className="section-fit-cue pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-ink-faint"
+        >
+          <ChevronDown className="h-5 w-5" />
+        </span>
+      )}
    </section>
   );
 }

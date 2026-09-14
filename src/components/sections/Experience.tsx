@@ -17,6 +17,7 @@ import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Copy, Link2, Sparkles } from "lucide-react";
 import { gsapReady } from "@/lib/gsap";
 import CosmicDecor from "@/components/ui/CosmicDecor";
+import ExploreLink from "@/components/ui/ExploreLink";
 import Section from "@/components/ui/Section";
 import { showToast } from "@/components/ui/Toast";
 import { initials } from "@/lib/galaxyGeometry";
@@ -102,9 +103,20 @@ function summaryOf(item: ExperienceItem): string {
 
 interface ExperienceProps {
   experience: ExperienceItem[];
+  /** How many roles the home surface shows. Anything beyond the count
+   *  lives on the /experience detail page (one ExploreLink away).
+   *  Omitted → every role at once (used by that detail page). */
+  surfaceCount?: number;
+  /** Detail-page route for the "Full career timeline" pill. */
+  exploreHref?: string;
+  /** Slide viewport (Section fit) — see Section.tsx. */
+  fit?: boolean;
+  cue?: boolean;
 }
 
-export default function Experience({ experience }: ExperienceProps) {
+export default function Experience({ experience, surfaceCount, exploreHref, fit, cue }: ExperienceProps) {
+  // Slide surface: a taste in one viewport; full timeline page shows all.
+  const roles = surfaceCount ? experience.slice(0, surfaceCount) : experience;
   // Collapsed by default — the visitor scans the timeline rows first;
   // detail is one click away on every role (progressive disclosure).
   const [openIdx, setOpenIdx] = useState<number | null>(null);
@@ -166,10 +178,10 @@ export default function Experience({ experience }: ExperienceProps) {
   // Phase 16 (#10): year rail — first entry id per year (zero-data: only
   // when a period actually carries a year).
   const yearToId: Record<string, string> = {};
-  for (const e of experience) {
+  for (const e of roles) {
     const y = periodYear(e.period);
     if (y && !yearToId[y]) {
-      yearToId[y] = `experience-${e.slug ?? String(experience.indexOf(e))}`;
+      yearToId[y] = `experience-${e.slug ?? String(roles.indexOf(e))}`;
     }
   }
   const years = Object.keys(yearToId);
@@ -201,6 +213,8 @@ export default function Experience({ experience }: ExperienceProps) {
       description="Early-career, but every role taught me something real — click a role to read it."
       tone="devops"
       band
+      fit={fit}
+      cue={cue}
     >
       <CosmicDecor
         hue="devops"
@@ -219,7 +233,7 @@ export default function Experience({ experience }: ExperienceProps) {
         ref={trackRef}
         className="timeline-track relative space-y-4 pl-6 [border-left:2px_solid_transparent]"
       >
-        {experience.map((item, i) => {
+        {roles.map((item, i) => {
           const open = openIdx === i;
           // Active role (UX pass) — ongoing roles get a live pulse dot.
           const isActive = /present|current|now|ongoing/i.test(item.period);
@@ -235,14 +249,16 @@ export default function Experience({ experience }: ExperienceProps) {
               data-open={open}
               className="experience-item group relative scroll-mt-28"
             >
-              {/* Timeline dot — topic hue cycles per role (P18) */}
+              {/* Timeline dot — topic hue cycles per role (P18); the
+                  ongoing ("present/current") role gets a pulsing ring
+                  (.dot-pulse) so "live now" reads at a glance. */}
               <span
                 aria-hidden="true"
                 className={`absolute -left-[31px] top-4 h-3 w-3 rounded-full border-2 bg-paper transition-colors ${
                   open
                     ? `${DOT_HUES[i % DOT_HUES.length]} shadow-[0_0_0_3px] ${DOT_SHADOWS[i % DOT_SHADOWS.length]}`
                     : `border-card-border ${DOT_HOVER[i % DOT_HOVER.length]}`
-                }`}
+                } ${isActive ? "dot-pulse" : ""}`}
               />
               <button
                 type="button"
@@ -447,6 +463,16 @@ export default function Experience({ experience }: ExperienceProps) {
         </aside>
       )}
       </div>
+
+      {exploreHref && surfaceCount && experience.length > roles.length && (
+        <div className="mt-6 text-center">
+          <ExploreLink
+            href={exploreHref}
+            label="Full career timeline"
+            count={experience.length - roles.length}
+          />
+        </div>
+      )}
 
       {/* Phase 16 (#9): print-friendly full text — every role expands on
           paper (the accordion can't). */}

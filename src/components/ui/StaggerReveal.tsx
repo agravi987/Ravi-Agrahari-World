@@ -54,8 +54,8 @@ export default function StaggerReveal({
               className={clsx(
                 "transition-all duration-500 ease-out",
                 inView
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-5 opacity-0"
+                  ? "translate-y-0 scale-100 opacity-100"
+                  : "translate-y-8 scale-[0.98] opacity-0"
               )}
               style={{ transitionDelay: inView ? `${i * staggerMs}ms` : "0ms" }}
             >
@@ -66,8 +66,8 @@ export default function StaggerReveal({
             className={clsx(
               "transition-all duration-500 ease-out",
               inView
-                ? "translate-y-0 opacity-100"
-                : "translate-y-5 opacity-0"
+                ? "translate-y-0 scale-100 opacity-100"
+                : "translate-y-8 scale-[0.98] opacity-0"
             )}
           >
             {children}

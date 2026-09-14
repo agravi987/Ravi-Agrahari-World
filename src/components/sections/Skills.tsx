@@ -9,6 +9,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { Bot, ChevronLeft, ChevronRight, Cloud, Pause, Play, Workflow } from "lucide-react";
 import Link from "next/link";
 import Card from "@/components/ui/Card";
@@ -18,8 +19,8 @@ import LevelRing from "@/components/ui/LevelRing";
 import Section from "@/components/ui/Section";
 import TiltCard from "@/components/ui/TiltCard";
 import Tooltip from "@/components/ui/Tooltip";
+import MomentumStats, { type Stat } from "@/components/ui/MomentumStats";
 import { useReducedMotion } from "@/lib/useReducedMotion";
-import { useSwipe } from "@/lib/useSwipe";
 import type { Skill } from "@/types";
 
 /** Maps seed icon keys → lucide icons (plan §4.1: lucide = UI icons). */
@@ -66,6 +67,19 @@ const RING_ACTIVE: Record<string, string> = {
   bot: "focus-within:ring-topic-ai/20",
 };
 
+/** Glow-ring hues: two topic colours per domain drive the spinning
+ *  conic border + breathing shadow on the ACTIVE focus card. */
+const GLOW_A: Record<string, string> = {
+  cloud: "var(--color-topic-cloud)",
+  workflow: "var(--color-topic-devops)",
+  bot: "var(--color-topic-ai)",
+};
+const GLOW_B: Record<string, string> = {
+  cloud: "var(--color-topic-ice)",
+  workflow: "var(--color-topic-cloud)",
+  bot: "var(--color-topic-linux)",
+};
+
 /** Splits the combined class into the bar fill (bg) + label (text). */
 const barFor = (icon: string) => {
   const combined = BAR_STYLES[icon] ?? "bg-accent text-accent";
@@ -78,6 +92,13 @@ interface SkillsProps {
   /** Phase 14 (#11): skill name → galaxy planet slug (name-matched in
    *  page.tsx). Lets the "explore in galaxy" link land ON the planet. */
   galaxyPlanetSlugs?: Record<string, string>;
+  /** Slide viewport (Section fit) — see Section.tsx. */
+  fit?: boolean;
+  cue?: boolean;
+  /** Content-count proof band (relocated from under the hero). Renders
+   *  inside the section above the domain chips; count-up + jump-links
+   *  kept, zero-data hides the whole band. */
+  stats?: Stat[];
 }
 
 /** P25: honest level words beside the bar (plan §3 — never oversold). */
@@ -91,50 +112,127 @@ const LEVEL_WORDS = [
 const levelWord = (level: number) =>
   LEVEL_WORDS[Math.min(5, Math.max(1, level)) - 1] ?? "";
 
-export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
+export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: SkillsProps) {
   const [active, setActive] = useState(0);
+
+  const reduceMotion = useReducedMotion();
+  const [paused, setPaused] = useState(false);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  /** Scroll the card carousel to index i, syncing chips/aria in parallel.
+      Pointer/touch/keyboard changes all call this so chips and the
+      scroll position stay locked regardless of which initiated. */
+  const scrollToSlide = useCallback(
+    (i: number) => {
+      setActive(i);
+      const el = scrollerRef.current;
+      if (!el) return;
+      const slide = el.children[i] as HTMLElement | undefined;
+      if (!slide) return;
+      el.scrollTo({ left: slide.offsetLeft, behavior: reduceMotion ? "auto" : "smooth" });
+    },
+    [reduceMotion],
+  );
+
+  /** Sync active from scroll position (the SO source of truth).
+      Fires for mouse-wheel, trackpad, touch swipe, AND programmatic
+      scrolls — the chip row and aria state update automatically. */
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el || el.children.length === 0) return;
+    let raf = 0;
+    const onScroll = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const slideW = el.children[0]?.clientWidth ?? 1;
+        const i = Math.min(
+          skills.length - 1,
+          Math.max(0, Math.round(el.scrollLeft / slideW)),
+        );
+        setActive(i);
+      });
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      cancelAnimationFrame(raf);
+      el.removeEventListener("scroll", onScroll);
+    };
+  }, [skills.length]);
+
+  /** Mouse-wheel → horizontal: translate vertical wheel deltas so the
+      carousel scrolls sideways. At the left/right edges the wheel falls
+      through to the page so vertical scrolling resumes past the card. */
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      if (e.defaultPrevented) return;
+      const dir = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (dir === 0) return;
+      const max = el.scrollWidth - el.clientWidth;
+      if ((el.scrollLeft <= 0 && dir < 0) || (el.scrollLeft >= max && dir > 0)) return;
+      e.preventDefault();
+      el.scrollLeft += dir;
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
 
   /** P25: proper-tabs keyboard — ←/→ move the selection and refocus. */
   const moveTab = useCallback((i: number, dir: 1 | -1) => {
     const next = (i + dir + skills.length) % skills.length;
-    setActive(next);
+    scrollToSlide(next);
     requestAnimationFrame(() => {
       document
         .querySelector<HTMLButtonElement>(`[data-skill-tab="${next}"]`)
         ?.focus();
     });
-  }, [skills.length]);
+  }, [skills.length, scrollToSlide]);
 
-  /** Phase 9 gestures: explicit prev/next (click + touch swipe) so the
-      "one domain at a time" switcher is browsable by any input. */
+  /** Explicit prev/next + swipe gestures so the carousel is
+      browsable by any input (buttons, touch, keyboard). */
   const prev = useCallback(
-    () => setActive((i) => (i - 1 + skills.length) % skills.length),
-    [skills.length]
+    () => scrollToSlide((active - 1 + skills.length) % skills.length),
+    [active, skills.length, scrollToSlide],
   );
   const next = useCallback(
-    () => setActive((i) => (i + 1) % skills.length),
-    [skills.length]
+    () => scrollToSlide((active + 1) % skills.length),
+    [active, skills.length, scrollToSlide],
   );
-  const swipe = useSwipe(next, prev);
 
   /** Auto-advance through domains: one after another, ~5s each.
-      Paused on hover/focus, manual select, or reduced-motion.
-      FIX: auto-advance only changes state (no .focus()) — calling
-      focus() on the tab button scrolls the page UP to the Skills
-      section every 5 seconds, which is the "auto-scroll" bug. */
-  const reduceMotion = useReducedMotion();
-  const [paused, setPaused] = useState(false);
+      Paused on hover/focus, manual select, or reduced-motion. */
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   useEffect(() => {
     if (reduceMotion || skills.length <= 1 || paused) return;
     timerRef.current = setTimeout(() => {
-      setActive((i) => (i + 1) % skills.length);
+      scrollToSlide((active + 1) % skills.length);
     }, 5000);
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [active, paused, reduceMotion, skills.length]);
+  }, [active, paused, reduceMotion, skills.length, scrollToSlide]);
+
+  /** Ticker follow: the chip row is horizontally scrollable (narrow
+      widths) — each auto-advance scrolls the new active chip to the
+      centre of the row so the "current tab" never runs off-screen.
+      Container scroll only, never the page. */
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const scrollTabIntoView = useCallback(
+    (i: number) => {
+      const c = tabsRef.current;
+      if (!c) return;
+      const el = c.querySelector<HTMLButtonElement>(`[data-skill-tab="${i}"]`);
+      if (!el) return;
+      const left = el.offsetLeft - (c.clientWidth - el.offsetWidth) / 2;
+      c.scrollTo({ left, behavior: reduceMotion ? "auto" : "smooth" });
+    },
+    [reduceMotion]
+  );
+  useEffect(() => {
+    scrollTabIntoView(Math.min(active, skills.length - 1));
+  }, [active, scrollTabIntoView, skills.length]);
 
   if (skills.length === 0) return null; // auto-hide when empty (§5.2)
 
@@ -153,6 +251,8 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
       description="Honest levels — early but consistent. These bars move as I learn (plan §3)."
       band
       mesh
+      fit={fit}
+      cue={cue}
     >
       <CosmicDecor
         hue="ai"
@@ -161,17 +261,27 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
         planetSrc="/images/planets/ai-agents.png"
       />
 
+      {/* Content-count proof band (was its own strip under the hero, now
+          anchored inside skills): pillow chips, counts up in view,
+          each chip doubles as a navigation jump. Zero-data hides it. */}
+      {stats && stats.some((s) => s.value > 0) && (
+        <div className="mb-7">
+          <MomentumStats stats={stats} />
+        </div>
+      )}
+
       {/* Chip switcher — click a domain to focus it (one at a time).
           P25: proper tabs — roving tabindex + ←/→ keys + aria-controls.
           P28: auto-advance pauses on hover/focus so users can read. */}
       <div
+        ref={tabsRef}
         role="tablist"
         aria-label="Skill domains"
         onMouseEnter={() => setPaused(true)}
         onMouseLeave={() => setPaused(false)}
         onFocus={() => setPaused(true)}
         onBlur={() => setPaused(false)}
-        className="flex flex-wrap justify-center gap-2"
+        className="no-scrollbar flex gap-2 overflow-x-auto px-4 py-1 sm:justify-center sm:px-0"
       >
         {skills.map((s, i) => {
           const selected = i === Math.min(active, skills.length - 1);
@@ -186,7 +296,7 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
               aria-controls="skill-panel"
               tabIndex={selected ? 0 : -1}
               data-skill-tab={i}
-              onClick={() => setActive(i)}
+              onClick={() => scrollToSlide(i)}
               onKeyDown={(e) => {
                 if (e.key === "ArrowLeft") {
                   e.preventDefault();
@@ -195,9 +305,8 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
                   e.preventDefault();
                   moveTab(i, 1);
                 } else if (e.key === "Home") {
-                  // P26: Home/End jump to the first/last domain
                   e.preventDefault();
-                  setActive(0);
+                  scrollToSlide(0);
                   requestAnimationFrame(() =>
                     document
                       .querySelector<HTMLButtonElement>('[data-skill-tab="0"]')
@@ -205,7 +314,7 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
                   );
                 } else if (e.key === "End") {
                   e.preventDefault();
-                  setActive(skills.length - 1);
+                  scrollToSlide(skills.length - 1);
                   requestAnimationFrame(() =>
                     document
                       .querySelector<HTMLButtonElement>(
@@ -241,103 +350,107 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
         {skills.length} skill {skills.length === 1 ? "domain" : "domains"}
       </p>
 
-      {/* Focus card — all panels rendered simultaneously (absolute overlay)
-          so switching skills never changes container height (no scroll jump).
-          The active panel is relative (sets container height); others are
-          absolute inset-0 and crossfade via opacity. */}
-      <div
-        className="skill-swap mx-auto mt-6 max-w-2xl"
-        role="tabpanel"
-        id="skill-panel"
-        aria-labelledby={`skill-tab-${Math.min(active, skills.length - 1)}`}
-        onMouseEnter={() => setPaused(true)}
-        onMouseLeave={() => setPaused(false)}
-        onFocus={() => setPaused(true)}
-        onBlur={() => setPaused(false)}
-        // Phase 9 gestures: swipe left/right cycles domains on touch
-        {...swipe}
-      >
-        {skills.map((s, i) => {
-          const isActive = i === Math.min(active, skills.length - 1);
-          const SkillIcon = ICON_MAP[s.icon as keyof typeof ICON_MAP] ?? Cloud;
-          const skillTile = TILE_STYLES[s.icon] ?? "bg-accent-soft text-accent";
-          const planetSlug = galaxyPlanetSlugs?.[s.name.toLowerCase()];
-          const skillGalaxyHref = planetSlug ? `/detailed-galaxy#planet-${planetSlug}` : "/detailed-galaxy";
-          return (
-            <div
-              key={s.name}
-              className={isActive
-                ? "relative"
-                : "absolute inset-0 opacity-0 pointer-events-none"
-              }
-            >
-              <TiltCard max={5} className="rounded-card">
-                <Card
-                  hover
-                  className={`group border-l-4 p-6 outline-none transition-shadow sm:p-8 focus-within:ring-4 ${
-                    RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
-                  } ${PANEL_ACCENT[s.icon] ?? "border-l-accent/40"}`}
+      {/* Skill cards carousel — horizontal snap-scroll container.
+          One card visible at a time; mouse-wheel, trackpad swipe,
+          touch drag, and prev/next buttons all scroll it. The `active`
+          chip + aria state are synced from the scroll position. */}
+      <div className="mx-auto mt-6 max-w-2xl">
+        <div
+          ref={scrollerRef}
+          id="skill-panel"
+          role="tabpanel"
+          aria-labelledby={`skill-tab-${Math.min(active, skills.length - 1)}`}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          className="no-scrollbar flex snap-x snap-mandatory gap-3 overflow-x-auto"
+        >
+          {skills.map((s, i) => {
+            const isActive = i === Math.min(active, skills.length - 1);
+            const SkillIcon = ICON_MAP[s.icon as keyof typeof ICON_MAP] ?? Cloud;
+            const skillTile = TILE_STYLES[s.icon] ?? "bg-accent-soft text-accent";
+            const planetSlug = galaxyPlanetSlugs?.[s.name.toLowerCase()];
+            const skillGalaxyHref = planetSlug ? `/detailed-galaxy#planet-${planetSlug}` : "/detailed-galaxy";
+            return (
+              <div
+                key={s.name}
+                data-skill-slide={i}
+                inert={!isActive || undefined}
+                className={`w-full shrink-0 snap-start ${isActive ? "relative skill-float" : ""}`}
+              >
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="skill-orbit"
+                    style={
+                      {
+                        "--glow-a": GLOW_A[s.icon] ?? "var(--color-accent)",
+                        "--glow-b": GLOW_B[s.icon] ?? "var(--color-accent-cyan)",
+                      } as CSSProperties
+                    }
+                  >
+                    <i className="skill-orbit-dot d1" />
+                    <i className="skill-orbit-dot d2" />
+                    <i className="skill-orbit-dot d3" />
+                  </span>
+                )}
+                <TiltCard
+                  max={5}
+                  className={`relative z-10 rounded-card ${isActive ? "skill-glow skill-glow-pulse" : ""}`}
+                  style={
+                    isActive
+                      ? ({
+                          "--glow-a": GLOW_A[s.icon] ?? "var(--color-accent)",
+                          "--glow-b": GLOW_B[s.icon] ?? "var(--color-accent-cyan)",
+                        } as CSSProperties)
+                      : undefined
+                  }
                 >
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}
-                    >
-                      <SkillIcon
-                        className="h-6 w-6 transition-transform duration-300 group-hover:rotate-6"
-                        aria-hidden="true"
-                      />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="font-display text-xl font-semibold text-ink">
-                          {s.name}
-                        </h3>
-                        <Tooltip label="1 = getting started · 5 = confident" side="left">
-                          <LevelRing
-                            level={s.level}
-                            className={`shrink-0 ${barFor(s.icon).text}`}
-                          />
-                        </Tooltip>
+                  <Card
+                    hover
+                    className={`group border-l-4 p-6 outline-none transition-shadow sm:p-8 focus-within:ring-4 ${
+                      RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
+                    } ${PANEL_ACCENT[s.icon] ?? "border-l-accent/40"}`}
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}>
+                        <SkillIcon className="h-6 w-6 transition-transform duration-300 group-hover:rotate-6" aria-hidden="true" />
                       </div>
-                      {s.blurb && (
-                        <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">
-                          {s.blurb}
-                        </p>
-                      )}
-                      <div className="mt-5">
-                        <div className="flex items-center justify-between text-xs text-ink-faint">
-                          <span aria-hidden="true">level</span>
-                          <span className={`flex items-center gap-2 font-medium ${barFor(s.icon).text}`}>
-                            {s.level < 3 && (
-                              <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
-                                still learning
-                              </span>
-                            )}
-                            {levelWord(s.level)} · {s.level}/5
-                          </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-3">
+                          <h3 className="font-display text-xl font-semibold text-ink">{s.name}</h3>
+                          <Tooltip label="1 = getting started · 5 = confident" side="left">
+                            <LevelRing level={s.level} className={`shrink-0 ${barFor(s.icon).text}`} />
+                          </Tooltip>
                         </div>
-                        <LevelBar
-                          level={s.level}
-                          fillClass={barFor(s.icon).fill}
-                        />
+                        {s.blurb && <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{s.blurb}</p>}
+                        <div className="mt-5">
+                          <div className="flex items-center justify-between text-xs text-ink-faint">
+                            <span aria-hidden="true">level</span>
+                            <span className={`flex items-center gap-2 font-medium ${barFor(s.icon).text}`}>
+                              {s.level < 3 && (
+                                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                                  still learning
+                                </span>
+                              )}
+                              {levelWord(s.level)} · {s.level}/5
+                            </span>
+                          </div>
+                          <LevelBar level={s.level} fillClass={barFor(s.icon).fill} />
+                        </div>
+                        <Link href={skillGalaxyHref} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline">
+                          explore in galaxy <span aria-hidden="true">→</span>
+                        </Link>
                       </div>
-                      <Link
-                        href={skillGalaxyHref}
-                        className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline"
-                      >
-                        explore in galaxy
-                        <span aria-hidden="true">→</span>
-                      </Link>
                     </div>
-                  </div>
-                </Card>
-              </TiltCard>
-            </div>
-          );
-        })}
+                  </Card>
+                </TiltCard>
+              </div>
+            );
+          })}
+        </div>
 
-        {/* Phase 9: prev/next controls + position — click, swipe or
-            arrow-keys all browse the same switcher. */}
         <div className="mt-5 flex items-center justify-center gap-4">
           <button
             type="button"
@@ -380,8 +493,8 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
             )}
           </button>
         </div>
-        <p className="mt-2 text-center font-mono text-[10px] text-ink-faint md:hidden">
-          ‹ swipe to browse ›
+        <p className="mt-2 text-center font-mono text-[10px] text-ink-faint">
+          {'\u2039'} scroll / swipe to browse {'\u203A'}
         </p>
       </div>
 
@@ -389,17 +502,44 @@ export default function Skills({ skills, galaxyPlanetSlugs }: SkillsProps) {
           how many domains sit at each of the 1–5 levels. */}
       <LevelSpread skills={skills} />
 
-      {/* Phase 14 (#15): faint skill-name texture at the foot of the
-          band — decorative (aria-hidden), desktop only, print-hidden. */}
+      {/* Skills ticker — the domain pills auto-scrolling sideways (pure CSS
+          marquee, two copies of the row → seamless -50% loop). Decorative
+          (aria-hidden), all breakpoints, print-hidden; pauses on hover; the
+          global reduced-motion freeze parks it as a static row. */}
       <div
         aria-hidden="true"
-        className="skills-deco-chips mt-10 hidden select-none flex-wrap justify-center gap-x-4 gap-y-1 opacity-[0.07] sm:flex"
+        className="skills-marquee mt-10 select-none overflow-hidden"
       >
-        {skills.map((s) => (
-          <span key={s.name} className="font-display text-sm font-semibold">
-            {s.name}
-          </span>
-        ))}
+        <div className="skills-marquee-track">
+          {[...skills, ...skills].map((s, i) => {
+            const TickIcon = ICON_MAP[s.icon as keyof typeof ICON_MAP] ?? Cloud;
+            return (
+              <span
+                key={`${s.name}-${i}`}
+                className="inline-flex shrink-0 items-center gap-2 rounded-full border border-card-border/70 bg-card/60 py-2 pl-3 pr-4 text-sm shadow-card"
+              >
+                <TickIcon
+                  aria-hidden="true"
+                  style={{ animationDelay: `${i * 0.4}s` }}
+                  className={`skills-marquee-icon h-4 w-4 ${(TILE_STYLES[s.icon] ?? "text-accent").split(" ")[1] ?? "text-accent"}`}
+                />
+                <span className="font-medium text-ink-soft">{s.name}</span>
+                <span className="flex items-center gap-0.5">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <i
+                      key={n}
+                      className={`h-1 w-1 rounded-full ${
+                        n <= s.level
+                          ? barFor(s.icon).fill
+                          : "bg-paper-deep"
+                      }`}
+                    />
+                  ))}
+                </span>
+              </span>
+            );
+          })}
+        </div>
       </div>
 
       {/* Phase 14 (#17): print-only compact list — the one-at-a-time
@@ -429,18 +569,42 @@ function LevelSpread({ skills }: { skills: Skill[] }) {
     .map((c, i) => `${c} at level ${i + 1}`)
     .filter((_, i) => dist[i] > 0)
     .join(", ");
+
+  /** Bars grow from 0 once the chart scrolls into view (one-shot IO).
+      Reduced-motion users see the finished chart immediately. */
+  const chartRef = useRef<HTMLDivElement>(null);
+  const reduceMotion = useReducedMotion();
+  const [grown, setGrown] = useState(reduceMotion);
+  useEffect(() => {
+    if (reduceMotion) return;
+    const el = chartRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          setGrown(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="mx-auto mt-8 max-w-2xl">
-      <div className="flex items-end gap-2" aria-hidden="true">
+      <div ref={chartRef} className="flex items-end gap-2" aria-hidden="true">
         {dist.map((c, i) => (
           <div key={i} className="flex flex-1 flex-col items-center gap-1">
-            {/* P25: hover reveals the count; bars stagger in on view */}
+            {/* P25: hover reveals the count; bars grow in on view */}
             <div className="group relative flex h-12 w-full cursor-default items-end overflow-hidden rounded-md bg-paper-deep">
               <div
                 title={`${c} skill${c === 1 ? "" : "s"} at level ${i + 1}`}
                 className="w-full rounded-md bg-gradient-to-t from-accent to-accent-cyan/80 transition-[height] duration-500"
                 style={{
-                  height: `${(c / max) * 100}%`,
+                  height: grown ? `${(c / max) * 100}%` : "0%",
                   transitionDelay: `${i * 70}ms`,
                 }}
               />

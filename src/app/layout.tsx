@@ -9,6 +9,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist_Mono, Inter, Space_Grotesk } from "next/font/google";
 import BackToTop from "@/components/ui/BackToTop";
+import AmbientOrbs from "@/components/ui/AmbientOrbs";
 import CommandPalette from "@/components/ui/CommandPalette";
 import CursorGlow from "@/components/ui/CursorGlow";
 import RouteProgress from "@/components/ui/RouteProgress";
@@ -181,6 +182,7 @@ export default async function RootLayout({
           <RouteProgress />
           <ScrollProgressBar />
           <CursorGlow />
+          <AmbientOrbs />
         </IdleMount>
       </body>
     </html>

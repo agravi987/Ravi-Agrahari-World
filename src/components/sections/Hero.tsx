@@ -28,12 +28,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Mail, Rocket, Flame } from "lucide-react";
+import { Mail, Rocket, Flame, Compass } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
 import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 import { scrollToSection } from "@/lib/scrollTo";
+import { GUIDE_TOUR_EVENT } from "@/lib/sectionTour";
 import Button from "@/components/ui/Button";
 import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import SocialLink from "@/components/ui/SocialLink";
@@ -502,7 +503,7 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative flex min-h-[100svh] items-center overflow-hidden px-6 py-14 lg:py-16"
+      className="snap-section relative flex min-h-[100svh] items-center overflow-hidden px-6 py-14 lg:py-16"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now
@@ -602,6 +603,17 @@ export default function Hero({
               <Button href="#projects" variant="secondary">
                 <Rocket className="h-4 w-4" aria-hidden="true" />
                 View projects
+              </Button>
+            </Magnetic>
+            <Magnetic strength={0.2}>
+              <Button
+                variant="secondary"
+                onClick={() =>
+                  window.dispatchEvent(new Event(GUIDE_TOUR_EVENT))
+                }
+              >
+                <Compass className="h-4 w-4" aria-hidden="true" />
+                Take the tour
               </Button>
             </Magnetic>
           </div>

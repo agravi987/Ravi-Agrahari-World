@@ -485,6 +485,87 @@
   transform: translateY(24px);
 }
 
+/* ============================================================
+   Snap-deck home — "one scroll = one vertical tab"
+   html is the scroll container; only the home page mounts
+   .snap-section (fit sections + hero + galaxy), so every other
+   route (blog, galaxy explorer, admin…) keeps normal scrolling.
+   mandatory + scroll-snap-stop: always → each wheel notch/settle
+   lands on a whole section, like flipping tabs vertically.
+   Reduced-motion users get plain scrolling (no snap).
+   ============================================================ */
+html {
+  scroll-snap-type: y mandatory;
+}
+/* html normally carries scroll-padding-top: 5rem (anchor clearance for
+   the sticky header) — but scroll-padding also shifts SNAP alignment,
+   which would park every snapped section 80px low with the previous
+   tab's tail visible above it. On the deck route (:has a snap section)
+   the padding is cleared; anchors there land on the sections' own big
+   top padding instead (and elements with scroll-mt keep their own
+   offset). Non-deck routes keep the 5rem toggle. */
+html:has(.snap-section) {
+  scroll-padding-top: 0;
+}
+/* scroll-behavior stays AUTO document-wide — the repo removed global
+   smooth (it amplified LazyMount/Skills shift jumps); anchor smoothness
+   is owned by lib/scrollTo.ts (already reduced-motion aware). */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+  }
+}
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+/* The classic footer is not a .snap-section (it's short), so mandatory
+   snap offered it NO resting point — the deck dead-ended at Contact and
+   the footer could never be scrolled to. Making the footer itself a snap
+   target when a deck is mounted lets one final notch land it full-page
+   (it's last, so stop: always costs nothing). */
+html:has(.snap-section) footer {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+/* Snap "current tab" flourish: when a section becomes the active
+   snap, a 2px rim in its topic hue lights the section top and the
+   title blooms with a soft hue glow. Purely transitions — colors
+   change, nothing moves, so reduced-motion stays quiet. */
+.snap-section::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--snap-trim, var(--color-accent)) 25%,
+    var(--snap-trim, var(--color-accent)) 75%,
+    transparent
+  );
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity 0.7s var(--ease-smooth),
+    transform 0.7s var(--ease-smooth);
+  pointer-events: none;
+}
+.snap-current::after {
+  opacity: 0.9;
+  transform: scaleX(1);
+}
+.snap-section .title-sweep {
+  transition: text-shadow 0.7s var(--ease-smooth);
+}
+.snap-current .title-sweep {
+  text-shadow: 0 0 22px
+    color-mix(in oklab, var(--sweep, var(--color-accent)) 45%, transparent);
+}
+
 /* Phase 14 print additions: the hero prints as a clean name + role
    lockup (decorations hidden), and the skills section prints as a
    compact two-column list instead of the one-at-a-time focus card. */
@@ -587,7 +668,8 @@ html[data-theme="nord"] .experience-logo {
   /* (audit #201: .hero-cta-sticky dropped — that component was removed
      in an earlier pass; the class had no remaining producer.) */
   .photo-composition,
-  .skills-deco-chips {
+  .skills-deco-chips,
+  .skills-marquee {
     display: none !important;
   }
   .hero .hero-github-anchor {
@@ -1505,6 +1587,247 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   }
 }
 
+/* Skills "ticker" — the domain chips rendered as a continuously
+   auto-scrolling marquee ribbon (pure CSS; decorative, aria-hidden).
+   The track holds two identical copies of the pill row and translates
+   exactly -50%, so the seam is invisible and the loop is seamless.
+   Edge-fade mask lets pills glide in/out of the frame; hover pauses.
+   The GLOBAL reduced-motion freeze (line ~2489) collapses animation
+   to a single frame — the ribbon simply sits static, no extra rule. */
+.skills-marquee {
+  padding-bottom: 0.25rem;
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    black 5%,
+    black 95%,
+    transparent
+  );
+}
+.skills-marquee-track {
+  display: flex;
+  width: max-content;
+  gap: 0.5rem;
+  animation: skills-marquee-scroll 24s linear infinite;
+  will-change: transform;
+}
+.skills-marquee:hover .skills-marquee-track,
+.skills-marquee:focus-within .skills-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes skills-marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+/* Gentle bob on the marquee icons — offsets via inline delay stagger
+   so the pills "swim" instead of marching in lockstep. */
+.skills-marquee-icon {
+  animation: skills-marquee-bob 3.2s ease-in-out infinite;
+}
+@keyframes skills-marquee-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Per-panel entrance: the incoming focus card rises AND sharpens —
+   blur(5px)→0 + scale(0.96)→1 + rise is a clearly visible "focus"
+   beat, far past the old 16px nudge. Reduced-motion: the GLOBAL
+   freeze collapses it to a static swap (still visible, no dust). */
+.skill-panel-in {
+  animation: skill-panel-in 0.5s var(--ease-smooth) both;
+}
+@keyframes skill-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(26px) scale(0.96);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* The active skill card gets a glow RING that never stops moving:
+   a conic gradient (topic hues) spins around the card's edge (a
+   registered CSS property) tinted from behind with a drop-shadow
+   halo, while a strong breathing shadow pulses below it. Designed
+   to be SEEN — continuous, not hover-only. RM: frozen. */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.skill-glow {
+  position: relative;
+  z-index: 0;
+}
+.skill-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: conic-gradient(
+    from var(--angle),
+    var(--glow-a, var(--color-accent)),
+    var(--glow-b, var(--color-accent-cyan)),
+    var(--glow-a, var(--color-accent))
+  );
+  opacity: 0.95;
+  z-index: -1;
+  filter: drop-shadow(0 0 7px var(--glow-a, var(--color-accent)));
+  animation: skill-glow-spin 3s linear infinite;
+}
+@keyframes skill-glow-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+.skill-glow-pulse {
+  animation: skill-glow-shadow 3s ease-in-out infinite;
+}
+@keyframes skill-glow-shadow {
+  0%,
+  100% {
+    box-shadow:
+      0 8px 28px -6px var(--glow-a, var(--color-accent)),
+      0 0 10px -2px var(--glow-a, var(--color-accent));
+  }
+  50% {
+    box-shadow:
+      0 12px 48px -8px var(--glow-a, var(--color-accent)),
+      0 0 30px -2px var(--glow-b, var(--color-accent-cyan));
+  }
+}
+
+/* The ACTIVE skill card bobs up and down continuously — an obvious,
+   always-moving element (paint-only translate, so scroll-snap
+   position is unaffected; RM-frozen). */
+.skill-float {
+  animation: skill-float 6s ease-in-out infinite;
+}
+@keyframes skill-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+
+/* Orbiting energy dots — tiny topic-hued planets revolve around the
+   ACTIVE card like electrons. Each dot is a full-size box rotating
+   about the card's centre with its own speed/delay so they never
+   clump. The scroll container clips them at its bounds. RM-frozen. */
+.skill-orbit {
+  position: absolute;
+  inset: -18px;
+  pointer-events: none;
+  z-index: 0;
+}
+.skill-orbit-dot {
+  position: absolute;
+  inset: 0;
+  animation: skill-orbit-spin 7s linear infinite;
+}
+.skill-orbit-dot::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 9999px;
+  background: var(--glow-a, var(--color-accent));
+  box-shadow: 0 0 10px 1px var(--glow-a, var(--color-accent));
+}
+.skill-orbit-dot.d1 {
+  animation-duration: 7s;
+}
+.skill-orbit-dot.d2 {
+  animation-duration: 11s;
+  animation-delay: -3s;
+}
+.skill-orbit-dot.d3 {
+  animation-duration: 9s;
+  animation-delay: -6s;
+  opacity: 0.7;
+}
+@keyframes skill-orbit-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Section "beam": when a section flips is-in-view, a thin topic-hued
+   line sweeps left→right across its eyebrow row — a single clear
+   "arriving" beat for every section on the page (pure CSS, driven by
+   the Section's existing useInView; RM: frozen to the resting state).
+   Applies to the `.section-scan-line` element (the header row). */
+.section-scan-line {
+  position: relative;
+  overflow: hidden;
+}
+.section-scan-line::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent) 30%,
+    var(--color-accent-cyan) 70%,
+    transparent
+  );
+  opacity: 0;
+  transform: translateX(-100%);
+}
+.section-reveal.is-in-view .section-scan-line::after {
+  animation: section-beam 3.2s ease-in-out infinite;
+}
+@keyframes section-beam {
+  0% {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  7% {
+    opacity: 0.85;
+  }
+  15% {
+    opacity: 0.15;
+    transform: translateX(100%);
+  }
+  20%,
+  100% {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+}
+
+/* Hide the chip-row horizontal scrollbar while keeping the swipe/auto
+   follow scrolling functional (the row itself stays scrollable). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Experience accordion expand (audit #114): the open role's detail
    grows via grid-template-rows 0fr→1fr — a height animation without
    measuring anything. .experience-body wraps the detail; the li owns
@@ -1698,17 +2021,22 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
 }
 
 /* Staggered reveal (Reveal.tsx) — SSR-safe: starts visible, below-fold
-   items are hidden then revealed by an IntersectionObserver. */
+   items are hidden then revealed by an IntersectionObserver. Lift +
+   scale + a hint of blur-sofness on the way in reads loudly enough to
+   feel deliberate (was a barely-noticeable 18px nudge). */
 .reveal-item {
   opacity: 0;
-  transform: translateY(18px);
+  transform: translateY(34px) scale(0.97);
+  filter: blur(3px);
   transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+    opacity 0.65s var(--ease-smooth),
+    transform 0.65s var(--ease-smooth),
+    filter 0.65s var(--ease-smooth);
 }
 .reveal-item.is-in-view {
   opacity: 1;
   transform: none;
+  filter: blur(0);
 }
 
 /* 3D card tilt (TiltCard.tsx) — perspective set on hover via --rx/--ry. */
@@ -1762,7 +2090,21 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
     var(--color-topic-ai),
     var(--color-topic-mars)
   );
+  background-size: 100% 300%;
   border-radius: 9999px;
+  /* Continuous life: the scan line's gradient drifts top↔bottom on a
+     loop — the timeline visibly "flows". Small 2px surface → cheap;
+     RM-frozen by the global override. */
+  animation: track-flow 4s ease-in-out infinite;
+}
+@keyframes track-flow {
+  0%,
+  100% {
+    background-position: 0 0%;
+  }
+  50% {
+    background-position: 0 100%;
+  }
 }
 
 /* Slow decorative rotation for orbit accents. */
@@ -2053,7 +2395,43 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   }
 }
 .cert-stamp-in {
-  animation: cert-stamp 0.55s cubic-bezier(0.22, 1.25, 0.36, 1) both;
+  animation:
+    cert-stamp 0.55s cubic-bezier(0.22, 1.25, 0.36, 1) both,
+    cert-aura 3.5s ease-in-out infinite;
+}
+
+/* Contact form: focus rings were whisper-soft (ring-accent/10) — this
+   makes the active field glow it can't be missed (accent ring + a soft
+   colored bloom) while keeping a neutral resting state. */
+.field-glow:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow:
+    0 0 0 3px color-mix(in oklab, var(--color-accent) 18%, transparent),
+    0 4px 18px -6px color-mix(in oklab, var(--color-accent) 35%, transparent);
+}
+
+/* Button sheen: a light band sweeps across the submit button on hover
+   (uses .btn-sheen on a relative, overflow-hidden button). Cheap,
+   visible "interactive" motion; RM-safe (hover-only). */
+.btn-sheen::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -160%;
+  width: 55%;
+  background: linear-gradient(
+    100deg,
+    transparent,
+    color-mix(in oklab, white 45%, transparent),
+    transparent
+  );
+  transform: skewX(-22deg);
+  transition: left 0.65s var(--ease-smooth);
+  pointer-events: none;
+}
+.btn-sheen:hover::after {
+  left: 160%;
 }
 
 /* Contact aurora — slow drifting light blobs (transform loop + a fixed
@@ -2287,15 +2665,20 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   animation: fade-up 0.25s ease-out;
 }
 
-/* LevelBar gradient sweep (Skills #8): one soft highlight pass across
-   a filled skill segment as it reveals. Runs on a single translateX
-   (compositor-friendly); reduced-motion users get a static fill via the
-   global 0.01ms animation override. */
+/* LevelBar gradient sweep (Skills #8): a soft highlight passes across
+   a filled skill segment. Now a REPEATING streak (holds off-screen
+   between passes) so every skill bar visibly shimmers on a loop —
+   energy, not just one reveal. Runs on a single translateX
+   (compositor-friendly); reduced-motion users get a static fill via
+   the global 0.01ms animation override. */
 @keyframes level-sweep {
-  from {
+  0% {
     transform: translateX(-100%);
   }
-  to {
+  8% {
+    transform: translateX(100%);
+  }
+  100% {
     transform: translateX(100%);
   }
 }
@@ -2307,7 +2690,383 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
     transparent 75%
   );
   transform: translateX(-100%);
-  animation: level-sweep 0.9s ease-out 0.1s forwards;
+  animation: level-sweep 2.8s ease-in-out 0.2s infinite;
+}
+
+/* ============================================================
+   Continuous-motion extras (always-visible "moving" life):
+   - `.stat-float` — the MomentumStats proof-chips drift gently on
+     a staggered loop (they're screen-adjacent focal chips, so a
+     slow 4px bob reads as alive without wobbling the layout).
+   - `.featured-aura` — the single featured project card breathes a
+     topic-hued glow on a loop (shadow-only, no pseudo conflict
+     with card-spotlight's own ::before).
+   - `.snap-current .title-sweep::after` — the CURRENT (decksnapped)
+     section's underline glows and breathes; gradient-shift stays
+     listed first so the color pan keeps running (simultaneous
+     animations, different properties).
+   All are RM-frozen to a static frame by the global override.
+   ============================================================ */
+.stat-float {
+  animation:
+    stat-float 4.5s ease-in-out infinite,
+    stat-glow 3.5s ease-in-out infinite;
+}
+.stat-float:nth-child(2n) {
+  animation-delay: -1.5s;
+}
+.stat-float:nth-child(3n) {
+  animation-delay: -3s;
+}
+@keyframes stat-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes stat-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 0 transparent);
+  }
+  50% {
+    filter: drop-shadow(0 6px 16px color-mix(in oklab, var(--color-accent) 30%, transparent));
+  }
+}
+
+.featured-aura {
+  animation: featured-aura 3.5s ease-in-out infinite;
+}
+@keyframes featured-aura {
+  0%,
+  100% {
+    box-shadow: 0 0 20px -6px var(--color-topic-cloud);
+  }
+  50% {
+    box-shadow: 0 0 36px -4px var(--color-topic-ice);
+  }
+}
+
+.snap-current .title-sweep::after {
+  animation:
+    gradient-shift 4s ease-in-out infinite,
+    snap-title-glow 2.8s ease-in-out infinite;
+}
+@keyframes snap-title-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 4px -1px var(--sweep, var(--color-accent));
+  }
+  50% {
+    box-shadow: 0 0 14px 1px var(--sweep, var(--color-accent));
+  }
+}
+
+/* ============================================================
+   Continuous-motion batch 3 (even MORE alive, still cheap + RM-safe):
+   - `.blog-float` — note cards drift on a slow staggered loop. It
+     animates the INDEPENDENT `translate` property, so it composes
+     with Reveal's reveal transform and TiltCard's hover tilt
+     instead of clobbering either (translate ≠ transform).
+   - `.cert-stamp-in` — the certification spotlight card now breathes
+     an ai/ice glow on a loop while it stamps in (both animations on
+     one shorthand; shadow vs transform, disjoint properties).
+   - `.btn-breathe` — the contact submit button pulses a colored halo
+     at rest so the CTA reads as alive (joins btn-sheen's hover sweep).
+   All RM-frozen to a static frame by the global override.
+   ============================================================ */
+.blog-float {
+  animation: blog-float 6s ease-in-out infinite;
+}
+.blog-float:nth-child(2n) {
+  animation-delay: -2s;
+}
+.blog-float:nth-child(3n) {
+  animation-delay: -4s;
+}
+@keyframes blog-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+.cert-aura {
+  animation: cert-aura 3.5s ease-in-out infinite;
+}
+@keyframes cert-aura {
+  0%,
+  100% {
+    box-shadow: 0 0 18px -6px color-mix(in oklab, var(--color-topic-ai) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 34px -2px color-mix(in oklab, var(--color-topic-ice) 70%, transparent);
+  }
+}
+
+.btn-breathe {
+  animation: btn-breathe 3s ease-in-out infinite;
+}
+@keyframes btn-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 22%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 18px 3px color-mix(in oklab, var(--color-accent) 45%, transparent);
+  }
+}
+
+/* ============================================================
+   Continuous-motion batch 4 — ambient background + remaining life:
+   - `.ambient-orb-*` — three huge blurred blobs that drift on
+     different 45–55s paths behind the ENTIRE page. Very low opacity
+     (0.07) so they're felt more than seen; the page background
+     subtly shifts as you scroll. The global RM override freezes them.
+   - `.dot-pulse` — the Experience timeline's "ongoing role" dot
+     gets a continuous expanding-ring pulse via ::after (topic-hued
+     ring that expands + fades on a 2s loop).
+   - `.chip-breathe` — the Certifications spotlight tab's active
+     chip breathes an ai/ice glow at 3s (shadow-only, safe alongside
+     the underline + bg + shadow-card).
+   All RM-frozen to a static frame by the global override.
+   ============================================================ */
+.ambient-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(100px);
+  opacity: 0.07;
+  will-change: transform;
+}
+.ambient-orb-1 {
+  width: 600px;
+  height: 600px;
+  background: var(--color-accent);
+  top: 15%;
+  left: 10%;
+  animation: ambient-drift-1 45s ease-in-out infinite;
+}
+.ambient-orb-2 {
+  width: 500px;
+  height: 500px;
+  background: var(--color-accent-cyan);
+  top: 50%;
+  right: 5%;
+  animation: ambient-drift-2 55s ease-in-out infinite;
+}
+.ambient-orb-3 {
+  width: 450px;
+  height: 450px;
+  background: var(--color-topic-mars);
+  bottom: 10%;
+  left: 35%;
+  animation: ambient-drift-3 50s ease-in-out infinite;
+}
+@keyframes ambient-drift-1 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(80px, -60px) scale(1.1);
+  }
+  66% {
+    transform: translate(-40px, 40px) scale(0.9);
+  }
+}
+@keyframes ambient-drift-2 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(-70px, 50px) scale(0.9);
+  }
+  66% {
+    transform: translate(50px, -30px) scale(1.1);
+  }
+}
+@keyframes ambient-drift-3 {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(60px, 30px) scale(1.05);
+  }
+  66% {
+    transform: translate(-50px, -40px) scale(0.95);
+  }
+}
+
+/* Experience timeline: the "ongoing role" dot (`.dot-pulse`) gets an
+   expanding ring via ::after — a continuous pulse that reads as "this
+   role is live now." The ring inherits the dot's border-color (the
+   topic hue), and the pulse is purely decorative. */
+.dot-pulse {
+  position: relative;
+}
+.dot-pulse::after {
+  content: "";
+  position: absolute;
+  inset: -5px;
+  border-radius: 9999px;
+  border: 2px solid;
+  border-color: inherit;
+  opacity: 0.5;
+  animation: dot-ring-pulse 2.2s ease-in-out infinite;
+}
+@keyframes dot-ring-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0;
+    transform: scale(2);
+  }
+}
+
+/* Certifications active chip: a soft glow breathes behind the selected
+   tab chip so it reads as "this is the live one" at a glance. */
+.chip-breathe {
+  animation: chip-breathe 3s ease-in-out infinite;
+}
+@keyframes chip-breathe {
+  0%,
+  100% {
+    box-shadow: 0 0 6px -2px var(--color-topic-ai);
+  }
+  50% {
+    box-shadow: 0 0 18px -2px var(--color-topic-ice);
+  }
+}
+
+/* ============================================================
+   Continuous-motion batch 5 — the last quiet corners:
+   - `.timeline-packet` — a bright "data packet" slides down the
+     Experience scan line on a 3.6s loop. Implemented via a
+     repeating vertical gradient on ::after with an animated
+     background-position (tiny 2px strip → cheap paint).
+   - `.explore-arrow-pulse` — the ExploreLink's forward arrow
+     breathes a subtle glow at 2.8s (keeps its hover translate).
+   - `.deploy-badge-pulse` — the footer's cyan deploy indicator
+     breathes a halo at 3s.
+   - `.rail-dot-pulse` — the SectionRail's active dot breathes a
+     topic-hued halo at 2.5s (keeps its hover expansion).
+   - `.backtop-pulse` — the BackToTop arrow gently pulses when
+     the button is visible (opacity fade + translateY).
+   All RM-frozen by the global override.
+   ============================================================ */
+
+/* Experience timeline: a repeating vertical gradient creates a
+   "traveling packet" that slides down the scan line continuously.
+   The track is the <ol class="timeline-track">; we add ::after with
+   a vertical gradient tile and animate its background-position. */
+.timeline-track {
+  position: relative;
+}
+.timeline-track::after {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 9999px;
+  /* A single bright segment on a transparent tile — repeats to fill
+     the full track height; background-position animates the segment
+     down the line. */
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 40%,
+    var(--color-accent-cyan) 48%,
+    #fff 50%,
+    var(--color-accent-cyan) 52%,
+    transparent 60%,
+    transparent 100%
+  );
+  background-size: 2px 120px;
+  background-repeat: repeat-y;
+  opacity: 0.7;
+  animation: timeline-packet 3.6s linear infinite;
+}
+@keyframes timeline-packet {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 480px; /* 4 × tile height (120px) → seamless loop */
+  }
+}
+
+/* ExploreLink arrow: a soft breathing glow behind the arrow circle,
+   continuous (the hover translate-x still works — disjoint properties). */
+.explore-arrow-pulse {
+  animation: explore-arrow-pulse 2.8s ease-in-out infinite;
+}
+@keyframes explore-arrow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 30%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px color-mix(in oklab, var(--color-accent) 50%, transparent);
+  }
+}
+
+/* Footer deploy badge: the cyan dot gets a breathing halo. */
+.deploy-badge-pulse {
+  animation: deploy-badge-pulse 3s ease-in-out infinite;
+}
+@keyframes deploy-badge-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent-cyan) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 10px 2px color-mix(in oklab, var(--color-accent-cyan) 70%, transparent);
+  }
+}
+
+/* SectionRail active dot: the active section's dot breathes a halo
+   in its own topic hue (inline --rail-hue from SectionRail). */
+.rail-dot-pulse {
+  animation: rail-dot-pulse 2.5s ease-in-out infinite;
+}
+@keyframes rail-dot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--rail-hue, var(--color-accent));
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklab, var(--rail-hue, var(--color-accent)) 35%, transparent);
+  }
+}
+
+/* BackToTop arrow: when the button is visible (opacity 1), the
+   arrow gently bobs and its glow breathes. */
+.backtop-pulse {
+  animation: backtop-pulse 2.6s ease-in-out infinite;
+}
+@keyframes backtop-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translateY(-2px);
+    opacity: 1;
+  }
 }
 
 /* ============================================================
@@ -2418,5 +3177,258 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
     transition-duration: 0.01ms !important;
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================================
+   Guide astronaut — dialogue pop, caret, visor glint, halo,
+   grounding shadow, tour drone, tour spotlight ring.
+   ============================================================ */
+
+.guide-pop {
+  animation: guide-pop 260ms ease-out both;
+}
+
+@keyframes guide-pop {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guide-caret {
+  animation: guide-caret 1.1s steps(2, start) infinite;
+}
+
+@keyframes guide-caret {
+  to {
+    visibility: hidden;
+  }
+}
+
+.guide-glint {
+  position: absolute;
+  top: 4%;
+  left: -40%;
+  height: 32%;
+  width: 42%;
+  border-radius: 9999px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.55),
+    transparent
+  );
+  animation: guide-glint 5.5s ease-in-out infinite;
+}
+
+@keyframes guide-glint {
+  0%,
+  74% {
+    transform: translateX(0) rotate(18deg);
+    opacity: 0;
+  }
+  82% {
+    opacity: 0.75;
+  }
+  94%,
+  100% {
+    transform: translateX(500%) rotate(18deg);
+    opacity: 0;
+  }
+}
+
+.guide-halo {
+  position: absolute;
+  inset: -14px;
+  border-radius: 9999px;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-accent) 20%, transparent),
+    transparent 65%
+  );
+  filter: blur(6px);
+}
+
+.guide-shadow {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: -5px;
+  height: 8px;
+  border-radius: 9999px;
+  background: rgba(31, 27, 79, 0.16);
+  filter: blur(3px);
+}
+
+.guide-drone {
+  position: absolute;
+  inset: -12px;
+  border-radius: 9999px;
+  animation: guide-drone-spin 6s linear infinite;
+}
+
+.guide-drone::before {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 9999px;
+  background: var(--color-accent-cyan);
+  box-shadow: 0 0 6px var(--color-accent-cyan);
+}
+
+@keyframes guide-drone-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tour-focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 8px;
+  border-radius: 24px;
+  box-shadow: 0 10px 44px color-mix(in srgb, var(--color-accent) 30%, transparent);
+}
+
+/* Big centered dialogue panel — rotating orbit ring, lg live pulse,
+   gradient hairline. The panel is .guide-glass; the page keeps its own
+   color (no full-screen tint/blur scrim). */
+.guide-glass {
+  background: linear-gradient(
+      145deg,
+      rgb(255 255 255 / 0.2),
+      rgb(255 255 255 / 0.04) 45%,
+      transparent 62%
+    ),
+    color-mix(in srgb, var(--color-card) 65%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-ink) 10%, transparent);
+  backdrop-filter: blur(22px) saturate(1.4);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .guide-glass {
+    backdrop-filter: blur(10px);
+  }
+}
+
+@keyframes guide-scrim {
+  from {
+    opacity: 0;
+  }
+}
+
+.guide-orbit-ring {
+  position: absolute;
+  inset: -18px;
+  border-radius: 9999px;
+  border: 1px dashed color-mix(in srgb, var(--color-accent) 45%, transparent);
+  animation: guide-drone-spin 14s linear infinite;
+}
+
+.guide-orbit-ring::before {
+  content: "";
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 9999px;
+  background: var(--color-accent-cyan);
+  box-shadow: 0 0 10px var(--color-accent-cyan);
+}
+
+.guide-portal {
+  background: radial-gradient(
+    circle at 32% 26%,
+    #4338ca 0%,
+    #1e1b4b 55%,
+    #0f172a 100%
+  );
+  border: 1px solid rgb(255 255 255 / 0.28);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.18),
+    inset 0 -8px 24px rgb(0 0 0 / 0.35);
+}
+
+.guide-portal::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: radial-gradient(
+      rgb(255 255 255 / 0.9) 1px,
+      transparent 1.4px
+    ),
+    radial-gradient(rgb(224 231 255 / 0.75) 1px, transparent 1.5px);
+  background-size:
+    18px 18px,
+    11px 11px;
+  background-position:
+    3px 6px,
+    9px 2px;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.guide-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  animation: guide-live 1.8s ease-out infinite;
+}
+
+@keyframes guide-live {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 45%, transparent);
+  }
+  70%,
+  100% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+
+.guide-divider {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-accent) 30%,
+    var(--color-accent) 70%,
+    transparent
+  );
+  opacity: 0.55;
+}
+
+/* Fit-section scroll cue — gentle bob only when motion is allowed. */
+.section-fit-cue {
+  opacity: 0.5;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .section-fit-cue {
+    animation: section-fit-cue 2.2s ease-in-out infinite;
+  }
+}
+
+@keyframes section-fit-cue {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, 5px);
+    opacity: 0.9;
   }
 }

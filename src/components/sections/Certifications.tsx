@@ -19,6 +19,7 @@ import Link from "next/link";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import CosmicDecor from "@/components/ui/CosmicDecor";
+import ExploreLink from "@/components/ui/ExploreLink";
 import Section from "@/components/ui/Section";
 import Tooltip from "@/components/ui/Tooltip";
 import { useSwipe } from "@/lib/useSwipe";
@@ -29,6 +30,15 @@ interface CertificationsProps {
   /** Phase 16 (#15): category → galaxy planet slug (name/slug matched in
    *  page.tsx). The category badge links to the planet when it matches. */
   galaxyCategorySlugs?: Record<string, string>;
+  /** How many certs the home surface shows (chip row + spotlight).
+   *  Everything beyond the count lives on the /certifications detail
+   *  page — one ExploreLink away. Omitted → every cert at once. */
+  limit?: number;
+  /** Detail-page route for the "All certifications" pill. */
+  exploreHref?: string;
+  /** Slide viewport (Section fit) — see Section.tsx. */
+  fit?: boolean;
+  cue?: boolean;
 }
 
 /** Phase 16 (#5): "2026-06" → "Jun 2026", "2026" → "2026", else raw. */
@@ -95,13 +105,13 @@ const HAIRLINE = [
   "border-t-topic-linux",
 ];
 
-/** Progressive disclosure: the chip row shows this many certs until
- *  "Show all" expands the rest — long lists stay scannable. */
-const CHIP_LIMIT = 6;
-
 export default function Certifications({
   certifications,
   galaxyCategorySlugs,
+  limit,
+  exploreHref,
+  fit,
+  cue,
 }: CertificationsProps) {
   const [active, setActive] = useState(0);
   const [filter, setFilter] = useState("all");
@@ -117,10 +127,11 @@ export default function Certifications({
       : certifications.filter((c) => c.category === filter)
   ).sort((a, b) => monthValue(b.date) - monthValue(a.date));
 
-  /** Collapsed by default: only the first CHIP_LIMIT chips (+ spotlight)
-      render until "Show all" expands — less content per screen. */
-  const [expandedAll, setExpandedAll] = useState(false);
-  const shownCerts = expandedAll ? visible : visible.slice(0, CHIP_LIMIT);
+  /** Collapsed by default on the home surface: only as many certs as
+      fit one viewport until the "All certifications" pill routes to
+      the detail page — everything beyond that count is a page away. */
+  const showClamped = limit !== undefined && visible.length > limit;
+  const shownCerts = showClamped ? visible.slice(0, limit) : visible;
 
   // Phase 9 gestures: prev/next via click or touch swipe (parity with skills).
   // Browsing cycles within the SHOWN set so the active chip is always visible.
@@ -169,6 +180,8 @@ export default function Certifications({
       title="Certifications"
       description="Verified, with links — check them yourself. Pick one below."
       tone="ai"
+      fit={fit}
+      cue={cue}
     >
       <CosmicDecor
         hue="ai"
@@ -256,7 +269,7 @@ export default function Certifications({
               }}
               className={`relative rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
                 selected
-                  ? `border-transparent bg-card text-ink shadow-card after:opacity-100 ${CHIP_HUES[i % 4]}`
+                  ? `border-transparent bg-card text-ink shadow-card chip-breathe after:opacity-100 ${CHIP_HUES[i % 4]}`
                   : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
               }`}
             >
@@ -266,17 +279,13 @@ export default function Certifications({
         })}
       </div>
 
-      {/* Progressive disclosure toggle — reveal/hide the rest of the list */}
-      {visible.length > CHIP_LIMIT && (
+      {exploreHref && showClamped && (
         <div className="mt-3 text-center">
-          <button
-            type="button"
-            onClick={() => setExpandedAll((v) => !v)}
-            aria-expanded={expandedAll}
-            className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-4 py-2 text-xs font-medium text-ink-soft shadow-card transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            {expandedAll ? "Show fewer" : `Show all ${visible.length} certifications`}
-          </button>
+          <ExploreLink
+            href={exploreHref}
+            label="All certifications"
+            count={visible.length - shownCerts.length}
+          />
         </div>
       )}
       <p className="mt-3 text-center font-mono text-xs text-ink-faint">

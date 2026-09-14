@@ -24,6 +24,8 @@ import type { Post } from "@/types";
 
 interface BlogProps {
   posts: Post[];
+  fit?: boolean;
+  cue?: boolean;
 }
 
 /** Phase 17 (#22): "new" pill — module-scope "now" (evaluated once at
@@ -35,7 +37,7 @@ const NOW = Date.now();
 /** Home is the surface: show the latest few, archive holds the rest. */
 const SURFACE_COUNT = 3;
 
-export default function Blog({ posts }: BlogProps) {
+export default function Blog({ posts, fit, cue }: BlogProps) {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   if (posts.length === 0) return null; // auto-hide (§5.2)
@@ -90,6 +92,8 @@ export default function Blog({ posts }: BlogProps) {
       description="Short write-ups on what I'm studying — consistency beats polish."
       tone="linux"
       band
+      fit={fit}
+      cue={cue}
     >
       <CosmicDecor
         hue="linux"
@@ -191,7 +195,7 @@ export default function Blog({ posts }: BlogProps) {
           // unmapped tags).
           const hairline = `border-t-2 ${tagHueBorder(post.tags[0] ?? "") ?? "border-t-accent/40"}`;
           return (
-          <Reveal key={post.slug} delay={(i % 4) * 70} className="h-full">
+          <Reveal key={post.slug} delay={(i % 4) * 70} className="h-full blog-float">
             {/* Phase 10: 3D tilt + pointer spotlight on hover — parity
                 with the projects grid (same interaction language). */}
             <TiltCard max={6} className="h-full rounded-card">

@@ -15,7 +15,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Share2, Star } from "lucide-react";
 import { SamplePill } from "@/components/ui/Badge";
 import { useSwipe } from "@/lib/useSwipe";
 import Badge from "@/components/ui/Badge";
@@ -32,6 +32,7 @@ import {
   DialogFooter,
 } from "@/components/ui/Dialog";
 import { showToast } from "@/components/ui/Toast";
+import ExploreLink from "@/components/ui/ExploreLink";
 import { tagHueClasses } from "@/lib/tagHue";
 import type { Project } from "@/types";
 
@@ -39,11 +40,20 @@ interface ProjectsProps {
   projects: Project[];
   /** Phase 15 (#24): GitHub username for the "more on GitHub" link. */
   github?: string;
+  /** Detail-page route for the "Explore all" pill. When provided the
+   *  home surface shows only a taste (INITIAL_COUNT) and every overflow
+   *  project lives on that page; when omitted the FULL wall renders
+   *  (used by the /projects detail page). */
+  exploreHref?: string;
+  /** Slide viewport (Section fit) — see Section.tsx. */
+  fit?: boolean;
+  cue?: boolean;
 }
 
-/** Progressive disclosure: only this many cards show until "Explore
- *  more" expands the rest in place — less scrolling, faster scan. */
-const INITIAL_COUNT = 4;
+/** Progressive disclosure: on the home surface only this many cards show
+ *  until the "Explore all projects" pill routes to the /projects detail
+ *  page — one full viewport, the rest lives on the next screen. */
+const INITIAL_COUNT = 3;
 
 /** Own-site URLs open in-app; everything else opens a new tab. */
 function ProjectLink({
@@ -98,7 +108,7 @@ async function copySectionLink() {
   }
 }
 
-export default function Projects({ projects, github }: ProjectsProps) {
+export default function Projects({ projects, github, exploreHref, fit, cue }: ProjectsProps) {
   // Multi-select tech filter (feature pass): any number of tech chips
   // combine (AND); Featured is an independent toggle. Clear resets both.
   const [selectedTechs, setSelectedTechs] = useState<string[]>([]);
@@ -109,9 +119,9 @@ export default function Projects({ projects, github }: ProjectsProps) {
   // "one project after another" without closing the dialog.
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [open, setOpen] = useState(false);
-  // Progressive disclosure: collapsed by default — INITIAL_COUNT cards,
-  // "Explore more" reveals the rest of the (filtered) list.
-  const [expanded, setExpanded] = useState(false);
+  // Surface mode (home): collapsed wall — INITIAL_COUNT cards, "Explore
+  // all projects" pills off to the /projects detail page. Full mode
+  // (that detail page): every project at once, no clamp.
   // BUGFIX: the share-button title read `navigator` during render, so
   // the server (no navigator) said "Copy project link" while the client
   // said "Share this project" → every hydration pass warning. Capability
@@ -133,8 +143,12 @@ export default function Projects({ projects, github }: ProjectsProps) {
       (selectedTechs.length === 0 || selectedTechs.every((t) => p.tech.includes(t))) &&
       (!featuredOnly || p.featured)
   );
-  /** The cards actually rendered — collapsed until "Explore more". */
-  const shownProjects = expanded ? visible : visible.slice(0, INITIAL_COUNT);
+  /** The cards actually rendered — a taste (home surface) or the whole
+   *  wall (detail page). Filtering still respects both. */
+  const shownProjects = exploreHref
+    ? visible.slice(0, INITIAL_COUNT)
+    : visible;
+  const hasHidden = visible.length > shownProjects.length;
   const techCount = new Set(projects.flatMap((p) => p.tech)).size; // P27 footnote
 
   // Phase 9: the project currently open in the dialog (derived from the
@@ -310,6 +324,8 @@ export default function Projects({ projects, github }: ProjectsProps) {
       title="Projects"
       description="Small, real, shipped — click one to open it. Every one taught me something I can point to."
       tone="cloud"
+      fit={fit}
+      cue={cue}
     >
       <CosmicDecor
         hue="cloud"
@@ -438,7 +454,7 @@ export default function Projects({ projects, github }: ProjectsProps) {
             <Reveal
               key={project.title}
               delay={(i % 4) * 70}
-              className={`h-full ${hero ? "sm:col-span-2" : ""}`}
+              className={`h-full ${hero ? "sm:col-span-2 featured-aura rounded-card" : ""}`}
             >
               <TiltCard max={6} className="h-full rounded-card">
                 <Card
@@ -547,25 +563,15 @@ export default function Projects({ projects, github }: ProjectsProps) {
         </div>
       )}
 
-      {/* Progressive disclosure: reveal the rest of the (filtered) wall
-          in place — no page change, one click. */}
-      {visible.length > shownProjects.length && (
+      {/* Surface-mode overflow: everything after the taste lives on the
+          /projects detail page — one route, one click. */}
+      {exploreHref && hasHidden && (
         <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            // Disclosure semantics: SRs hear the current state, and
-            // aria-controls ties the button to the grid it grows.
-            aria-expanded={expanded}
-            aria-controls="projects-grid"
-            className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-5 py-2.5 text-sm font-medium text-ink-soft shadow-card transition-colors hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-          >
-            Explore more projects
-            <span className="font-mono text-xs text-ink-faint">
-              +{visible.length - shownProjects.length}
-            </span>
-            <ChevronDown className="h-3.5 w-3.5" aria-hidden="true" />
-          </button>
+          <ExploreLink
+            href={exploreHref}
+            label="Explore all projects"
+            count={visible.length - shownProjects.length}
+          />
         </div>
       )}
 

@@ -88,7 +88,7 @@ export default function BackToTop() {
           strokeDashoffset={RING_C * (1 - progress)}
         />
       </svg>
-      <ArrowUp className="relative h-5 w-5" aria-hidden="true" />
+      <ArrowUp className="relative h-5 w-5 backtop-pulse" aria-hidden="true" />
     </button>
   );
 }

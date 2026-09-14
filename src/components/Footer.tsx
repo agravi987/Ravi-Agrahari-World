@@ -148,11 +148,23 @@ export default async function Footer({
             </a>{" "}
             (CC BY-SA 4.0)
           </p>
+          <p className="mt-1 text-xs text-ink-faint">
+            Astronaut illustration by{" "}
+            <a
+              href="https://www.vecteezy.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink-soft underline decoration-dotted underline-offset-2 hover:text-accent"
+            >
+              Vecteezy
+            </a>
+            {" "}free assets
+          </p>
 
           {/* Deploy badge (plan S10) — only when build metadata exists */}
           {meta?.commit && (
             <p className="font-mono text-xs text-ink-faint" title="Latest deploy">
-              <span className="text-accent-cyan">●</span>{" "}
+              <span className="text-accent-cyan deploy-badge-pulse">●</span>{" "}
               <span className="text-ink-soft">deployed</span>{" "}
               <a
                 href={

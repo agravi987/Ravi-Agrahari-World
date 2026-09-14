@@ -10,19 +10,19 @@
  * so nearly every visit serves the cached page (~0.3s) instead of
  * paying a full DB re-render every minute.
  */
-import MomentumStats from "@/components/ui/MomentumStats";
 import LazyMount from "@/components/ui/LazyMount";
 import SectionPlaceholder from "@/components/ui/SectionPlaceholder";
+import type { Stat } from "@/components/ui/MomentumStats";
 import Blog from "@/components/sections/Blog";
 import Certifications from "@/components/sections/Certifications";
 import Contact from "@/components/sections/Contact";
 import Experience from "@/components/sections/Experience";
 import GalaxyPreview from "@/components/sections/GalaxyPreview";
-import GithubStrip from "@/components/sections/GithubStrip";
 import Hero from "@/components/sections/Hero";
 import Projects from "@/components/sections/Projects";
 import Skills from "@/components/sections/Skills";
 import { getContent, getGalaxy } from "@/lib/content";
+import GuideAstronaut from "@/components/ui/GuideAstronaut";
 
 export const revalidate = 3600;
 
@@ -44,8 +44,30 @@ export default async function Home() {
     ] as const
   ).find((id) => config.sectionsEnabled[id]);
 
+  // Content-count proof stats — shown inside the Skills section
+  // (count-up + jump-links). Only enabled sections contribute a stat;
+  // the band's own zero-data policy hides any empty cell.
+  const stats: Stat[] = [
+    ...(config.sectionsEnabled.projects
+      ? [{ label: "projects", value: projects.length, color: "cloud" as const, href: "#projects" }]
+      : []),
+    ...(config.sectionsEnabled.blog
+      ? [{ label: "notes", value: posts.length, color: "linux" as const, href: "/blog" }]
+      : []),
+    ...(config.sectionsEnabled.certifications
+      ? [{ label: "certifications", value: certifications.length, color: "ai" as const, href: "#certifications" }]
+      : []),
+    ...(config.sectionsEnabled.skills
+      ? [{ label: "skill areas", value: skills.length, color: "devops" as const, href: "#skills" }]
+      : []),
+    ...(config.sectionsEnabled.galaxy
+      ? [{ label: "learning tracks", value: galaxy.planets.length, color: "mars" as const, href: "/detailed-galaxy" }]
+      : []),
+  ];
+
   return (
-    <div className="page-home">
+    <>
+      <div className="page-home">
       {config.sectionsEnabled.hero && (
         /* P31 proof-strip counts pass only while a section is CMS-enabled,
            so disabled sections never leak "0 shipped" chips; Hero's own
@@ -68,37 +90,11 @@ export default async function Home() {
         />
       )}
 
-      {/* Momentum strip: repos + streak (plan S6, §5 — hides on failure/zeros) */}
-      <GithubStrip config={config} />
-
-      {/* Real-data stat band (P7) — counts up on scroll, zero-hiding */}
-      {/* P22: each stat is also a jump — counters become navigation.
-          Stats for CMS-hidden sections are omitted (no dead anchors). */}
-      <MomentumStats
-        stats={[
-          ...(config.sectionsEnabled.projects
-            ? [{ label: "projects", value: projects.length, color: "cloud" as const, href: "#projects" }]
-            : []),
-          ...(config.sectionsEnabled.blog
-            ? [{ label: "notes", value: posts.length, color: "linux" as const, href: "/blog" }]
-            : []),
-          ...(config.sectionsEnabled.certifications
-            ? [{ label: "certifications", value: certifications.length, color: "ai" as const, href: "#certifications" }]
-            : []),
-          ...(config.sectionsEnabled.skills
-            ? [{ label: "skill areas", value: skills.length, color: "devops" as const, href: "#skills" }]
-            : []),
-          ...(config.sectionsEnabled.galaxy
-            ? [{ label: "learning tracks", value: galaxy.planets.length, color: "mars" as const, href: "/detailed-galaxy" }]
-            : []),
-        ]}
-      />
-
-      {/* PERF + progressive disclosure: the below-fold sections are
-          deferred (LazyMount) — they mount just before scrolling into
-          view, so the first paint + hydration stay lean and the page
-          reveals itself "one section at a time". A witty placeholder
-          (SectionPlaceholder) holds the anchor id + reserves height. */}
+      {/* PERF + progressive disclosure: Skills is deferred like the other
+          below-fold sections (LazyMount) — it mounts just before scrolling
+          into view, so the first paint + hydration stays lean. The proof
+          stats (stats) ride inside it: count-up + jump-links, only for
+          sections enabled in the CMS. */}
       {config.sectionsEnabled.skills && (
         <LazyMount
           fallback={
@@ -116,6 +112,9 @@ export default async function Home() {
             galaxyPlanetSlugs={Object.fromEntries(
               galaxy.planets.map((p) => [p.name.toLowerCase(), p.slug])
             )}
+            fit
+            cue
+            stats={stats}
           />
         </LazyMount>
       )}
@@ -133,7 +132,7 @@ export default async function Home() {
             />
           }
         >
-          <Projects projects={projects} github={config.github} />
+          <Projects projects={projects} github={config.github} fit cue exploreHref="/projects" />
         </LazyMount>
       )}
 
@@ -147,7 +146,13 @@ export default async function Home() {
             />
           }
         >
-          <Experience experience={experience} />
+          <Experience
+            experience={experience}
+            fit
+            cue
+            surfaceCount={3}
+            exploreHref="/experience"
+          />
         </LazyMount>
       )}
 
@@ -169,6 +174,10 @@ export default async function Home() {
                 [p.slug.toLowerCase(), p.slug],
               ])
             )}
+            fit
+            cue
+            limit={4}
+            exploreHref="/certifications"
           />
         </LazyMount>
       )}
@@ -183,7 +192,7 @@ export default async function Home() {
             />
           }
         >
-          <Blog posts={posts} />
+          <Blog posts={posts} fit cue />
         </LazyMount>
       )}
 
@@ -201,9 +210,12 @@ export default async function Home() {
             socialLinks={config.socialLinks}
             availability={config.availability}
             location={config.location}
+            fit
           />
         </LazyMount>
       )}
     </div>
+    <GuideAstronaut />
+    </>
   );
 }

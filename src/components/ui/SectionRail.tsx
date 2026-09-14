@@ -23,6 +23,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import type { CSSProperties } from "react";
 import { usePathname } from "next/navigation";
 
 interface RailSection {
@@ -112,11 +113,12 @@ export default function SectionRail() {
             aria-label={s.label}
             aria-current={isActive ? "true" : undefined}
             className="group relative flex items-center justify-center"
+            style={isActive ? ({ "--rail-hue": s.ring } as CSSProperties) : undefined}
           >
             <span
               className={`block rounded-full transition-all duration-300 ${
                 isActive
-                  ? `${s.bg} h-3.5 w-3.5`
+                  ? `${s.bg} h-3.5 w-3.5 rail-dot-pulse`
                   : "h-2 w-2 bg-card-border group-hover:h-2.5 group-hover:w-2.5 group-hover:bg-ink-faint"
               }`}
               // Phase 9 halo: a soft ring in the section's own topic hue
