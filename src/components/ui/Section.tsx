@@ -248,7 +248,7 @@ export default function Section({
         "section-reveal relative",
         inView && "is-in-view",
         band && "band-bg",
-        fit && "snap-section flex min-h-svh flex-col justify-center",
+        fit && "snap-section flex flex-col justify-center lg:min-h-svh",
         current && "snap-current",
         className
       )}
@@ -267,7 +267,7 @@ export default function Section({
       }
     >
       {mesh && <GradientMesh />}
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <StaggerReveal staggerMs={60}>
           <div className="group/head">
             <div className="section-scan-line flex items-center gap-3">
@@ -315,7 +315,7 @@ export default function Section({
       {cue && (
         <span
           aria-hidden="true"
-          className="section-fit-cue pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-ink-faint"
+          className="section-fit-cue pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 text-ink-faint hidden lg:inline-block"
         >
           <ChevronDown className="h-5 w-5" />
         </span>

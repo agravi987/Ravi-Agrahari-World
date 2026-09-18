@@ -349,11 +349,12 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <FilterChips moonTypes={settings.moonTypes} filter={filter} onChange={setFilter} />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Index toggle — ALWAYS visible so the directory is one tap
                 away while the collapsed system takes the full page (P8). */}
             <button
               type="button"
+              data-compact-touch
               onClick={() => setIndexOpen((o) => !o)}
               aria-pressed={indexOpen}
               aria-controls="galaxy-index-panel"
@@ -364,6 +365,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
             {mode === "3d" && (
               <button
                 type="button"
+                data-compact-touch
                 onClick={() => setMode("2d")}
                 className="rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
               >
@@ -388,6 +390,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                   <button
                     key={key}
                     type="button"
+                    data-compact-touch
                     onClick={() =>
                       setViewOverrides((v) => ({ ...v, [key]: !v[key] }))
                     }
@@ -414,6 +417,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                   <button
                     key={s}
                     type="button"
+                    data-compact-touch
                     onClick={() => setSpeed(s)}
                     aria-pressed={speed === s}
                     className={`rounded-full px-2 py-1 font-mono text-[10px] font-medium transition-colors ${
@@ -448,7 +452,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                       onClick={() => setMode("2d")}
                       className="rounded-full bg-accent px-4 py-2 text-xs font-semibold text-white shadow-card transition-opacity hover:opacity-90"
                     >
-                      Show 2D view
+                      Switch to 2D view
                     </button>
                   </div>
                 </div>
@@ -458,7 +462,6 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                 galaxy={galaxy}
                 filter={filter}
                 activeId={activeId}
-                triggerHandlers={triggerHandlers}
                 registerProjector={registerProjector}
                 registerFocus={registerFocus}
                 onRigReady={registerRig}
@@ -489,13 +492,18 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
           {/* P12: first-visit controls hint — CSS-only, fades after ~6s. */}
           <div
             aria-hidden="true"
-            className="galaxy-hint pointer-events-none absolute bottom-16 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-card-border bg-card/85 px-3 py-1.5 text-[11px] text-ink-soft shadow-card backdrop-blur-sm"
+            className="galaxy-hint pointer-events-none absolute bottom-16 left-1/2 z-10 -translate-x-1/2 max-w-[90vw] text-center leading-tight sm:whitespace-nowrap rounded-full border border-card-border bg-card/85 px-3 py-1.5 text-[11px] text-ink-soft shadow-card backdrop-blur-sm"
           >
-            {mode === "3d" ? (
-              "Drag to orbit · Scroll / + − to zoom · Click a planet to explore"
-            ) : (
-              "Hover or tap a planet to explore · Click zooms in · Scroll / + − to zoom"
-            )}
+            <span className="sm:hidden">
+              {mode === "3d"
+                ? "Drag to orbit · Pinch to zoom · Tap a planet"
+                : "Tap a planet to explore · Pinch to zoom"}
+            </span>
+            <span className="hidden sm:inline">
+              {mode === "3d"
+                ? "Drag to orbit · Scroll / + − to zoom · Click a planet to explore"
+                : "Hover or tap a planet to explore · Click zooms in · Scroll / + − to zoom"}
+            </span>
           </div>
         </div>
 
@@ -520,7 +528,11 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
         <div
           ref={cardRef}
           {...cardHandlers(activeId as string)}
-          className={isMobile ? "fixed inset-x-3 bottom-3 z-50" : "fixed z-50"}
+          className={
+            isMobile
+              ? "fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom,0.75rem))] z-50 max-h-[80svh] overflow-y-auto"
+              : "fixed z-50"
+          }
           style={isMobile ? undefined : { left: cardPos?.x, top: cardPos?.y, width: CARD_W }}
           role="dialog"
           aria-label={activePlanet ? `${activePlanet.name} details` : `${activeMoon?.name} details`}

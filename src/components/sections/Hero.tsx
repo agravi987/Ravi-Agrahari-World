@@ -503,7 +503,7 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="snap-section relative flex min-h-[100svh] items-center overflow-hidden px-6 py-14 lg:py-16"
+      className="snap-section relative flex min-h-[100svh] items-center overflow-hidden px-4 sm:px-6 py-12 sm:py-14 lg:py-16"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now

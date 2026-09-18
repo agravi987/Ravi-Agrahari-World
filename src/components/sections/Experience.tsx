@@ -308,7 +308,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {initials(item.company) || "✦"}
                     </span>
                   )}
-                  <span className="flex min-w-0 flex-1 items-baseline justify-between gap-3">
+                  <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 sm:gap-3">
                     <span className="min-w-0">
                       {/* P26: mono index + role + company */}
                       <span className="flex items-baseline gap-2">
@@ -319,7 +319,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       </span>
                       <p className="mt-0.5 text-sm font-medium text-accent">{item.company}</p>
                     </span>
-                    <span className="flex shrink-0 items-center gap-2">
+                    <span className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                       {/* Active pulse + achievements count (UX pass) */}
                       {isActive && (
                         <span
@@ -358,7 +358,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       )}
                       <ChevronDown
                         aria-hidden="true"
-                        className={`mt-1 h-4 w-4 shrink-0 text-ink-faint transition-transform duration-300 ${
+                        className={`h-4 w-4 shrink-0 text-ink-faint transition-transform duration-300 ${
                           open ? "rotate-180" : ""
                         }`}
                       />

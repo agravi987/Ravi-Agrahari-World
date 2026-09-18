@@ -31,6 +31,16 @@
    (Can't live in @theme: that block only allows custom props.) */
 :root {
   color-scheme: light;
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+html,
+body {
+  overflow-x: clip;
+  max-width: 100vw;
 }
 
 /* #104: no gray tap flash on mobile — every interactive element already
@@ -487,46 +497,41 @@
 
 /* ============================================================
    Snap-deck home — "one scroll = one vertical tab"
-   html is the scroll container; only the home page mounts
-   .snap-section (fit sections + hero + galaxy), so every other
-   route (blog, galaxy explorer, admin…) keeps normal scrolling.
-   mandatory + scroll-snap-stop: always → each wheel notch/settle
-   lands on a whole section, like flipping tabs vertically.
+   Enabled only on desktop (≥ 1024px) where viewports are tall enough
+   to comfortably frame an entire section. On mobile and tablet devices
+   (< 1024px), sections stack and content often exceeds 100vh; touch
+   scrolling must be free-flowing and unconstrained.
    Reduced-motion users get plain scrolling (no snap).
    ============================================================ */
-html {
-  scroll-snap-type: y mandatory;
+@media (min-width: 1024px) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+  .snap-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
+  html:has(.snap-section) footer {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 }
-/* html normally carries scroll-padding-top: 5rem (anchor clearance for
-   the sticky header) — but scroll-padding also shifts SNAP alignment,
-   which would park every snapped section 80px low with the previous
-   tab's tail visible above it. On the deck route (:has a snap section)
-   the padding is cleared; anchors there land on the sections' own big
-   top padding instead (and elements with scroll-mt keep their own
-   offset). Non-deck routes keep the 5rem toggle. */
+@media (max-width: 1023px) {
+  html {
+    scroll-snap-type: none !important;
+  }
+  .snap-section {
+    scroll-snap-align: none !important;
+    scroll-snap-stop: normal !important;
+  }
+}
 html:has(.snap-section) {
   scroll-padding-top: 0;
 }
-/* scroll-behavior stays AUTO document-wide — the repo removed global
-   smooth (it amplified LazyMount/Skills shift jumps); anchor smoothness
-   is owned by lib/scrollTo.ts (already reduced-motion aware). */
 @media (prefers-reduced-motion: reduce) {
   html {
-    scroll-snap-type: none;
+    scroll-snap-type: none !important;
   }
-}
-.snap-section {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-}
-/* The classic footer is not a .snap-section (it's short), so mandatory
-   snap offered it NO resting point — the deck dead-ended at Contact and
-   the footer could never be scrolled to. Making the footer itself a snap
-   target when a deck is mounted lets one final notch land it full-page
-   (it's last, so stop: always costs nothing). */
-html:has(.snap-section) footer {
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
 }
 
 /* Snap "current tab" flourish: when a section becomes the active
@@ -800,11 +805,11 @@ body {
    layouts are untouched; the site's own min-h-9/min-h-10 buttons are
    unaffected (their computed height already exceeds this). */
 @media (pointer: coarse) {
-  a[href],
-  button,
-  button:not([disabled]),
-  [role="tab"],
-  [role="option"] {
+  a[href]:not([data-compact-touch]):not(.compact-touch),
+  button:not([data-compact-touch]):not(.compact-touch),
+  button:not([disabled]):not([data-compact-touch]):not(.compact-touch),
+  [role="tab"]:not([data-compact-touch]):not(.compact-touch),
+  [role="option"]:not([data-compact-touch]):not(.compact-touch) {
     min-height: 40px;
   }
 }
@@ -1017,24 +1022,25 @@ html[data-theme="rose"] {
   color: var(--color-ink);
   font-size: 1rem;
   line-height: 1.7;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .markdown > * + * {
-  margin-top: 1rem;
+  margin-top: 1.25rem;
 }
 .markdown h2 {
-  /* html scroll-padding covers the sticky header — no extra margin */
+  margin-top: 2.25rem;
   font-family: var(--font-display);
   font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.02em;
-  margin-top: 2rem;
 }
 .markdown h3 {
+  margin-top: 1.75rem;
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.2rem;
   font-weight: 600;
-  letter-spacing: -0.01em;
-  margin-top: 1.5rem;
 }
 .markdown a {
   color: var(--color-accent);
@@ -1042,15 +1048,15 @@ html[data-theme="rose"] {
   text-underline-offset: 2px;
 }
 .markdown a:hover {
-  color: var(--color-accent-strong);
+  opacity: 0.8;
 }
 .markdown ul {
   list-style: disc;
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
 }
 .markdown ol {
   list-style: decimal;
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
 }
 .markdown li + li {
   margin-top: 0.35rem;
@@ -1061,17 +1067,21 @@ html[data-theme="rose"] {
   padding: 0.15em 0.4em;
   font-family: var(--font-mono);
   font-size: 0.875em;
+  word-break: break-word;
 }
 .markdown pre {
   background: var(--color-paper-deep);
   border-radius: var(--radius-card);
   padding: 1rem;
+  max-width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .markdown pre code {
   background: transparent;
   padding: 0;
   font-size: 0.85em;
+  word-break: normal;
 }
 .markdown blockquote {
   border-left: 3px solid var(--color-accent);
@@ -1083,7 +1093,11 @@ html[data-theme="rose"] {
 }
 .markdown table {
   width: 100%;
+  max-width: 100%;
+  display: block;
+  overflow-x: auto;
   border-collapse: collapse;
+  -webkit-overflow-scrolling: touch;
 }
 .markdown th,
 .markdown td {

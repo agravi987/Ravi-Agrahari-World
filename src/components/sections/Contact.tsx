@@ -430,9 +430,10 @@ export default function Contact({
                 <button
                   key={p.subject}
                   type="button"
+                  data-compact-touch
                   onClick={() => applyPreset(p.subject, p.opener)}
                   aria-pressed={active}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     active
                       ? "border-accent/40 bg-accent-soft text-accent"
                       : "border-card-border bg-paper/60 text-ink-soft hover:border-accent/40 hover:bg-card hover:text-ink"
@@ -462,7 +463,7 @@ export default function Contact({
                 autoComplete="name"
                 aria-invalid={nameError}
                 aria-describedby={nameError ? "name-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   nameError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -499,7 +500,7 @@ export default function Contact({
                 autoComplete="email"
                 aria-invalid={emailError}
                 aria-describedby={emailError ? "email-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   emailError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -534,7 +535,7 @@ export default function Contact({
               enterKeyHint="next"
               aria-invalid={subjectError}
               aria-describedby={subjectError ? "subject-error" : undefined}
-              className={`w-full rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 subjectError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -577,7 +578,7 @@ export default function Contact({
               aria-describedby={
                 messageError ? "message-error message-counter" : "message-counter"
               }
-              className={`w-full resize-none rounded-card border bg-card px-4 py-2.5 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full resize-none rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 messageError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"

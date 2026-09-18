@@ -366,7 +366,7 @@ export default function Header({
       />
       {/* P25: the bar compacts on scroll (py-3 → py-2) — subtle, feels alive */}
       <div
-        className={`mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 transition-[padding] duration-200 ${
+        className={`mx-auto flex max-w-5xl items-center justify-between gap-3 sm:gap-4 px-4 sm:px-6 transition-[padding] duration-200 ${
           scrolled ? "py-2" : "py-3"
         }`}
       >
@@ -430,6 +430,7 @@ export default function Header({
           <button
             ref={burgerRef}
             type="button"
+            data-compact-touch
             onClick={() => setMenuOpen((o) => !o)}
             aria-expanded={menuOpen}
             aria-controls="mobile-nav"
@@ -450,9 +451,9 @@ export default function Header({
         <nav
           id="mobile-nav"
           aria-label="Mobile"
-          className="border-t border-card-border bg-paper/95 backdrop-blur-sm md:hidden"
+          className="border-t border-card-border bg-paper/95 backdrop-blur-md md:hidden max-h-[calc(100svh-4rem)] overflow-y-auto"
         >
-          <ul className="mx-auto max-w-5xl space-y-1 px-6 py-4">
+          <ul className="mx-auto max-w-5xl space-y-1 px-4 sm:px-6 py-4">
             {navLinks.map((link) => (
               <li key={link.id}>
                 <a

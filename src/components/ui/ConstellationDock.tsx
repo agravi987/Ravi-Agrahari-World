@@ -56,15 +56,15 @@ export default function ConstellationDock({
       aria-label="Primary"
       inert={hidden || undefined}
       className={clsx(
-        "pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center",
+        "pointer-events-none fixed inset-x-0 bottom-[max(1rem,env(safe-area-inset-bottom,1rem))] z-50 flex justify-center px-3",
         "transition-[transform,opacity] duration-300 ease-out",
         hidden ? "translate-y-10 opacity-0" : "translate-y-0 opacity-100"
       )}
     >
       <div
         className={clsx(
-          "pointer-events-auto relative flex items-start gap-2.5 rounded-full",
-          "border border-card-border bg-paper/80 px-3 py-3 shadow-card backdrop-blur-xl",
+          "pointer-events-auto relative flex max-w-full items-start gap-1.5 sm:gap-2.5 rounded-full overflow-x-auto no-scrollbar",
+          "border border-card-border bg-paper/80 px-2.5 sm:px-3 py-2 sm:py-3 shadow-card backdrop-blur-xl",
           "supports-[backdrop-filter]:bg-paper/70"
         )}
         style={
@@ -118,6 +118,7 @@ export default function ConstellationDock({
               key={link.id}
               href={hrefFor(link.href)}
               onClick={(e) => onNavigate(e, link.href)}
+              data-compact-touch
               aria-current={active ? "page" : undefined}
               className="group flex flex-col items-center gap-1 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
             >

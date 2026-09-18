@@ -83,34 +83,67 @@ export default function TableOfContents() {
   };
 
   return (
-    <aside
-      aria-label="On this page"
-      className="hidden w-56 shrink-0 lg:block"
-    >
-      <div className="sticky top-24">
-        <p className="font-mono text-xs font-medium tracking-tight text-ink-faint">
-          on this page
-        </p>
-        <nav className="mt-3 space-y-1 border-l border-card-border pl-3">
-          {headings.map((h) => (
-            <button
-              key={h.id}
-              type="button"
-              onClick={() => jump(h.id)}
-              aria-current={active === h.id ? "true" : undefined}
-              className={`block w-full rounded-r-md py-1 text-left text-sm leading-snug transition-colors ${
-                h.level === 3 ? "pl-3 text-xs" : ""
-              } ${
-                active === h.id
-                  ? "border-l-2 border-accent bg-accent-soft/60 font-medium text-accent"
-                  : "border-l-2 border-transparent text-ink-soft hover:text-accent"
-              }`}
-            >
-              {h.text}
-            </button>
-          ))}
-        </nav>
+    <>
+      {/* Mobile collapsible table of contents (< lg) */}
+      <div className="mb-6 rounded-card border border-card-border bg-paper/70 p-3.5 lg:hidden">
+        <details className="group">
+          <summary className="flex cursor-pointer items-center justify-between font-mono text-xs font-semibold text-ink-soft select-none hover:text-ink">
+            <span>On this page ({headings.length} sections)</span>
+            <span className="text-xs transition-transform duration-200 group-open:rotate-180" aria-hidden="true">▾</span>
+          </summary>
+          <nav className="mt-3 space-y-1 border-t border-card-border/60 pt-2.5">
+            {headings.map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                data-compact-touch
+                onClick={() => jump(h.id)}
+                aria-current={active === h.id ? "true" : undefined}
+                className={`block w-full rounded-md py-1.5 text-left text-sm leading-snug transition-colors ${
+                  h.level === 3 ? "pl-4 text-xs" : "pl-2"
+                } ${
+                  active === h.id
+                    ? "bg-accent-soft font-medium text-accent"
+                    : "text-ink-soft hover:bg-card hover:text-accent"
+                }`}
+              >
+                {h.text}
+              </button>
+            ))}
+          </nav>
+        </details>
       </div>
-    </aside>
+
+      {/* Desktop sticky sidebar (lg+) */}
+      <aside
+        aria-label="On this page"
+        className="hidden w-56 shrink-0 lg:block"
+      >
+        <div className="sticky top-24">
+          <p className="font-mono text-xs font-medium tracking-tight text-ink-faint">
+            on this page
+          </p>
+          <nav className="mt-3 space-y-1 border-l border-card-border pl-3">
+            {headings.map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                onClick={() => jump(h.id)}
+                aria-current={active === h.id ? "true" : undefined}
+                className={`block w-full rounded-r-md py-1 text-left text-sm leading-snug transition-colors ${
+                  h.level === 3 ? "pl-3 text-xs" : ""
+                } ${
+                  active === h.id
+                    ? "border-l-2 border-accent bg-accent-soft/60 font-medium text-accent"
+                    : "border-l-2 border-transparent text-ink-soft hover:text-accent"
+                }`}
+              >
+                {h.text}
+              </button>
+            ))}
+          </nav>
+        </div>
+      </aside>
+    </>
   );
 }

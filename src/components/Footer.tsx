@@ -80,7 +80,7 @@ export default async function Footer({
       />
       {/* The signature close: a scrub-in statement above the columns. */}
       <ClosingStatement />
-      <div className="mx-auto grid max-w-5xl gap-8 px-6 py-12 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 pt-12 pb-28 sm:pb-16 sm:grid-cols-2 lg:grid-cols-3">
         {/* Identity */}
         <div className="flex flex-col items-start gap-2">
           <p className="flex items-center gap-2 font-display text-lg font-semibold text-ink">

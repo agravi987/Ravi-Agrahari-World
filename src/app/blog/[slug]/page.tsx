@@ -161,7 +161,7 @@ export default async function BlogPostPage({
   const updatedIso = showUpdated ? updatedAt.toISOString() : null;
 
   return (
-    <article className="mx-auto max-w-3xl px-6 py-16">
+    <article className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16">
       {/* P8: scroll reading-progress bar (accent gradient, hidden for
           reduced-motion users). */}
       <ReadingProgress />
@@ -278,7 +278,7 @@ export default async function BlogPostPage({
       )}
 
       {/* P11: two-column content — TOC sidebar (desktop) + article */}
-      <div className="mt-10 flex gap-10 border-t border-card-border pt-10">
+      <div className="mt-10 flex flex-col lg:flex-row gap-6 lg:gap-10 border-t border-card-border pt-10">
         <TableOfContents />
         <div className="min-w-0 flex-1">
           {/* Styled in globals.css under .markdown — matches the design system */}

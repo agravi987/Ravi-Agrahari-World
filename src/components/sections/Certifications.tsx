@@ -311,80 +311,84 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight cert-stamp-in flex items-center gap-5 p-6 sm:p-8 border-t-2 ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
-          {/* P8: issuer logo when the CMS provides one; topic-hued Award
-              tile otherwise (images come from the CMS — Cloudinary). */}
-          {cert.logo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={cert.logo}
-              alt={cert.issuer}
-              loading="lazy"
-              decoding="async"
-              title={cert.issuer}
-              // Phase 16 (#16): cert-logo carries the dark-mode rule
-              className="cert-logo h-12 w-12 shrink-0 rounded-lg object-contain transition-transform duration-300 group-hover:scale-110"
-            />
-          ) : (
-            <div
-              className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${TILES[idx % 4]}`}
-            >
-              <Award className="h-6 w-6" aria-hidden="true" />
-            </div>
-          )}
+          <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
+            {/* P8: issuer logo when the CMS provides one; topic-hued Award
+                tile otherwise (images come from the CMS — Cloudinary). */}
+            {cert.logo ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={cert.logo}
+                alt={cert.issuer}
+                loading="lazy"
+                decoding="async"
+                title={cert.issuer}
+                // Phase 16 (#16): cert-logo carries the dark-mode rule
+                className="cert-logo h-12 w-12 shrink-0 rounded-lg object-contain transition-transform duration-300 group-hover:scale-110"
+              />
+            ) : (
+              <div
+                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${TILES[idx % 4]}`}
+              >
+                <Award className="h-6 w-6" aria-hidden="true" />
+              </div>
+            )}
 
-          <div className="min-w-0 flex-1">
-            <h3 className="font-display text-xl font-semibold text-ink">{cert.name}</h3>
-            <p className="mt-0.5 text-sm text-ink-soft">{cert.issuer}</p>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {/* Phase 16 (#15): when the category matches a galaxy planet,
-                  the badge deep-links to it (zero-data: plain badge otherwise) */}
-              {(() => {
-                const planetSlug = galaxyCategorySlugs?.[cert.category.toLowerCase()];
-                const badge = (
-                  <Badge variant="colored" className={CATEGORY_HUES[idx % 4]}>
-                    {cert.category}
-                  </Badge>
-                );
-                return planetSlug ? (
-                  <Link
-                    href={`/detailed-galaxy#planet-${planetSlug}`}
-                    title="Explore this category in the learning galaxy"
-                    className="transition-opacity hover:opacity-80"
-                  >
-                    {badge}
-                  </Link>
-                ) : (
-                  badge
-                );
-              })()}
-              {/* Phase 16 (#5): "2026-06" reads "Jun 2026" */}
-              <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint">
-                {formatDate(cert.date)}
-              </span>
+            <div className="min-w-0 flex-1">
+              <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">{cert.name}</h3>
+              <p className="mt-0.5 text-sm text-ink-soft">{cert.issuer}</p>
+              <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-2">
+                {/* Phase 16 (#15): when the category matches a galaxy planet,
+                    the badge deep-links to it (zero-data: plain badge otherwise) */}
+                {(() => {
+                  const planetSlug = galaxyCategorySlugs?.[cert.category.toLowerCase()];
+                  const badge = (
+                    <Badge variant="colored" className={CATEGORY_HUES[idx % 4]}>
+                      {cert.category}
+                    </Badge>
+                  );
+                  return planetSlug ? (
+                    <Link
+                      href={`/detailed-galaxy#planet-${planetSlug}`}
+                      title="Explore this category in the learning galaxy"
+                      className="transition-opacity hover:opacity-80"
+                    >
+                      {badge}
+                    </Link>
+                  ) : (
+                    badge
+                  );
+                })()}
+                {/* Phase 16 (#5): "2026-06" reads "Jun 2026" */}
+                <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint">
+                  {formatDate(cert.date)}
+                </span>
+              </div>
             </div>
           </div>
 
           {cert.verifyUrl && (
             /* Phase 16 (#1): the button says WHERE it's verified; #12: a
                 shield marks the real-proof affordance */
-            <Tooltip
-              label={domain ? `Verified on ${domain}` : "Official verification link"}
-              side="left"
-            >
-              <a
-                href={cert.verifyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label={`Verify ${cert.name}`}
-                className="inline-flex shrink-0 items-center gap-1 rounded-full border border-card-border bg-paper px-3.5 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-accent hover:bg-accent hover:text-white"
+            <div className="w-full sm:w-auto shrink-0 pt-1 sm:pt-0">
+              <Tooltip
+                label={domain ? `Verified on ${domain}` : "Official verification link"}
+                side="left"
               >
-                Verify
-                <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
-              </a>
-            </Tooltip>
+                <a
+                  href={cert.verifyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`Verify ${cert.name}`}
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-1.5 rounded-full border border-card-border bg-paper px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-accent hover:bg-accent hover:text-white"
+                >
+                  Verify
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                </a>
+              </Tooltip>
+            </div>
           )}
         </Card>
 

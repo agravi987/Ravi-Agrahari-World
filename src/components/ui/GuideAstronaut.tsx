@@ -472,9 +472,9 @@ export default function GuideAstronaut() {
       {docked && !touring && !panelOpen && (
         <aside
           aria-label="Portfolio guide"
-          className="fixed bottom-24 right-4 z-40 flex items-end gap-2 no-print sm:right-6"
+          className="fixed bottom-[max(5rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] right-3 z-40 flex items-end gap-2 no-print sm:right-6"
         >
-          <div className="guide-pop guide-glass max-w-[260px] rounded-2xl rounded-br-sm p-3 shadow-card">
+          <div className="guide-pop guide-glass hidden max-w-[260px] rounded-2xl rounded-br-sm p-3 shadow-card sm:block">
             {nameTag}
             <p role="status" className="text-[13px] leading-relaxed text-ink-soft">
               {tip}
@@ -496,7 +496,7 @@ export default function GuideAstronaut() {
             >
               <span
                 ref={avatarRef}
-                className="guide-portal block h-16 w-16 overflow-hidden rounded-full shadow-card"
+                className="guide-portal block h-12 w-12 sm:h-16 sm:w-16 overflow-hidden rounded-full shadow-card"
                 style={{ willChange: "transform" }}
               >
                 <Image
@@ -532,7 +532,7 @@ export default function GuideAstronaut() {
           onClick={restoreGuide}
           aria-label={`Show ${GUIDE_NAME} again`}
           title={`Summon ${GUIDE_NAME}`}
-          className="fixed bottom-24 right-4 z-40 grid h-10 w-10 place-items-center rounded-full border border-card-border bg-card/90 opacity-80 shadow-card transition-opacity hover:opacity-100 no-print sm:right-6"
+          className="fixed bottom-[max(5rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] right-3 z-40 grid h-10 w-10 place-items-center rounded-full border border-card-border bg-card/90 opacity-80 shadow-card transition-opacity hover:opacity-100 no-print sm:right-6"
         >
           <Image
             src={ASTRO_SRC}
@@ -547,9 +547,9 @@ export default function GuideAstronaut() {
       {inviteVisible && !touring && !panelOpen && (
         <aside
           aria-label="First-visit welcome"
-          className="guide-pop fixed bottom-24 right-4 z-40 no-print sm:right-6"
+          className="guide-pop fixed bottom-[max(5rem,calc(env(safe-area-inset-bottom,0px)+4.5rem))] right-3 z-40 no-print sm:right-6"
         >
-          <div className="guide-glass relative flex w-[min(84vw,360px)] items-start gap-3 rounded-2xl rounded-br-sm p-4 shadow-pop">
+          <div className="guide-glass relative flex w-[min(calc(100vw-1.5rem),360px)] items-start gap-3 rounded-2xl rounded-br-sm p-4 shadow-pop">
             <div className="relative h-14 w-14 shrink-0">
               <span aria-hidden="true" className="guide-halo" />
               <span className="guide-portal block h-14 w-14 overflow-hidden rounded-full">
@@ -686,7 +686,7 @@ export default function GuideAstronaut() {
       )}
 
       {touring && (
-        <div className="fixed inset-x-3 bottom-24 z-50 no-print sm:inset-x-auto sm:bottom-6 sm:left-1/2 sm:w-[min(92vw,430px)] sm:-translate-x-1/2">
+        <div className="fixed inset-x-3 bottom-[max(5.5rem,calc(env(safe-area-inset-bottom,0px)+5rem))] z-50 no-print sm:inset-x-auto sm:bottom-6 sm:left-1/2 sm:w-[min(92vw,430px)] sm:-translate-x-1/2">
           <div className="guide-glass flex items-center gap-3 rounded-2xl p-3 shadow-orbital">
             <div ref={tourAstroRef} className="relative h-11 w-11 shrink-0">
               <span aria-hidden="true" className="guide-drone" />

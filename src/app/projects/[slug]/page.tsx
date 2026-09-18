@@ -88,7 +88,7 @@ export default async function ProjectCaseStudyPage({
   };
 
   return (
-    <article className="mx-auto max-w-3xl px-6 py-16">
+    <article className="mx-auto max-w-3xl px-4 sm:px-6 py-12 sm:py-16">
       {/* SEO: typed entity for this case study */}
       <script
         type="application/ld+json"

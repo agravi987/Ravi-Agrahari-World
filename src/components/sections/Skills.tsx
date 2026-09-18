@@ -409,17 +409,17 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                 >
                   <Card
                     hover
-                    className={`group border-l-4 p-6 outline-none transition-shadow sm:p-8 focus-within:ring-4 ${
+                    className={`group border-l-4 p-5 sm:p-8 outline-none transition-shadow focus-within:ring-4 ${
                       RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
                     } ${PANEL_ACCENT[s.icon] ?? "border-l-accent/40"}`}
                   >
-                    <div className="flex items-start gap-4">
-                      <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}>
-                        <SkillIcon className="h-6 w-6 transition-transform duration-300 group-hover:rotate-6" aria-hidden="true" />
+                    <div className="flex items-start gap-3 sm:gap-4">
+                      <div className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}>
+                        <SkillIcon className="h-5 w-5 sm:h-6 sm:w-6 transition-transform duration-300 group-hover:rotate-6" aria-hidden="true" />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="font-display text-xl font-semibold text-ink">{s.name}</h3>
+                          <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">{s.name}</h3>
                           <Tooltip label="1 = getting started · 5 = confident" side="left">
                             <LevelRing level={s.level} className={`shrink-0 ${barFor(s.icon).text}`} />
                           </Tooltip>
@@ -454,6 +454,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
         <div className="mt-5 flex items-center justify-center gap-4">
           <button
             type="button"
+            data-compact-touch
             onClick={prev}
             aria-label="Previous skill domain"
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -468,6 +469,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
           </span>
           <button
             type="button"
+            data-compact-touch
             onClick={next}
             aria-label="Next skill domain"
             className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
@@ -476,6 +478,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
           </button>
           <button
             type="button"
+            data-compact-touch
             onClick={() => setPaused((p) => !p)}
             aria-pressed={paused}
             aria-label={paused ? "Resume auto-advance" : "Pause auto-advance"}
