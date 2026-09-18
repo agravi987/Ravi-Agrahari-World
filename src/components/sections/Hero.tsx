@@ -627,7 +627,6 @@ export default function Hero({
               <Button
                 variant="secondary"
                 onClick={() => openResumeModal()}
-                className="btn-sheen"
               >
                 <FileText className="h-4 w-4 text-accent" aria-hidden="true" />
                 Resume / CV

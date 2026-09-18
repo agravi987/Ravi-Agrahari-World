@@ -472,7 +472,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       `${((e.clientY - r.top) / r.height) * 100}%`,
                     );
                   }}
-                  className="group card-spotlight h-full overflow-hidden"
+                  className="group card-spotlight h-full overflow-hidden flex flex-col"
                 >
                   <button
                     type="button"
@@ -481,7 +481,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     aria-label={`Open ${project.title} details`}
                     tabIndex={focusedIdx === i ? 0 : -1}
                     data-project-index={i}
-                    className="block w-full cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                    className="block w-full flex-1 cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
                     {/* Browser Mockup Chrome Header */}
                     <div className="browser-chrome" aria-hidden="true">
@@ -597,41 +597,43 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           </div>
                         </div>
                       )}
-
-                      {/* Instant Launchpad — Direct 1-Click Access for Recruiters */}
-                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-card-border/60 pt-3">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {project.demoUrl && (
-                            <a
-                              href={project.demoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 rounded-full bg-accent-btn px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
-                            >
-                              Live Demo
-                              <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
-                            </a>
-                          )}
-                          {project.repoUrl && (
-                            <a
-                              href={project.repoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1 text-xs font-medium text-ink-soft shadow-sm transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
-                            >
-                              <span className="font-mono text-[10px] font-bold">GH</span>
-                              Code
-                            </a>
-                          )}
-                        </div>
-                        <span className="font-mono text-[11px] text-accent font-medium inline-flex items-center gap-0.5 group-hover:underline">
-                          Quick Specs ➔
-                        </span>
-                      </div>
                     </div>
                   </button>
+
+                  {/* Instant Launchpad — Direct 1-Click Access for Recruiters */}
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-card-border/60 p-5 pt-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {project.demoUrl && (
+                        <a
+                          href={project.demoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full bg-accent-btn px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
+                        >
+                          Live Demo
+                          <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                        </a>
+                      )}
+                      {project.repoUrl && (
+                        <a
+                          href={project.repoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1 text-xs font-medium text-ink-soft shadow-sm transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
+                        >
+                          <span className="font-mono text-[10px] font-bold">GH</span>
+                          Code
+                        </a>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => openProject(project)}
+                      className="font-mono text-[11px] text-accent font-medium inline-flex items-center gap-0.5 hover:underline cursor-pointer"
+                    >
+                      Quick Specs ➔
+                    </button>
+                  </div>
                 </Card>
               </TiltCard>
             </Reveal>

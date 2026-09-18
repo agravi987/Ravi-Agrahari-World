@@ -604,7 +604,7 @@ export default function Contact({
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Magnetic strength={0.15} className="w-full sm:w-auto">
-              <Button type="submit" disabled={sending} className="btn-sheen btn-breathe relative w-full overflow-hidden sm:w-auto">
+              <Button type="submit" disabled={sending} className="w-full sm:w-auto">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 {sending ? "Sending…" : "Send message"}
               </Button>

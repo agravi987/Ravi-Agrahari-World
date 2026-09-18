@@ -689,8 +689,7 @@ html[data-theme="nord"] .project-cover-img {
   .pipeline-flow-pulse,
   .satellite-orbit-drift,
   .telemetry-ping,
-  .avionics-beacon-pulse,
-  .holographic-foil::after {
+  .avionics-beacon-pulse {
     animation: none !important;
     transition: none !important;
   }
@@ -739,36 +738,6 @@ html[data-theme="nord"] .project-cover-img {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-/* ============================================================
-   Holographic Foil Sheen
-   ============================================================ */
-.holographic-foil {
-  position: relative;
-  overflow: hidden;
-}
-.holographic-foil::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    115deg,
-    transparent 0%,
-    rgba(99, 102, 241, 0.08) 25%,
-    rgba(56, 189, 248, 0.12) 45%,
-    rgba(244, 114, 182, 0.08) 65%,
-    transparent 100%
-  );
-  background-size: 200% 200%;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.4s ease, transform 0.6s ease;
-  transform: translateX(-30%);
-}
-.holographic-foil:hover::after {
-  opacity: 1;
-  transform: translateX(30%);
 }
 
 /* ============================================================
@@ -2200,29 +2169,6 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   pointer-events: none;
 }
 
-/* Card spotlight — a radial tint that follows the pointer (--sx/--sy
-   set by TiltCard / onMouseMove) and fades in on hover. */
-.card-spotlight {
-  position: relative;
-  overflow: hidden;
-}
-.card-spotlight::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    420px circle at var(--sx, 50%) var(--sy, 50%),
-    rgba(79, 70, 229, 0.09),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.3s var(--ease-smooth);
-  pointer-events: none;
-  z-index: 1;
-}
-.card-spotlight:hover::before {
-  opacity: 1;
-}
 
 /* Staggered reveal (Reveal.tsx) — SSR-safe: starts visible, below-fold
    items are hidden then revealed by an IntersectionObserver. Lift +
@@ -2614,30 +2560,6 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
     0 4px 18px -6px color-mix(in oklab, var(--color-accent) 35%, transparent);
 }
 
-/* Button sheen: a light band sweeps across the submit button on hover
-   (uses .btn-sheen on a relative, overflow-hidden button). Cheap,
-   visible "interactive" motion; RM-safe (hover-only). */
-.btn-sheen::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: -160%;
-  width: 55%;
-  background: linear-gradient(
-    100deg,
-    transparent,
-    color-mix(in oklab, white 45%, transparent),
-    transparent
-  );
-  transform: skewX(-22deg);
-  transition: left 0.65s var(--ease-smooth);
-  pointer-events: none;
-}
-.btn-sheen:hover::after {
-  left: 160%;
-}
-
 /* Contact aurora — slow drifting light blobs (transform loop + a fixed
    opacity, RM-frozen). Matches the celestial motif's softness. */
 @keyframes aurora-a {
@@ -3014,18 +2936,6 @@ html[data-theme="nord"] .galaxy-orbit-line circle {
   }
 }
 
-.btn-breathe {
-  animation: btn-breathe 3s ease-in-out infinite;
-}
-@keyframes btn-breathe {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-accent) 22%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 18px 3px color-mix(in oklab, var(--color-accent) 45%, transparent);
-  }
-}
 
 /* ============================================================
    Continuous-motion batch 4 — ambient background + remaining life:

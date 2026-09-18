@@ -311,7 +311,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight holographic-foil cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
             {/* P8: issuer logo when the CMS provides one; topic-hued Award
