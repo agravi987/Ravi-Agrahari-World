@@ -483,6 +483,19 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     data-project-index={i}
                     className="block w-full cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
+                    {/* Browser Mockup Chrome Header */}
+                    <div className="browser-chrome" aria-hidden="true">
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span className="browser-dot browser-dot-red" />
+                        <span className="browser-dot browser-dot-yellow" />
+                        <span className="browser-dot browser-dot-green" />
+                      </div>
+                      <div className="browser-url-bar">
+                        <span className="text-emerald-500 font-bold">🔒</span>
+                        <span>ravi.dev/projects/{project.slug || project.title.toLowerCase().replace(/\W+/g, "-")}</span>
+                      </div>
+                    </div>
+
                     {/* Cover-forward card: the cover dominates and the
                         title sits ON it (dark scrim keeps white text AA),
                         so the grid reads as a premium gallery wall. */}
@@ -491,7 +504,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                         image={project.coverImage}
                         title={project.title}
                         tech={project.tech}
-                        className={`cover-zoom ${hero ? "h-52 sm:h-60" : "h-44 sm:h-40"}`}
+                        className={`cover-zoom ${hero ? "h-48 sm:h-56" : "h-40 sm:h-36"}`}
                       />
                       {/* Scrim — guarantees the overlay text reads on any image */}
                       <span
@@ -517,14 +530,6 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                         className="absolute right-3 top-3 rounded-full bg-ink/50 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm"
                       >
                         {String(i + 1).padStart(2, "0")}
-                      </span>
-                      {/* Hover affordance: a centered "view" pill fades in */}
-                      <span
-                        aria-hidden="true"
-                        className="absolute left-1/2 top-1/2 inline-flex -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full bg-paper px-4 py-1.5 text-xs font-semibold text-ink opacity-0 shadow-card transition-all duration-300 group-hover:-translate-y-1/2 group-hover:opacity-100"
-                      >
-                        view project
-                        <ArrowUpRight className="h-3.5 w-3.5" />
                       </span>
                       {/* Phase 15 (#1): hero ribbon on featured cards */}
                       {hero && (
@@ -592,6 +597,39 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           </div>
                         </div>
                       )}
+
+                      {/* Instant Launchpad — Direct 1-Click Access for Recruiters */}
+                      <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-card-border/60 pt-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {project.demoUrl && (
+                            <a
+                              href={project.demoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 rounded-full bg-accent-btn px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
+                            >
+                              Live Demo
+                              <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                            </a>
+                          )}
+                          {project.repoUrl && (
+                            <a
+                              href={project.repoUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1 text-xs font-medium text-ink-soft shadow-sm transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
+                            >
+                              <span className="font-mono text-[10px] font-bold">GH</span>
+                              Code
+                            </a>
+                          )}
+                        </div>
+                        <span className="font-mono text-[11px] text-accent font-medium inline-flex items-center gap-0.5 group-hover:underline">
+                          Quick Specs ➔
+                        </span>
+                      </div>
                     </div>
                   </button>
                 </Card>

@@ -14,7 +14,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, ChevronDown, Copy, Link2, Sparkles } from "lucide-react";
+import { Activity, Check, ChevronDown, Copy, Link2, Sparkles, Zap } from "lucide-react";
 import { gsapReady } from "@/lib/gsap";
 import CosmicDecor from "@/components/ui/CosmicDecor";
 import ExploreLink from "@/components/ui/ExploreLink";
@@ -254,11 +254,11 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   (.dot-pulse) so "live now" reads at a glance. */}
               <span
                 aria-hidden="true"
-                className={`absolute -left-[31px] top-4 h-3 w-3 rounded-full border-2 bg-paper transition-colors ${
+                className={`absolute -left-[31px] top-4 h-3 w-3 rounded-full border-2 bg-paper transition-all duration-300 ${
                   open
-                    ? `${DOT_HUES[i % DOT_HUES.length]} shadow-[0_0_0_3px] ${DOT_SHADOWS[i % DOT_SHADOWS.length]}`
+                    ? `${DOT_HUES[i % DOT_HUES.length]} shadow-[0_0_0_4px] ${DOT_SHADOWS[i % DOT_SHADOWS.length]} avionics-beacon-pulse ring-2 ring-accent/40`
                     : `border-card-border ${DOT_HOVER[i % DOT_HOVER.length]}`
-                } ${isActive ? "dot-pulse" : ""}`}
+                } ${isActive ? "dot-pulse avionics-beacon-pulse" : ""}`}
               />
               <button
                 type="button"
@@ -376,27 +376,36 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   className="experience-detail project-body px-4 pb-4"
                   {...(open ? {} : ({ inert: true } as object))}
                 >
-                  <p className="text-sm leading-relaxed text-ink-soft">{item.description}</p>
+                  {item.description && (
+                    <p className="text-sm leading-relaxed text-ink-soft">{item.description}</p>
+                  )}
                   {item.metrics.length > 0 && (
                     /* Phase 16 (#4): metrics stagger in when the row opens */
-                    <ul className="metric-stagger mt-3 space-y-1.5">
-                      {item.metrics.map((m, mi) => (
-                        <li
-                          key={m}
-                          className="flex items-start gap-2 text-sm text-ink-soft"
-                          style={{ animationDelay: `${mi * 70}ms` }}
-                        >
-                          {/* P25: done-things get emerald checks, not bullets */}
-                          <span
-                            aria-hidden="true"
-                            className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-soft text-success"
+                    <div className="mt-4 pt-3 border-t border-card-border/60">
+                      <div className="flex items-center gap-2 mb-2.5">
+                        <Activity className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
+                          Mission Telemetry & Key Impact
+                        </span>
+                      </div>
+                      <ul className="metric-stagger space-y-2">
+                        {item.metrics.map((m, mi) => (
+                          <li
+                            key={m}
+                            className="flex items-start gap-2.5 rounded-lg border border-card-border/70 bg-card/60 px-3 py-2 text-sm text-ink-soft shadow-xs transition-colors hover:border-accent/40"
+                            style={{ animationDelay: `${mi * 70}ms` }}
                           >
-                            <Check className="h-3 w-3" />
-                          </span>
-                          {m}
-                        </li>
-                      ))}
-                    </ul>
+                            <span
+                              aria-hidden="true"
+                              className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-soft text-success ring-1 ring-success/20"
+                            >
+                              <Check className="h-3 w-3" />
+                            </span>
+                            <span className="leading-snug">{m}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   )}
                   {/* Phase 16 (#19): tools used — chips, only when present */}
                   {item.tools && item.tools.length > 0 && (

@@ -688,9 +688,104 @@ html[data-theme="nord"] .project-cover-img {
   }
   .pipeline-flow-pulse,
   .satellite-orbit-drift,
-  .telemetry-ping {
+  .telemetry-ping,
+  .avionics-beacon-pulse,
+  .holographic-foil::after {
     animation: none !important;
+    transition: none !important;
   }
+}
+
+/* ============================================================
+   Browser Chrome Window Mockup
+   ============================================================ */
+.browser-chrome {
+  background: color-mix(in oklab, var(--color-paper-deep) 85%, var(--color-card));
+  border-bottom: 1px solid var(--color-card-border);
+  padding: 0.45rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+.browser-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  display: inline-block;
+}
+.browser-dot-red {
+  background: #f87171;
+}
+.browser-dot-yellow {
+  background: #fbbf24;
+}
+.browser-dot-green {
+  background: #34d399;
+}
+.browser-url-bar {
+  flex: 1;
+  background: var(--color-card);
+  border: 1px solid var(--color-card-border);
+  border-radius: 6px;
+  padding: 0.15rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ============================================================
+   Holographic Foil Sheen
+   ============================================================ */
+.holographic-foil {
+  position: relative;
+  overflow: hidden;
+}
+.holographic-foil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 0%,
+    rgba(99, 102, 241, 0.08) 25%,
+    rgba(56, 189, 248, 0.12) 45%,
+    rgba(244, 114, 182, 0.08) 65%,
+    transparent 100%
+  );
+  background-size: 200% 200%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.6s ease;
+  transform: translateX(-30%);
+}
+.holographic-foil:hover::after {
+  opacity: 1;
+  transform: translateX(30%);
+}
+
+/* ============================================================
+   Avionics Beacon & Mission Log Telemetry
+   ============================================================ */
+@keyframes beacon-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.avionics-beacon-pulse {
+  animation: beacon-ripple 2.4s cubic-bezier(0, 0.2, 0.8, 1) infinite;
 }
 
 /* Phase 16 (Experience #9): paper-friendly full timeline. */

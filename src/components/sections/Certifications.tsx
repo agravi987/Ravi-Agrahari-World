@@ -311,7 +311,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight holographic-foil cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
             {/* P8: issuer logo when the CMS provides one; topic-hued Award
@@ -325,17 +325,28 @@ export default function Certifications({
                 decoding="async"
                 title={cert.issuer}
                 // Phase 16 (#16): cert-logo carries the dark-mode rule
-                className="cert-logo h-12 w-12 shrink-0 rounded-lg object-contain transition-transform duration-300 group-hover:scale-110"
+                className="cert-logo h-14 w-14 shrink-0 rounded-xl border border-card-border/80 bg-paper p-1 object-contain shadow-xs transition-transform duration-300 group-hover:scale-110"
               />
             ) : (
               <div
-                className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${TILES[idx % 4]}`}
+                className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl shadow-xs transition-transform duration-300 group-hover:scale-110 ${TILES[idx % 4]}`}
               >
-                <Award className="h-6 w-6" aria-hidden="true" />
+                <Award className="h-7 w-7" aria-hidden="true" />
               </div>
             )}
 
             <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 mb-1">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-600">
+                  <ShieldCheck className="h-3 w-3" />
+                  Verified Credential
+                </span>
+                {domain && (
+                  <span className="font-mono text-[10px] text-ink-faint">
+                    via {domain}
+                  </span>
+                )}
+              </div>
               <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">{cert.name}</h3>
               <p className="mt-0.5 text-sm text-ink-soft">{cert.issuer}</p>
               <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-2">
@@ -381,11 +392,10 @@ export default function Certifications({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Verify ${cert.name}`}
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-1.5 rounded-full border border-card-border bg-paper px-4 py-2 text-sm font-medium text-ink-soft transition-colors hover:border-accent hover:bg-accent hover:text-white"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-5 py-2.5 text-sm font-semibold text-accent shadow-xs transition-all duration-200 hover:scale-105 hover:bg-accent hover:text-white"
                 >
-                  Verify
-                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span>Verify Credential</span>
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </Tooltip>
             </div>
