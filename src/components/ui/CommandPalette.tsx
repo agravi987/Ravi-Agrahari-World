@@ -29,6 +29,7 @@ import {
   Snowflake,
   Sun,
   Terminal,
+  FileText,
   type LucideIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -37,6 +38,7 @@ import { useReducedMotion } from "@/lib/useReducedMotion";
 import { scrollToSection } from "@/lib/scrollTo";
 import { applyTheme, cycleTheme, previewTheme, storedChoice, THEMES, THEME_LIST, type ThemeChoice } from "@/lib/theme";
 import { showToast } from "@/components/ui/Toast";
+import { openResumeModal } from "@/components/ui/ResumeModal";
 
 /* --- Tiny module store: lets the header button open the palette --- */
 
@@ -313,6 +315,17 @@ export default function CommandPalette({
     }));
 
     const commands: Action[] = [
+      {
+        id: "resume",
+        label: "View / Download Resume",
+        hint: "PDF summary",
+        icon: FileText,
+        keywords: "resume cv download pdf profile recruiter work qualifications",
+        run: () => {
+          closePalette();
+          openResumeModal();
+        },
+      },
       {
         id: "terminal",
         label: "Open hidden terminal",

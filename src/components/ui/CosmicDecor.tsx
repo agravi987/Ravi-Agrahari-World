@@ -96,6 +96,9 @@ interface CosmicDecorProps {
   /** Tiny spaceship doodle drifting near the section corner. */
   ship?: boolean;
   shipSpot?: DecorSpot;
+  /** Tiny vector satellite drifting near the section corner. */
+  satellite?: boolean;
+  satelliteSpot?: DecorSpot;
   /** Extra positioning tweaks (rarely needed). */
   className?: string;
 }
@@ -108,6 +111,8 @@ export default function CosmicDecor({
   ring = false,
   ship = false,
   shipSpot = "bottom-left",
+  satellite = false,
+  satelliteSpot = "top-left",
   className,
 }: CosmicDecorProps) {
   const c = HUES[hue];
@@ -200,6 +205,21 @@ export default function CosmicDecor({
             loading="lazy"
             className="cs-ship-img"
           />
+        </span>
+      )}
+
+      {satellite && (
+        <span className={clsx("absolute pointer-events-none satellite-orbit-drift w-10 sm:w-14", SPOT[satelliteSpot])}>
+          <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="h-full w-full drop-shadow-sm opacity-75">
+            <rect x="8" y="54" width="34" height="12" rx="2" fill="#312e81" stroke="#4f46e5" strokeWidth="1" />
+            <line x1="42" y1="60" x2="48" y2="60" stroke="#cbd5e1" strokeWidth="2" />
+            <rect x="48" y="48" width="24" height="24" rx="2" fill="#f8fafc" stroke="#6366f1" strokeWidth="1.5" />
+            <circle cx="60" cy="60" r="3" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" />
+            <line x1="72" y1="60" x2="78" y2="60" stroke="#cbd5e1" strokeWidth="2" />
+            <rect x="78" y="54" width="34" height="12" rx="2" fill="#312e81" stroke="#4f46e5" strokeWidth="1" />
+            <path d="M52 40 C56 34 64 34 68 40" stroke="#94a3b8" strokeWidth="1.5" fill="none" />
+            <line x1="60" y1="48" x2="60" y2="38" stroke="#cbd5e1" strokeWidth="1" />
+          </svg>
         </span>
       )}
     </div>

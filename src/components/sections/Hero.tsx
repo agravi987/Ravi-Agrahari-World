@@ -28,7 +28,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Mail, Rocket, Flame, Compass } from "lucide-react";
+import { Mail, Rocket, Flame, Compass, FileText } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
@@ -40,6 +40,7 @@ import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import SocialLink from "@/components/ui/SocialLink";
 import Magnetic from "@/components/ui/Magnetic";
 import HeroCosmicScene from "./HeroCosmicScene";
+import ResumeModal, { openResumeModal } from "@/components/ui/ResumeModal";
 
 interface HeroProps {
   name: string;
@@ -582,6 +583,23 @@ export default function Hero({
             {headline}
           </p>
 
+          {/* Recruiter Quick Snapshot — Google / Linear style subtle glass telemetry pill */}
+          <div className="hero-in delay-hero-1 mt-4 inline-flex flex-wrap items-center justify-center lg:justify-start gap-2 rounded-full border border-card-border/80 bg-paper-deep/50 px-4 py-1.5 backdrop-blur-sm text-xs text-ink-soft">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+            <span className="font-semibold text-ink">Recruiter Fast-Track:</span>
+            <span>Cloud &amp; DevOps Ready</span>
+            <span className="text-ink-faint">·</span>
+            <button
+              type="button"
+              data-compact-touch
+              onClick={() => openResumeModal()}
+              className="font-medium text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
+            >
+              <FileText className="h-3.5 w-3.5" aria-hidden="true" />
+              View Snapshot / Resume ↗
+            </button>
+          </div>
+
           {/* Gradient divider under the headline (UX pass) */}
           <div
             aria-hidden="true"
@@ -603,6 +621,16 @@ export default function Hero({
               <Button href="#projects" variant="secondary">
                 <Rocket className="h-4 w-4" aria-hidden="true" />
                 View projects
+              </Button>
+            </Magnetic>
+            <Magnetic strength={0.2}>
+              <Button
+                variant="secondary"
+                onClick={() => openResumeModal()}
+                className="btn-sheen"
+              >
+                <FileText className="h-4 w-4 text-accent" aria-hidden="true" />
+                Resume / CV
               </Button>
             </Magnetic>
             <Magnetic strength={0.2}>
@@ -722,6 +750,12 @@ export default function Hero({
         </svg>
       </a>
     </section>
+    <ResumeModal
+      name={name}
+      email={email}
+      github={socialLinks.find((s) => s.label.toLowerCase().includes("github"))?.url.split("/").pop() || "agravi987"}
+      roles={roles}
+    />
     </>
   );
 }

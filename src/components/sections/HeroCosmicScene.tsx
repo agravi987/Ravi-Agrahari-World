@@ -103,6 +103,82 @@ const PLANETS: PlanetSpec[] = [
   },
 ];
 
+function VectorSatellite({ className = "" }: { className?: string }) {
+  return (
+    <div className={`relative ${className} satellite-orbit-drift select-none pointer-events-none`}>
+      {/* Telemetry wave rings */}
+      <span
+        aria-hidden="true"
+        className="telemetry-ping absolute left-1/2 top-1/2 -ml-3 -mt-3 h-6 w-6 rounded-full border border-accent-cyan/60 pointer-events-none"
+      />
+      <span
+        aria-hidden="true"
+        className="telemetry-ping absolute left-1/2 top-1/2 -ml-5 -mt-5 h-10 w-10 rounded-full border border-accent/40 pointer-events-none [animation-delay:1.4s]"
+      />
+      {/* Precision Vector Satellite */}
+      <svg
+        viewBox="0 0 120 120"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-full w-full drop-shadow-[0_8px_20px_rgba(79,70,229,0.35)]"
+      >
+        {/* Left Solar Wing */}
+        <rect x="6" y="52" width="36" height="16" rx="2" fill="url(#panel-grad)" stroke="#4f46e5" strokeWidth="1" />
+        <line x1="18" y1="52" x2="18" y2="68" stroke="#818cf8" strokeWidth="0.75" />
+        <line x1="30" y1="52" x2="30" y2="68" stroke="#818cf8" strokeWidth="0.75" />
+        <line x1="6" y1="60" x2="42" y2="60" stroke="#818cf8" strokeWidth="0.75" />
+
+        {/* Wing Truss Connector Left */}
+        <line x1="42" y1="60" x2="48" y2="60" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Satellite Bus / Core */}
+        <rect x="48" y="46" width="24" height="28" rx="3" fill="url(#core-grad)" stroke="#6366f1" strokeWidth="1.5" />
+
+        {/* Gold Foil Heat Shield Detail */}
+        <rect x="52" y="50" width="16" height="12" rx="1" fill="url(#gold-foil)" opacity="0.9" />
+
+        {/* Instrument Optics / Lens */}
+        <circle cx="60" cy="56" r="3.5" fill="#0f172a" stroke="#38bdf8" strokeWidth="1" />
+        <circle cx="60.5" cy="55.5" r="1" fill="#ffffff" />
+
+        {/* Wing Truss Connector Right */}
+        <line x1="72" y1="60" x2="78" y2="60" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" />
+
+        {/* Right Solar Wing */}
+        <rect x="78" y="52" width="36" height="16" rx="2" fill="url(#panel-grad)" stroke="#4f46e5" strokeWidth="1" />
+        <line x1="90" y1="52" x2="90" y2="68" stroke="#818cf8" strokeWidth="0.75" />
+        <line x1="102" y1="52" x2="102" y2="68" stroke="#818cf8" strokeWidth="0.75" />
+        <line x1="78" y1="60" x2="114" y2="60" stroke="#818cf8" strokeWidth="0.75" />
+
+        {/* High Gain Parabolic Dish Antenna */}
+        <path d="M50 36 C55 30 65 30 70 36" stroke="#94a3b8" strokeWidth="2" fill="none" strokeLinecap="round" />
+        <line x1="60" y1="46" x2="60" y2="33" stroke="#cbd5e1" strokeWidth="1.5" />
+        <circle cx="60" cy="32" r="1.5" fill="#38bdf8" />
+
+        {/* Star-tracker / Telemetry Boom */}
+        <line x1="60" y1="74" x2="60" y2="82" stroke="#94a3b8" strokeWidth="1.5" />
+        <circle cx="60" cy="82" r="1" fill="#f59e0b" />
+
+        <defs>
+          <linearGradient id="panel-grad" x1="0" y1="0" x2="36" y2="16" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#1e1b4b" />
+            <stop offset="0.5" stopColor="#312e81" />
+            <stop offset="1" stopColor="#1e1b4b" />
+          </linearGradient>
+          <linearGradient id="core-grad" x1="48" y1="46" x2="72" y2="74" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#f8fafc" />
+            <stop offset="1" stopColor="#cbd5e1" />
+          </linearGradient>
+          <linearGradient id="gold-foil" x1="52" y1="50" x2="68" y2="62" gradientUnits="userSpaceOnUse">
+            <stop stopColor="#fbbf24" />
+            <stop offset="1" stopColor="#d97706" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  );
+}
+
 function HeroCosmicScene() {
   const reduceMotion = useReducedMotion();
   const rootRef = useRef<HTMLDivElement>(null);
@@ -342,6 +418,17 @@ function HeroCosmicScene() {
             </div>
           </div>
         ))}
+
+        {/* Vector Research Satellite — Precision orbital probe with telemetry pulses */}
+        <div
+          data-scroll-y={-12}
+          className="absolute left-[3%] top-14 w-16 md:left-[10%] md:top-16 md:w-24 opacity-85 pointer-events-none"
+          style={{ willChange: "transform" }}
+        >
+          <div data-depth={18} className="relative">
+            <VectorSatellite />
+          </div>
+        </div>
 
         {/* The spaceship — parks top-right, swoops in with a banking tilt,
             then rocks side-to-side with a flickering thruster while it

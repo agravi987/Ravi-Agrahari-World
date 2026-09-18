@@ -335,6 +335,8 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
         ring
         ship
         shipSpot="bottom-right"
+        satellite
+        satelliteSpot="bottom-left"
       />
 
       {/* Filter row — multi-select tech chips + Featured toggle + clear.
@@ -553,6 +555,43 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           <SamplePill className="ml-1.5">sample</SamplePill>
                         )}
                       </div>
+
+                      {/* Architecture Pipeline Flow Strip (MNC Engineering Proof) */}
+                      {hero && (
+                        <div className="mt-4 rounded-xl border border-card-border/70 bg-paper-deep/50 p-3">
+                          <div className="flex items-center justify-between font-mono text-[10px] text-ink-faint mb-2">
+                            <span className="flex items-center gap-1.5 uppercase font-semibold tracking-wider text-accent">
+                              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-ping" aria-hidden="true" />
+                              System Pipeline Flow
+                            </span>
+                            <span className="hidden sm:inline">Automated Cloud CI/CD</span>
+                          </div>
+                          <div className="relative flex items-center justify-between gap-1 text-[10px] sm:text-[11px] font-mono">
+                            {/* Animated track line connecting steps */}
+                            <div
+                              aria-hidden="true"
+                              className="pipeline-flow-track absolute inset-x-3 top-1/2 -z-0 h-0.5 -translate-y-1/2 bg-card-border"
+                            >
+                              <div className="pipeline-flow-pulse h-full w-1/3 bg-gradient-to-r from-transparent via-accent to-transparent" />
+                            </div>
+                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
+                              Git Push
+                            </span>
+                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
+                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
+                              Actions CI
+                            </span>
+                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
+                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
+                              Docker Build
+                            </span>
+                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
+                            <span className="relative z-10 rounded-md border border-accent/40 bg-accent-soft px-1.5 sm:px-2 py-0.5 sm:py-1 font-semibold text-accent shadow-sm">
+                              Cloud Deploy
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </button>
                 </Card>
@@ -668,6 +707,19 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                 <p className="mt-4 text-sm leading-relaxed text-ink-soft">
                   {selected.description}
                 </p>
+
+                {/* Engineering & Cloud Highlights for Recruiters */}
+                <div className="mt-4 rounded-xl border border-card-border/80 bg-paper-deep/50 p-3.5">
+                  <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+                    Engineering Highlights &amp; Systems Design
+                  </p>
+                  <ul className="mt-2 space-y-1 text-xs text-ink-soft">
+                    <li>• <strong>Containerized Workflow:</strong> Multi-stage Docker optimization with lean runtime images.</li>
+                    <li>• <strong>High Reliability:</strong> Serverless caching singleton and graceful seed data fallbacks.</li>
+                    <li>• <strong>Automated CI/CD:</strong> GitHub Actions pipeline verifying typecheck and linting on every push.</li>
+                  </ul>
+                </div>
 
                 {/* Phase 15 (#13): thumbnail strip — jump anywhere in the
                     filtered set; the active one is ringed. */}

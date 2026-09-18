@@ -598,6 +598,101 @@ html[data-theme="nord"] .project-cover-img {
   }
 }
 
+/* ============================================================
+   MNC-Grade Card Spotlight & Visual Sheen (Linear / Stripe style)
+   Uses CSS variables --sx and --sy updated by pointermove to draw
+   a subtle radial glow across the card border and surface.
+   ============================================================ */
+.card-spotlight {
+  position: relative;
+}
+.card-spotlight::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: radial-gradient(
+    420px circle at var(--sx, 50%) var(--sy, 50%),
+    color-mix(in oklab, var(--color-accent) 45%, transparent),
+    transparent 65%
+  );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 10;
+}
+.card-spotlight:hover::before {
+  opacity: 1;
+}
+
+/* CI/CD & Architecture Pipeline Animations */
+@keyframes pipeline-pulse {
+  0% {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(250%);
+    opacity: 0;
+  }
+}
+.pipeline-flow-track {
+  position: relative;
+  overflow: hidden;
+}
+.pipeline-flow-pulse {
+  animation: pipeline-pulse 2.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Orbital Satellite Drift & Telemetry Waves */
+@keyframes satellite-float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+.satellite-orbit-drift {
+  animation: satellite-float 12s ease-in-out infinite;
+  will-change: transform;
+}
+
+@keyframes telemetry-wave {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+.telemetry-ping {
+  animation: telemetry-wave 2.8s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-spotlight::before {
+    display: none;
+  }
+  .pipeline-flow-pulse,
+  .satellite-orbit-drift,
+  .telemetry-ping {
+    animation: none !important;
+  }
+}
+
 /* Phase 16 (Experience #9): paper-friendly full timeline. */
 .experience-print-list {
   display: none;
