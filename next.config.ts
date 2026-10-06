@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   /* Remote images (plan D8): Cloudinary hosts CMS uploads; GitHub
      hosts avatars/repo images. Only these hosts are ever allowed.
      NOTE: keep in sync with ALLOWED_IMAGE_HOSTS in src/lib/imageHosts.ts
