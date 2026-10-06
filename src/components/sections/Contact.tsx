@@ -299,7 +299,25 @@ export default function Contact({
             </div>
           </div>
 
-          <p className="mt-6 border-t border-card-border pt-4 font-mono text-[10px] text-ink-faint">
+          {/* Ground Station Telemetry Specs (MNC Transparency) */}
+          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper/60 p-3.5">
+            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1.5">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+              Ground Station Telemetry
+            </p>
+            <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px] font-mono">
+              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2">
+                <span className="text-ink-faint block text-[10px]">TIMEZONE</span>
+                <span className="font-medium text-ink">IST (UTC+5:30)</span>
+              </div>
+              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2">
+                <span className="text-ink-faint block text-[10px]">AVG RESPONSE</span>
+                <span className="font-medium text-emerald-600">&lt; 24 Hours</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-5 border-t border-card-border pt-4 font-mono text-[10px] text-ink-faint">
             replies within 24h · zero trackers
           </p>
         </div>

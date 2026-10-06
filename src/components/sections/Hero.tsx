@@ -28,7 +28,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Mail, Rocket, Flame, FileText } from "lucide-react";
+import { Mail, Rocket, Flame, FileText, Terminal } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
@@ -40,6 +40,7 @@ import SocialLink from "@/components/ui/SocialLink";
 import Magnetic from "@/components/ui/Magnetic";
 import HeroCosmicScene from "./HeroCosmicScene";
 import ResumeModal, { openResumeModal } from "@/components/ui/ResumeModal";
+import { openTerminal } from "@/components/TerminalEasterEgg";
 
 interface HeroProps {
   name: string;
@@ -675,6 +676,15 @@ export default function Hero({
                   {streak}-day streak
                 </Link>
               )}
+              <button
+                type="button"
+                onClick={() => openTerminal()}
+                className="group inline-flex items-center gap-1.5 rounded-full border border-card-border/80 bg-paper px-2.5 py-0.5 font-mono text-[11px] text-ink-soft transition-all hover:border-accent hover:text-accent cursor-pointer shadow-2xs"
+                title="Launch interactive browser CLI terminal (Ctrl+Shift+K)"
+              >
+                <Terminal className="h-3 w-3 text-accent" aria-hidden="true" />
+                <span>&gt;_ CLI Terminal</span>
+              </button>
             </div>
           )}
 

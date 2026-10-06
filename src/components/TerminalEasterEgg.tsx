@@ -12,6 +12,14 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { scrollToSection } from "@/lib/scrollTo";
 
+import { openResumeModal } from "@/components/ui/ResumeModal";
+
+export function openTerminal() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new CustomEvent("orbital:open-terminal"));
+  }
+}
+
 interface Line {
   text: string;
   kind?: "out" | "err";
@@ -20,10 +28,12 @@ interface Line {
 const HELP = `available commands:
   help       show this help
   whoami     who's flying this ship
+  skills     overview of core tech stack
+  docker ps  show live container status
+  resume     open recruiter resume snapshot
   ls         list sections of the mission (clickable)
-  open <sec> jump to a section — e.g. 'open galaxy'
-  pwd        print working directory
-  date       mission time
+  open <sec> jump to a section — e.g. 'open projects'
+  uptime     orbital station status
   clear      clear the screen
   exit       close the terminal`;
 
@@ -74,6 +84,17 @@ export default function TerminalEasterEgg({ name }: { name: string }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // Listen for programmatic open trigger (from CLI buttons/palette)
+  useEffect(() => {
+    const handleOpen = () => {
+      setLines([{ text: BANNER }]);
+      setInput("");
+      setOpen(true);
+    };
+    window.addEventListener("orbital:open-terminal", handleOpen);
+    return () => window.removeEventListener("orbital:open-terminal", handleOpen);
   }, []);
 
   // Focus management: opening moves focus into the input; closing
@@ -128,8 +149,29 @@ export default function TerminalEasterEgg({ name }: { name: string }) {
         output.push({ text: HELP });
         break;
       case "whoami":
-        output.push({ text: `${name} — Cloud, DevOps & AI explorer. Learning in public.` });
+        output.push({ text: `${name} — Cloud & DevOps Engineer | AWS, Docker, CI/CD, Full-Stack` });
         break;
+      case "skills":
+        output.push({ text: "Core Stack: AWS (EC2, S3, IAM, Lambda) · Docker · Kubernetes · GitHub Actions CI/CD · Next.js · TypeScript · MongoDB · Linux" });
+        break;
+      case "docker ps":
+        output.push({ text: "CONTAINER ID   IMAGE              COMMAND          STATUS         PORTS" });
+        output.push({ text: "03101862449f   portfolio:latest   node server.js   Up (Healthy)   0.0.0.0:3000->3000" });
+        break;
+      case "resume":
+        setOpen(false);
+        openResumeModal();
+        return;
+      case "uptime":
+        output.push({ text: "orbital-station: 99.99% uptime · Systems fully operational · 0 critical alerts" });
+        break;
+      case "clear":
+        setLines([]);
+        setInput("");
+        return;
+      case "exit":
+        setOpen(false);
+        return;
       case "ls":
         output.push({ text: SECTIONS.map((s) => `~/${s.name}`).join("   ") });
         break;
