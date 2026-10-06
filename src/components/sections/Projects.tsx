@@ -597,6 +597,12 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           </div>
                         </div>
                       )}
+                      {!hero && (
+                        <div className="mt-3.5 flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-ink-faint">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+                          <span>Containerized · Cloud Native Architecture</span>
+                        </div>
+                      )}
                     </div>
                   </button>
 

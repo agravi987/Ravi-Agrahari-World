@@ -22,7 +22,6 @@ import Hero from "@/components/sections/Hero";
 import Projects from "@/components/sections/Projects";
 import Skills from "@/components/sections/Skills";
 import { getContent, getGalaxy } from "@/lib/content";
-import GuideAstronaut from "@/components/ui/GuideAstronaut";
 
 export const revalidate = 3600;
 
@@ -215,7 +214,6 @@ export default async function Home() {
         </LazyMount>
       )}
     </div>
-    <GuideAstronaut />
     </>
   );
 }

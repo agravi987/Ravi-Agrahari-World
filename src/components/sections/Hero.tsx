@@ -28,13 +28,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Mail, Rocket, Flame, Compass, FileText } from "lucide-react";
+import { Mail, Rocket, Flame, FileText } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
 import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 import { scrollToSection } from "@/lib/scrollTo";
-import { GUIDE_TOUR_EVENT } from "@/lib/sectionTour";
 import Button from "@/components/ui/Button";
 import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import SocialLink from "@/components/ui/SocialLink";
@@ -583,21 +582,16 @@ export default function Hero({
             {headline}
           </p>
 
-          {/* Recruiter Quick Snapshot — Google / Linear style subtle glass telemetry pill */}
-          <div className="hero-in delay-hero-1 mt-4 inline-flex flex-wrap items-center justify-center lg:justify-start gap-2 rounded-full border border-card-border/80 bg-paper-deep/50 px-4 py-1.5 backdrop-blur-sm text-xs text-ink-soft">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
-            <span className="font-semibold text-ink">Recruiter Fast-Track:</span>
-            <span>Cloud &amp; DevOps Ready</span>
-            <span className="text-ink-faint">·</span>
-            <button
-              type="button"
-              data-compact-touch
-              onClick={() => openResumeModal()}
-              className="font-medium text-accent hover:underline inline-flex items-center gap-1 cursor-pointer"
-            >
-              <FileText className="h-3.5 w-3.5" aria-hidden="true" />
-              View Snapshot / Resume ↗
-            </button>
+          {/* Engineering Telemetry Status Pill — MNC Production Mindset */}
+          <div className="hero-in delay-hero-1 mt-5 inline-flex flex-wrap items-center justify-center lg:justify-start gap-2.5 rounded-full border border-card-border/80 bg-paper-deep/60 px-4 py-1.5 backdrop-blur-sm text-xs text-ink-soft shadow-xs">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" aria-hidden="true" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            </span>
+            <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink">Production Telemetry:</span>
+            <span>Cloud &amp; DevOps Architecture</span>
+            <span className="text-ink-faint" aria-hidden="true">·</span>
+            <span className="font-medium text-accent">Available for Opportunities</span>
           </div>
 
           {/* Gradient divider under the headline (UX pass) */}
@@ -609,18 +603,11 @@ export default function Hero({
           <div
             className="hero-in delay-hero-2 mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
           >
-            {/* P25: icons on the CTAs — scanable at a glance.
-                Magnetic hover pulls the buttons toward the cursor. */}
+            {/* High-conversion 3-button cluster: Projects, Resume, Contact */}
             <Magnetic strength={0.2}>
-              <Button href={`mailto:${email}`}>
-                <Mail className="h-4 w-4" aria-hidden="true" />
-                Get in touch
-              </Button>
-            </Magnetic>
-            <Magnetic strength={0.2}>
-              <Button href="#projects" variant="secondary">
+              <Button href="#projects">
                 <Rocket className="h-4 w-4" aria-hidden="true" />
-                View projects
+                Explore Projects
               </Button>
             </Magnetic>
             <Magnetic strength={0.2}>
@@ -633,14 +620,9 @@ export default function Hero({
               </Button>
             </Magnetic>
             <Magnetic strength={0.2}>
-              <Button
-                variant="secondary"
-                onClick={() =>
-                  window.dispatchEvent(new Event(GUIDE_TOUR_EVENT))
-                }
-              >
-                <Compass className="h-4 w-4" aria-hidden="true" />
-                Take the tour
+              <Button href={`mailto:${email}`} variant="secondary">
+                <Mail className="h-4 w-4" aria-hidden="true" />
+                Get in Touch
               </Button>
             </Magnetic>
           </div>
