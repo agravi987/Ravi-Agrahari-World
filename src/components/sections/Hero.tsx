@@ -413,25 +413,6 @@ function PhotoComposition({
           )}
         </div>
       </div>
-
-      {/* Floating glass chips (transform-only float; zero-data: the
-          streak chip hides below 2 days, §5.3) */}
-      {showStreak && (
-        <p
-          title="Learning streak — the days I've shipped something, back to back"
-          className="glass-surface animate-float-a absolute -top-4 right-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink"
-        >
-          <Flame className="h-3.5 w-3.5 text-topic-mars" aria-hidden="true" />
-          {streak}-day streak
-        </p>
-      )}
-      <p className="glass-surface animate-float-b absolute -bottom-4 left-2 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium text-ink-soft">
-        <span className="relative flex h-2 w-2" aria-hidden="true">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-cyan opacity-60" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-cyan" />
-        </span>
-        learning in public
-      </p>
       </div>
     </div>
   );
@@ -534,28 +515,13 @@ export default function Hero({
           ref={driftRef}
           className="text-center lg:text-left"
         >
-          {/* Badge row: momentum badge + availability pill (P24 —
-              recruiter-first: they scan availability in seconds) */}
-          <div className="hero-in flex flex-wrap items-center justify-center gap-2 lg:justify-start">
-            {/* P25: the badge is a shortcut INTO the galaxy — the topic
-                you're learning lives there as a planet (header parity) */}
-            <Link
-              href="/detailed-galaxy"
-              title="See this topic in the learning galaxy"
-              className="glass-surface inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
-            >
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-cyan opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-cyan" />
-              </span>
-              currently learning: {currentlyLearning}
-            </Link>
-            {availability && (
-              /* Phase 14 (#4): the pill pulses TWICE on mount, then goes
-                  still (one-shot box-shadow animation). Shared pill (#74). */
-              <AvailabilityPill text={availability} pulse />
-            )}
-          </div>
+          {/* Status line — minimal and clean, no chunky notification borders */}
+          {availability && (
+            <div className="hero-in flex items-center justify-center lg:justify-start gap-2 text-xs font-mono text-ink-soft">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              <span>{availability}</span>
+            </div>
+          )}
 
           {/* The h1 + headline are LCP-critical text — NO entrance
               animation on them (Chrome defers the LCP candidate until a
@@ -567,7 +533,7 @@ export default function Hero({
               Still zero entrance animation (LCP-critical text). */}
           <h1
             id="hero-title"
-            className="mt-6 font-display font-semibold tracking-tight text-ink"
+            className="mt-4 font-display font-semibold tracking-tight text-ink"
           >
             <span className="block text-4xl sm:text-6xl">
               {/* Phase 14 (#1): slow traveling shimmer on the gradient
@@ -583,19 +549,7 @@ export default function Hero({
             {headline}
           </p>
 
-          {/* Engineering Telemetry Status Pill — MNC Production Mindset */}
-          <div className="hero-in delay-hero-1 mt-5 inline-flex flex-wrap items-center justify-center lg:justify-start gap-2.5 rounded-full border border-card-border/80 bg-paper-deep/60 px-4 py-1.5 backdrop-blur-sm text-xs text-ink-soft shadow-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" aria-hidden="true" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" aria-hidden="true" />
-            </span>
-            <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink">Production Telemetry:</span>
-            <span>Cloud &amp; DevOps Architecture</span>
-            <span className="text-ink-faint" aria-hidden="true">·</span>
-            <span className="font-medium text-accent">Available for Opportunities</span>
-          </div>
-
-          {/* Gradient divider under the headline (UX pass) */}
+          {/* Gradient divider under the headline */}
           <div
             aria-hidden="true"
             className="mx-auto mt-6 h-px max-w-md bg-gradient-to-r from-accent/50 via-accent-cyan/40 to-transparent lg:mx-0"
