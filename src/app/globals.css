@@ -881,7 +881,7 @@ html {
 }
 
 body {
-  background-color: var(--color-paper);
+  background-color: transparent;
   color: var(--color-ink);
   font-family: var(--font-sans);
   /* Layered texture: dot-grid (structure) + SVG noise grain (tactile
@@ -895,9 +895,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Global cosmic background — the JWST "Cosmic Cliffs" nebula with a
-   clean translucent white wash. Soft white transparency keeps the warm
-   paper ground readable, luminous, and clean while letting the nebula texture shine through. */
+/* Global cosmic background — the JWST "Cosmic Cliffs" nebula as the fixed backdrop. */
 @media (prefers-reduced-motion: no-preference) {
   body::before {
     content: "";
@@ -906,8 +904,8 @@ body {
     z-index: -2;
     pointer-events: none;
     background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
-    opacity: 0.28;
-    filter: saturate(1.1) brightness(1.05);
+    opacity: 0.35;
+    filter: saturate(1.15) brightness(1.05);
   }
 }
 
@@ -915,8 +913,9 @@ body {
   body::before { display: none; }
 }
 
-/* White transparent overlay — soft luminous frosted wash over the cosmic image,
-   matching the bright translucent background under the solar system. */
+/* White transparent overlay — soft luminous frosted wash over the cosmic image
+   matching the bright translucent background under the solar system.
+   In dark mode: also white, but with higher transparency (more translucent) as requested. */
 @media (prefers-reduced-motion: no-preference) {
   body::after {
     content: "";
@@ -935,16 +934,18 @@ body {
   }
 }
 
-/* Dark mode overrides: adapts overlay to dark tones when dark theme is active */
+/* Dark mode overrides: also white translucent overlay, but more transparent (lighter opacity) */
 html[data-theme="dark"] body::after,
 html[data-theme="midnight"] body::after,
 html[data-theme="nord"] body::after {
   background: linear-gradient(
     180deg,
-    rgba(12, 10, 9, 0.78) 0%,
-    rgba(12, 10, 9, 0.68) 50%,
-    rgba(12, 10, 9, 0.82) 100%
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.25) 100%
   );
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 @media (prefers-contrast: more) {
