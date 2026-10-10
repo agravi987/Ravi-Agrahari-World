@@ -70,16 +70,11 @@ interface SectionProps {
 }
 
 /** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
-/** Fluid padding presets — clamp(min, preferred, max) so the space
- *  grows with the viewport between a mobile floor and a desktop ceiling.
- *  Bottom padding is ~80% of top on every preset: classic editorial
- *  rhythm (space belongs ABOVE a heading, not after the content). */
+/** Fluid padding presets — tightened to remove excessive gaps between sections */
 const SPACING: Record<NonNullable<SectionProps["spacing"]>, string> = {
-  tight: "pt-[clamp(1.75rem,1rem+2.5vw,3rem)] pb-[clamp(1.5rem,0.875rem+2vw,2.5rem)]",
-  normal:
-    "pt-[clamp(2.5rem,1.25rem+4vw,5rem)] pb-[clamp(2rem,1rem+3.25vw,4rem)]",
-  roomy:
-    "pt-[clamp(3.5rem,1.5rem+6vw,7rem)] pb-[clamp(2.75rem,1.25rem+4.75vw,5.5rem)]",
+  tight: "pt-6 pb-5 sm:pt-8 sm:pb-7",
+  normal: "pt-10 pb-8 sm:pt-12 sm:pb-10 lg:pt-14 lg:pb-12",
+  roomy: "pt-14 pb-12 sm:pt-16 sm:pb-14 lg:pt-20 lg:pb-16",
 };
 
 /** Maps tone → eyebrow text color + title-sweep var + chromatic heading gradient. */
@@ -148,11 +143,7 @@ export default function Section({
 }: SectionProps) {
   const { ref, inView } = useInView<HTMLElement>();
   const t = TONES[tone];
-  const titleRef = useRef<HTMLHeadingElement>(null);
   const reduceMotion = useReducedMotion();
-  // Snap-deck "current tab": only the section centred in the middle 10%
-  // of the viewport is the active one (same band the rail uses). Gates
-  // the top-rim + title-glow flourish (globals.css .snap-current).
   const [current, setCurrent] = useState(false);
   useEffect(() => {
     if (!fit) return;
@@ -167,55 +158,6 @@ export default function Section({
     io.observe(el);
     return () => io.disconnect();
   }, [fit, ref]);
-
-  /** GSAP pass: masked word-rise on the title (below-fold only).
-   *  SplitText wraps each word in an overflow-hidden mask; words rise
-   *  yPercent 110→0 with a slight stagger while the section itself
-   *  fades up — a coherent, premium cascade. One-shot ScrollTrigger.
-   *  SplitText 3.13+ keeps the h2 accessible (aria-label on the
-   *  heading, splits hidden from AT) and .revert() restores the
-   *  original HTML on unmount. If GSAP fails to load the title simply
-   *  stays static — the sweep underline still draws via CSS. */
-  useEffect(() => {
-    if (reduceMotion) return;
-    const el = titleRef.current;
-    if (!el) return;
-    // Repo invariant (useInView): never hide content already on screen.
-    if (el.getBoundingClientRect().top < window.innerHeight) return;
-
-    let cancelled = false;
-    let dispose: (() => void) | null = null;
-
-    gsapReady()
-      .then(({ gsap }) =>
-        import("gsap/SplitText").then(({ SplitText }) => {
-          if (cancelled) return;
-          gsap.registerPlugin(SplitText); // idempotent
-          const split = SplitText.create(el, { type: "words", mask: "words" });
-          const tween = gsap.from(split.words, {
-            yPercent: 110,
-            duration: 0.55,
-            ease: "power3.out",
-            stagger: 0.045,
-            delay: 0.05,
-            scrollTrigger: { trigger: el, start: "top 85%", once: true },
-          });
-          dispose = () => {
-            tween.scrollTrigger?.kill();
-            tween.kill();
-            split.revert();
-          };
-        })
-      )
-      .catch(() => {
-        /* GSAP failed to load — title stays static, nothing breaks */
-      });
-
-    return () => {
-      cancelled = true;
-      dispose?.();
-    };
-  }, [reduceMotion]);
 
   /** Phase 9: copy a stable deep link to this section (Linear/Notion-
    *  grade affordance). Appears on hover next to the title. */
@@ -255,8 +197,6 @@ export default function Section({
         "section-reveal relative overflow-x-clip",
         inView && "is-in-view",
         band && "band-bg",
-        fit && "snap-section flex flex-col justify-center lg:min-h-svh",
-        current && "snap-current",
         className
       )}
       // Phase 9 color: band sections carry a whisper of their topic hue
@@ -293,7 +233,6 @@ export default function Section({
            </div>
             <div className="flex items-center gap-2.5">
               <h2
-                ref={titleRef}
                 id={`${id}-title`}
                 className={clsx(
                   "mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl",

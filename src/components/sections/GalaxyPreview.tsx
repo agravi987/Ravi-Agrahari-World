@@ -46,7 +46,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
     <section
       id="galaxy"
       aria-labelledby="galaxy-title"
-      className="snap-section flex flex-col justify-center py-12 md:py-16"
+      className="py-8 sm:py-10 lg:py-12"
     >
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Eyebrow label="learning-galaxy" />

@@ -152,7 +152,20 @@ body {
   color: transparent;
 }
 
-/* Luminous Chromatic Heading Gradients */
+/* Luminous Chromatic Heading Gradients - with padding & proper line-height so descenders/ascenders never cut */
+.heading-gradient-cloud,
+.heading-gradient-devops,
+.heading-gradient-ai,
+.heading-gradient-linux,
+.heading-gradient-mars,
+.heading-gradient-accent,
+.text-gradient {
+  display: inline-block;
+  padding-bottom: 0.15em;
+  padding-top: 0.05em;
+  line-height: 1.25;
+}
+
 .heading-gradient-cloud {
   background: linear-gradient(135deg, #f8fafc 20%, #38bdf8 80%, #818cf8 100%);
   -webkit-background-clip: text;
@@ -538,35 +551,13 @@ body {
    scrolling must be free-flowing and unconstrained.
    Reduced-motion users get plain scrolling (no snap).
    ============================================================ */
-@media (min-width: 1024px) {
-  html {
-    scroll-snap-type: y mandatory;
-  }
-  .snap-section {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
-  html:has(.snap-section) footer {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
+/* Scroll snapping disabled for continuous, natural scroll rhythm */
+html {
+  scroll-snap-type: none !important;
 }
-@media (max-width: 1023px) {
-  html {
-    scroll-snap-type: none !important;
-  }
-  .snap-section {
-    scroll-snap-align: none !important;
-    scroll-snap-stop: normal !important;
-  }
-}
-html:has(.snap-section) {
-  scroll-padding-top: 0;
-}
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-snap-type: none !important;
-  }
+.snap-section {
+  scroll-snap-align: none !important;
+  scroll-snap-stop: normal !important;
 }
 
 /* Snap "current tab" flourish: when a section becomes the active

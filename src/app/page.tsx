@@ -111,8 +111,6 @@ export default async function Home() {
             galaxyPlanetSlugs={Object.fromEntries(
               galaxy.planets.map((p) => [p.name.toLowerCase(), p.slug])
             )}
-            fit
-            cue
             stats={stats}
           />
         </LazyMount>
@@ -131,7 +129,7 @@ export default async function Home() {
             />
           }
         >
-          <Projects projects={projects} github={config.github} fit cue exploreHref="/projects" />
+          <Projects projects={projects} github={config.github} exploreHref="/projects" />
         </LazyMount>
       )}
 
@@ -147,8 +145,6 @@ export default async function Home() {
         >
           <Experience
             experience={experience}
-            fit
-            cue
             surfaceCount={3}
             exploreHref="/experience"
           />
@@ -173,8 +169,6 @@ export default async function Home() {
                 [p.slug.toLowerCase(), p.slug],
               ])
             )}
-            fit
-            cue
             limit={4}
             exploreHref="/certifications"
           />
@@ -191,7 +185,7 @@ export default async function Home() {
             />
           }
         >
-          <Blog posts={posts} fit cue />
+          <Blog posts={posts} />
         </LazyMount>
       )}
 
@@ -209,7 +203,6 @@ export default async function Home() {
             socialLinks={config.socialLinks}
             availability={config.availability}
             location={config.location}
-            fit
           />
         </LazyMount>
       )}
