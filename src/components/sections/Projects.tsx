@@ -472,10 +472,10 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       `${((e.clientY - r.top) / r.height) * 100}%`,
                     );
                   }}
-                  className={`group card-spotlight h-full overflow-hidden flex flex-col backdrop-blur-xl ${
+                  className={`group card-spotlight h-full overflow-hidden flex flex-col backdrop-blur-xl shadow-lg shadow-black/40 ${
                     hero
-                      ? "bg-gradient-to-br from-amber-900/35 via-indigo-900/40 to-purple-900/40 border-amber-400/40 shadow-[0_8px_32px_rgba(245,158,11,0.25)]"
-                      : "bg-gradient-to-br from-indigo-900/40 via-[#18193f]/35 to-cyan-950/40 border-indigo-400/30 shadow-[0_8px_30px_rgba(99,102,241,0.2)]"
+                      ? "bg-gradient-to-br from-[#241a10]/85 via-[#191535]/80 to-[#141838]/85 border-amber-500/35"
+                      : "bg-gradient-to-br from-[#151336]/85 via-[#111634]/80 to-[#0e1730]/85 border-indigo-500/25"
                   }`}
                 >
                   <button
@@ -498,11 +498,11 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       {/* Scrim — guarantees the overlay text reads on any image */}
                       <span
                         aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent transition-opacity duration-300 group-hover:from-ink/90"
+                        className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent transition-opacity duration-300 group-hover:from-black/95"
                       />
                       {/* Title on the cover */}
                       <div className="absolute inset-x-0 bottom-0 flex items-start justify-between gap-3 p-4 sm:p-5">
-                        <h3 className="flex items-center gap-2 font-display text-xl sm:text-2xl font-bold text-white tracking-tight group-hover:text-cyan-200 transition-colors">
+                        <h3 className="flex items-center gap-2 font-display text-xl sm:text-2xl font-bold text-white tracking-tight group-hover:text-cyan-300 transition-colors drop-shadow-sm">
                           {project.title}
                           {project.featured && (
                             <Star
@@ -516,7 +516,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       {/* Mono index — the collection reads as a series */}
                       <span
                         aria-hidden="true"
-                        className="absolute right-3.5 top-3.5 rounded-full bg-ink/60 px-2.5 py-0.5 font-mono text-xs font-semibold text-white/90 backdrop-blur-sm"
+                        className="absolute right-3.5 top-3.5 rounded-full bg-black/60 px-2.5 py-0.5 font-mono text-xs font-bold text-white backdrop-blur-sm"
                       >
                         {String(i + 1).padStart(2, "0")}
                       </span>
@@ -533,7 +533,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     </div>
                     <div className="p-5 sm:p-6">
                       {/* Teaser text */}
-                      <p className="line-clamp-2 text-base leading-relaxed text-ink-soft">
+                      <p className="line-clamp-2 text-base leading-relaxed text-slate-100 font-normal">
                         {project.description}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -581,7 +581,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     <button
                       type="button"
                       onClick={() => openProject(project)}
-                      className="font-mono text-xs sm:text-sm text-accent hover:text-accent-cyan font-semibold inline-flex items-center gap-1 transition-colors hover:underline cursor-pointer"
+                      className="font-mono text-xs sm:text-sm text-cyan-300 hover:text-cyan-100 font-bold inline-flex items-center gap-1 transition-colors hover:underline cursor-pointer"
                     >
                       Details &amp; Specs ➔
                     </button>

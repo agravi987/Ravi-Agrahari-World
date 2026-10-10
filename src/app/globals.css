@@ -58,11 +58,11 @@ body {
 
 @theme {
   /* --- Default Dark Theme Palette: Deep Cosmic Slate & Midnight Glass --- */
-  --color-paper: #0b0e1e;        /* cosmic indigo-midnight base — luminous, never pitch-black */
-  --color-paper-deep: #161936;   /* deep celestial amethyst-slate surface */
-  --color-ink: #f8fafc;          /* slate-50 bright primary text */
-  --color-ink-soft: #cbd5e1;     /* slate-300 rich secondary text */
-  --color-ink-faint: #94a3b8;    /* slate-400 crisp tertiary text */
+  --color-paper: #090c1a;        /* deep cosmic indigo-midnight base */
+  --color-paper-deep: #12102e;   /* deep celestial surface */
+  --color-ink: #ffffff;          /* crisp high-contrast primary text */
+  --color-ink-soft: #f1f5f9;     /* slate-100 vivid secondary text for absolute clarity */
+  --color-ink-faint: #93c5fd;    /* sky-300 colorful high-contrast tertiary text */
 
   /* One brand accent: luminous electric indigo & cyan */
   --color-accent: #818cf8;       /* indigo-400 — buttons, links, focus rings */
@@ -103,9 +103,9 @@ body {
   --color-stat-linux: #fbbf24;
   --color-stat-mars: #f87171;
 
-  /* --- Card surfaces: Luminous Frosted Cosmic Glass --- */
-  --color-card: #1c194a;         /* radiant celestial indigo-violet card */
-  --color-card-border: rgba(165, 180, 252, 0.28);  /* crisp luminous starlight glass border */
+  /* --- Card surfaces: Rich Deep Cosmic Surface (Reduced Glare) --- */
+  --color-card: #151336;         /* rich celestial indigo surface */
+  --color-card-border: rgba(129, 140, 248, 0.20);  /* crisp subtle border, no neon glare */
 
   /* --- Typography --- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -659,7 +659,7 @@ html:has(.snap-section) {
   z-index: 10;
 }
 .card-spotlight:hover::before {
-  opacity: 1;
+  opacity: 0.45;
 }
 
 /* CI/CD & Architecture Pipeline Animations */
@@ -1680,7 +1680,7 @@ body {
 .skill-glow::before {
   content: "";
   position: absolute;
-  inset: -2px;
+  inset: -1px;
   border-radius: inherit;
   background: conic-gradient(
     from var(--angle),
@@ -1688,10 +1688,9 @@ body {
     var(--glow-b, var(--color-accent-cyan)),
     var(--glow-a, var(--color-accent))
   );
-  opacity: 0.95;
+  opacity: 0.35;
   z-index: -1;
-  filter: drop-shadow(0 0 7px var(--glow-a, var(--color-accent)));
-  animation: skill-glow-spin 3s linear infinite;
+  animation: skill-glow-spin 4s linear infinite;
 }
 @keyframes skill-glow-spin {
   to {
@@ -1705,13 +1704,12 @@ body {
   0%,
   100% {
     box-shadow:
-      0 8px 28px -6px var(--glow-a, var(--color-accent)),
-      0 0 10px -2px var(--glow-a, var(--color-accent));
+      0 4px 16px -4px rgba(0, 0, 0, 0.4);
   }
   50% {
     box-shadow:
-      0 12px 48px -8px var(--glow-a, var(--color-accent)),
-      0 0 30px -2px var(--glow-b, var(--color-accent-cyan));
+      0 6px 20px -4px rgba(0, 0, 0, 0.5),
+      0 0 10px -2px var(--glow-a, var(--color-accent));
   }
 }
 
@@ -2701,10 +2699,10 @@ body {
 @keyframes featured-aura {
   0%,
   100% {
-    box-shadow: 0 0 20px -6px var(--color-topic-cloud);
+    box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.4), 0 0 6px -2px var(--color-topic-cloud);
   }
   50% {
-    box-shadow: 0 0 36px -4px var(--color-topic-ice);
+    box-shadow: 0 6px 20px -4px rgba(0, 0, 0, 0.5), 0 0 10px -1px var(--color-topic-ice);
   }
 }
 

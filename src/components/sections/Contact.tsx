@@ -244,7 +244,7 @@ export default function Contact({
         </div>
         <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
-        <div className="rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-cyan-950/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(99,102,241,0.22)] sm:p-7">
+        <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-[#171338]/85 via-[#121634]/80 to-[#0d182e]/85 backdrop-blur-xl p-6 shadow-lg shadow-black/40 sm:p-7">
           {/* P25: availability pill — the same CMS line as the hero,
               now literally the same component (#74) */}
           {availability && <AvailabilityPill text={availability} />}
@@ -252,39 +252,39 @@ export default function Contact({
           {/* Phase 17 (#13): "based in" line from the CMS — hidden when
               empty (zero-data rule). */}
           {location && (
-            <p className="mt-3 inline-flex items-center gap-1.5 text-sm text-ink-soft">
+            <p className="mt-3 inline-flex items-center gap-1.5 text-sm font-medium text-slate-100">
               <MapPin className="h-4 w-4 text-topic-mars" aria-hidden="true" />
               based in {location}
             </p>
           )}
 
-          <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-accent-strong">
+          <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-white drop-shadow-sm">
             Prefer email?
           </h3>
-          <p className="mt-1.5 text-base leading-relaxed text-ink-soft">
+          <p className="mt-1.5 text-base leading-relaxed text-slate-100 font-normal">
             One click copies it — no forms, no friction.
           </p>
 
           <button
             type="button"
             onClick={copyEmail}
-            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-indigo-400/40 bg-gradient-to-r from-indigo-600/25 via-purple-600/20 to-cyan-600/25 backdrop-blur-md px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-cyan-400/30 bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-cyan-900/40 backdrop-blur-md px-5 py-3.5 font-medium text-white shadow-md shadow-black/30 transition-all hover:-translate-y-0.5 hover:border-cyan-400 hover:text-cyan-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {copied ? (
               <Check className="h-4 w-4 text-emerald-400" aria-hidden="true" />
             ) : (
-              <Copy className="h-4 w-4 text-accent" aria-hidden="true" />
+              <Copy className="h-4 w-4 text-cyan-300" aria-hidden="true" />
             )}
-            <span className="truncate font-mono text-sm sm:text-base font-semibold">{email}</span>
+            <span className="truncate font-mono text-sm sm:text-base font-bold text-cyan-300">{email}</span>
           </button>
-          <p className="mt-2 text-xs sm:text-sm text-ink-faint" aria-live="polite">
+          <p className="mt-2 text-xs sm:text-sm text-sky-300 font-medium" aria-live="polite">
             {copied
               ? "Copied to clipboard ✓"
               : "Click to copy — one click, no friction"}
           </p>
 
           <div className="mt-6">
-            <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+            <p className="text-xs font-semibold uppercase tracking-wider text-sky-300">
               Elsewhere
             </p>
             <div className="mt-3 flex flex-wrap gap-3">
@@ -300,24 +300,24 @@ export default function Contact({
           </div>
 
           {/* Ground Station Telemetry Specs (MNC Transparency) */}
-          <div className="mt-6 rounded-xl border border-indigo-400/30 bg-gradient-to-br from-cyan-950/30 via-indigo-950/40 to-purple-950/30 backdrop-blur-md p-4">
-            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+          <div className="mt-6 rounded-xl border border-indigo-400/30 bg-gradient-to-br from-[#121c38]/90 via-[#151433]/85 to-[#0e1c33]/90 backdrop-blur-md p-4">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-cyan-300 flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" aria-hidden="true" />
               Ground Station Telemetry
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2.5 text-xs sm:text-sm font-mono">
-              <div className="rounded-lg border border-white/20 bg-white/[0.08] backdrop-blur-md p-2.5">
-                <span className="text-ink-faint block text-xs">TIMEZONE</span>
-                <span className="font-semibold text-ink">IST (UTC+5:30)</span>
+              <div className="rounded-lg border border-indigo-400/20 bg-black/25 backdrop-blur-md p-2.5">
+                <span className="text-sky-300 block text-xs">TIMEZONE</span>
+                <span className="font-semibold text-white">IST (UTC+5:30)</span>
               </div>
-              <div className="rounded-lg border border-white/20 bg-white/[0.08] backdrop-blur-md p-2.5">
-                <span className="text-ink-faint block text-xs">AVG RESPONSE</span>
+              <div className="rounded-lg border border-indigo-400/20 bg-black/25 backdrop-blur-md p-2.5">
+                <span className="text-sky-300 block text-xs">AVG RESPONSE</span>
                 <span className="font-semibold text-emerald-400">&lt; 24 Hours</span>
               </div>
             </div>
           </div>
 
-          <p className="mt-5 border-t border-card-border pt-4 font-mono text-xs text-ink-faint">
+          <p className="mt-5 border-t border-indigo-500/20 pt-4 font-mono text-xs text-sky-300">
             replies within 24h · zero trackers
           </p>
         </div>
@@ -481,10 +481,10 @@ export default function Contact({
                 autoComplete="name"
                 aria-invalid={nameError}
                 aria-describedby={nameError ? "name-error" : undefined}
-                className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-[#0d1428]/85 backdrop-blur-md px-4 py-3 text-base sm:text-sm text-white placeholder:text-slate-400 transition-all focus:bg-[#121c38]/90 focus:outline-none focus:ring-2 ${
                   nameError
-                    ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
+                    ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20"
+                    : "border-indigo-400/30 focus:border-cyan-400 focus:ring-cyan-400/20"
                 }`}
                 placeholder="Ada Lovelace"
               />
@@ -518,10 +518,10 @@ export default function Contact({
                 autoComplete="email"
                 aria-invalid={emailError}
                 aria-describedby={emailError ? "email-error" : undefined}
-                className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-[#0d1428]/85 backdrop-blur-md px-4 py-3 text-base sm:text-sm text-white placeholder:text-slate-400 transition-all focus:bg-[#121c38]/90 focus:outline-none focus:ring-2 ${
                   emailError
-                    ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
+                    ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20"
+                    : "border-indigo-400/30 focus:border-cyan-400 focus:ring-cyan-400/20"
                 }`}
                 placeholder="you@example.com"
               />
@@ -553,10 +553,10 @@ export default function Contact({
               enterKeyHint="next"
               aria-invalid={subjectError}
               aria-describedby={subjectError ? "subject-error" : undefined}
-              className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full rounded-card border bg-[#0d1428]/85 backdrop-blur-md px-4 py-3 text-base sm:text-sm text-white placeholder:text-slate-400 transition-all focus:bg-[#121c38]/90 focus:outline-none focus:ring-2 ${
                 subjectError
-                  ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
+                  ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20"
+                  : "border-indigo-400/30 focus:border-cyan-400 focus:ring-cyan-400/20"
               }`}
               placeholder="Let's talk about…"
             />
@@ -596,10 +596,10 @@ export default function Contact({
               aria-describedby={
                 messageError ? "message-error message-counter" : "message-counter"
               }
-              className={`w-full resize-none rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full resize-none rounded-card border bg-[#0d1428]/85 backdrop-blur-md px-4 py-3 text-base sm:text-sm text-white placeholder:text-slate-400 transition-all focus:bg-[#121c38]/90 focus:outline-none focus:ring-2 ${
                 messageError
-                  ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
+                  ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/20"
+                  : "border-indigo-400/30 focus:border-cyan-400 focus:ring-cyan-400/20"
               }`}
               // Phase 13 copy: messages land in the inbox now — the old
               // "nothing stored" text predates the Mongo inbox.

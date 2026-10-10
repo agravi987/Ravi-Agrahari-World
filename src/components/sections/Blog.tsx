@@ -207,9 +207,9 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
                 el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
               }}
-              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-violet-900/40 via-indigo-900/35 to-sky-950/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(139,92,246,0.22)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:from-violet-850/50 hover:via-indigo-800/45 hover:to-sky-900/50 hover:shadow-[0_12px_40px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
+              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-purple-500/30 bg-gradient-to-br from-[#1c1238]/85 via-[#131532]/80 to-[#0e162c]/85 backdrop-blur-xl p-6 shadow-lg shadow-black/40 transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:from-[#241649]/90 hover:via-[#191c42]/85 hover:to-[#121f3a]/90 hover:shadow-xl hover:shadow-black/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
             >
-            <div className="flex items-center justify-between text-xs text-ink-soft">
+            <div className="flex items-center justify-between text-xs text-sky-300">
               <time dateTime={post.publishedAt} className="flex items-center gap-2">
                 {/* P26: newest-note pulse dot — only on the latest post */}
                 {post.slug === newestSlug && (
@@ -235,10 +235,10 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
               </time>
               <span className="font-mono text-xs">{readTimeMinutes(post.contentMarkdown)} min read</span>
             </div>
-            <h3 className="mt-2.5 font-display text-xl sm:text-2xl font-bold text-ink transition-colors group-hover:text-cyan-200">
+            <h3 className="mt-2.5 font-display text-xl sm:text-2xl font-bold text-white drop-shadow-sm transition-colors group-hover:text-cyan-300">
               {post.title}
             </h3>
-            <p className="mt-2.5 line-clamp-3 text-base leading-relaxed text-ink-soft">{post.excerpt}</p>
+            <p className="mt-2.5 line-clamp-3 text-base leading-relaxed text-slate-100 font-normal">{post.excerpt}</p>
             {post.tags.length > 0 && (
               /* Cards are whole-card <a> — chips stay plain (nested <a>
                  is invalid HTML). Tag destinations live on the archive
@@ -251,7 +251,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 ))}
               </div>
             )}
-            <span className="mt-4 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent">
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm sm:text-base font-bold text-cyan-300 hover:text-cyan-100 transition-colors">
               Read note
               <ArrowRight
                 className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"

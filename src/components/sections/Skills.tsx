@@ -73,11 +73,11 @@ const GLOW_B: Record<string, string> = {
   bot: "var(--color-topic-linux)",
 };
 
-/** Luminous topic-tinted card gradients (replaces dark background with cosmic atmosphere). */
+/** Luminous topic-tinted card gradients (deep rich cosmic atmosphere, no neon glare). */
 const CARD_GRADIENTS: Record<string, string> = {
-  cloud: "from-sky-900/40 via-indigo-900/30 to-blue-950/40 border-sky-400/40 shadow-[0_8px_32px_rgba(56,189,248,0.22)]",
-  workflow: "from-teal-900/40 via-emerald-900/30 to-cyan-950/40 border-teal-400/40 shadow-[0_8px_32px_rgba(45,212,191,0.22)]",
-  bot: "from-purple-900/40 via-fuchsia-900/30 to-indigo-950/40 border-purple-400/40 shadow-[0_8px_32px_rgba(192,132,252,0.22)]",
+  cloud: "from-[#0c2340]/85 via-[#101b38]/80 to-[#0b1428]/85 border-sky-500/30 shadow-lg shadow-black/40",
+  workflow: "from-[#082a24]/85 via-[#0c222c]/80 to-[#091724]/85 border-teal-500/30 shadow-lg shadow-black/40",
+  bot: "from-[#220d3d]/85 via-[#1a1236]/80 to-[#0f112e]/85 border-purple-500/30 shadow-lg shadow-black/40",
 };
 
 /** Splits the combined class into the bar fill (bg) + label (text). */
@@ -419,18 +419,18 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{s.name}</h3>
+                          <h3 className="font-display text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors drop-shadow-sm">{s.name}</h3>
                           <Tooltip label="1 = getting started · 5 = confident" side="left">
                             <LevelRing level={s.level} className={`shrink-0 ${barFor(s.icon).text}`} />
                           </Tooltip>
                         </div>
-                        {s.blurb && <p className="mt-2 text-base sm:text-lg leading-relaxed text-ink-soft">{s.blurb}</p>}
+                        {s.blurb && <p className="mt-2 text-base sm:text-lg leading-relaxed text-slate-100 font-normal">{s.blurb}</p>}
                         <div className="mt-5">
-                          <div className="flex items-center justify-between text-xs sm:text-sm text-ink-faint">
-                            <span aria-hidden="true" className="font-medium">level</span>
-                            <span className={`flex items-center gap-2 font-semibold ${barFor(s.icon).text}`}>
+                          <div className="flex items-center justify-between text-xs sm:text-sm text-sky-200">
+                            <span aria-hidden="true" className="font-medium text-sky-300 uppercase tracking-wider text-[11px]">proficiency</span>
+                            <span className={`flex items-center gap-2 font-bold ${barFor(s.icon).text}`}>
                               {s.level < 3 && (
-                                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                                <span className="rounded-full border border-amber-400/40 bg-amber-500/20 px-2.5 py-0.5 font-mono text-xs font-bold uppercase tracking-wide text-amber-300">
                                   still learning
                                 </span>
                               )}
@@ -439,7 +439,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                           </div>
                           <LevelBar level={s.level} fillClass={barFor(s.icon).fill} />
                         </div>
-                        <Link href={skillGalaxyHref} className="mt-5 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent hover:text-accent-cyan transition-colors hover:underline">
+                        <Link href={skillGalaxyHref} className="mt-5 inline-flex items-center gap-1.5 text-sm sm:text-base font-bold text-cyan-300 hover:text-cyan-100 transition-colors hover:underline">
                           explore in galaxy <span aria-hidden="true">→</span>
                         </Link>
                       </div>

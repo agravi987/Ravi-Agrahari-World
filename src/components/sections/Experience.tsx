@@ -54,14 +54,14 @@ const LEFT_ACCENTS = [
   "border-l-topic-ice",
 ];
 
-/** Rich topic gradients cycling for each timeline card (no dark backgrounds). */
+/** Rich topic gradients cycling for each timeline card (deep rich cosmic colors, no neon glow). */
 const ROW_GRADIENTS = [
-  "from-teal-900/40 via-cyan-900/30 to-blue-950/40 border-teal-400/40 hover:border-teal-300/60",
-  "from-indigo-900/40 via-purple-900/30 to-pink-950/40 border-indigo-400/40 hover:border-indigo-300/60",
-  "from-purple-900/40 via-fuchsia-900/30 to-indigo-950/40 border-purple-400/40 hover:border-purple-300/60",
-  "from-amber-900/40 via-orange-900/30 to-yellow-950/40 border-amber-400/40 hover:border-amber-300/60",
-  "from-rose-900/40 via-red-900/30 to-orange-950/40 border-rose-400/40 hover:border-rose-300/60",
-  "from-sky-900/40 via-blue-900/30 to-indigo-950/40 border-sky-400/40 hover:border-sky-300/60",
+  "from-[#0a2522]/85 via-[#0e1d2c]/80 to-[#0c1524]/85 border-teal-500/30 hover:border-teal-400/50",
+  "from-[#181236]/85 via-[#151330]/80 to-[#10132a]/85 border-indigo-500/30 hover:border-indigo-400/50",
+  "from-[#240e36]/85 via-[#1a1232]/80 to-[#12122c]/85 border-purple-500/30 hover:border-purple-400/50",
+  "from-[#261b0c]/85 via-[#1c152c]/80 to-[#13152a]/85 border-amber-500/30 hover:border-amber-400/50",
+  "from-[#281015]/85 via-[#1d122a]/80 to-[#131428]/85 border-rose-500/30 hover:border-rose-400/50",
+  "from-[#0b2036]/85 via-[#101830]/80 to-[#0d1528]/85 border-sky-500/30 hover:border-sky-400/50",
 ];
 
 /** Open dot: ring glow matches the role's hue (was hardcoded devops). */
@@ -281,7 +281,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   ROW_GRADIENTS[i % ROW_GRADIENTS.length]
                 } ${
                   open
-                    ? `border-l-4 ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]} backdrop-blur-xl shadow-[0_8px_32px_rgba(99,102,241,0.25)] ring-1 ring-white/20`
+                    ? `border-l-4 ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]} backdrop-blur-xl shadow-lg shadow-black/40 ring-1 ring-white/10`
                     : "opacity-85 backdrop-blur-md hover:opacity-100 hover:shadow-card"
                 }`}
               >
@@ -325,9 +325,9 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                         <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-accent-cyan">
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{item.role}</h3>
+                        <h3 className="font-display text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors drop-shadow-sm">{item.role}</h3>
                       </span>
-                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-accent-strong">{item.company}</p>
+                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-cyan-300">{item.company}</p>
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
                       {/* Active pulse + achievements count (UX pass) */}

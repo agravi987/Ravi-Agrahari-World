@@ -311,7 +311,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-6 sm:p-8 border-t-2 shadow-[0_8px_32px_rgba(251,191,36,0.22)] bg-gradient-to-br from-amber-900/30 via-indigo-900/35 to-cyan-950/30 border-indigo-400/30 backdrop-blur-xl ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-6 sm:p-8 border-t-2 shadow-lg shadow-black/40 bg-gradient-to-br from-[#241a10]/85 via-[#171434]/80 to-[#0e1832]/85 border-amber-500/30 backdrop-blur-xl ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
             {/* P8: issuer logo when the CMS provides one; topic-hued Award
@@ -325,7 +325,7 @@ export default function Certifications({
                 decoding="async"
                 title={cert.issuer}
                 // Phase 16 (#16): cert-logo carries the dark-mode rule
-                className="cert-logo h-14 w-14 shrink-0 rounded-xl border border-card-border/80 bg-paper p-1 object-contain shadow-xs transition-transform duration-300 group-hover:scale-110"
+                className="cert-logo h-14 w-14 shrink-0 rounded-xl border border-white/20 bg-white/10 p-1 object-contain shadow-xs transition-transform duration-300 group-hover:scale-110"
               />
             ) : (
               <div
@@ -337,18 +337,18 @@ export default function Certifications({
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-emerald-600">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/15 px-2.5 py-0.5 font-mono text-xs font-semibold text-emerald-300">
                   <ShieldCheck className="h-3.5 w-3.5" />
                   Verified Credential
                 </span>
                 {domain && (
-                  <span className="font-mono text-xs text-ink-faint">
+                  <span className="font-mono text-xs text-sky-300">
                     via {domain}
                   </span>
                 )}
               </div>
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{cert.name}</h3>
-              <p className="mt-1 text-base sm:text-lg font-semibold text-accent-strong">{cert.issuer}</p>
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-white group-hover:text-amber-300 transition-colors drop-shadow-sm">{cert.name}</h3>
+              <p className="mt-1 text-base sm:text-lg font-semibold text-amber-300">{cert.issuer}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {/* Phase 16 (#15): when the category matches a galaxy planet,
                     the badge deep-links to it (zero-data: plain badge otherwise) */}
