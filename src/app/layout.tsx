@@ -84,7 +84,7 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Browser-chrome tint (P10) — rendered in <head> via the viewport
  *  export; lib/theme.applyTheme swaps it live when themes change. */
 export const viewport: Viewport = {
-  themeColor: "#0c0a09",
+  themeColor: "#090d16",
 };
 
 export default async function RootLayout({

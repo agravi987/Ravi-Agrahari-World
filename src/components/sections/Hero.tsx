@@ -395,10 +395,10 @@ function PhotoComposition({
           {/* Floating live status pill */}
           <div
             aria-hidden="true"
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 whitespace-nowrap rounded-full border border-card-border/80 bg-paper/95 px-4 py-1.5 font-mono text-xs font-semibold text-ink shadow-md backdrop-blur-md"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 whitespace-nowrap rounded-full border border-card-border/80 bg-card/90 px-4 py-1.5 font-mono text-xs font-semibold text-ink shadow-md backdrop-blur-md"
           >
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Open for Opportunities</span>
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-ink-soft">Open for Opportunities</span>
           </div>
         </div>
       </div>

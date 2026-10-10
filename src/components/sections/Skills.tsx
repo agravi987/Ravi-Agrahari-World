@@ -34,9 +34,9 @@ const ICON_MAP = {
  *  muted hue from the design tokens instead of accent-soft everywhere —
  *  colorful but restrained (plan §4.1). */
 const TILE_STYLES: Record<string, string> = {
-  cloud: "bg-topic-cloud/10 text-topic-cloud",
-  workflow: "bg-topic-devops/10 text-topic-devops",
-  bot: "bg-topic-ai/10 text-topic-ai",
+  cloud: "bg-topic-cloud/15 border border-topic-cloud/30 text-topic-cloud shadow-[0_0_15px_rgba(56,189,248,0.2)]",
+  workflow: "bg-topic-devops/15 border border-topic-devops/30 text-topic-devops shadow-[0_0_15px_rgba(45,212,191,0.2)]",
+  bot: "bg-topic-ai/15 border border-topic-ai/30 text-topic-ai shadow-[0_0_15px_rgba(192,132,252,0.2)]",
 };
 
 /** Bar fill + label colors match the tile hue (color pass P7). */

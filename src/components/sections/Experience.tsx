@@ -271,8 +271,8 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   // P25: the open row raises — a card with a topic-hued
                   // left accent marking the active role
                   open
-                    ? `border border-card-border/80 bg-card/90 shadow-card ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]}`
-                    : "border border-transparent hover:border-card-border/60 hover:bg-card/50"
+                    ? `border border-card-border/80 bg-card/90 backdrop-blur-md shadow-card ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]}`
+                    : "border border-card-border/40 bg-card/40 backdrop-blur-xs hover:border-card-border/80 hover:bg-card/70"
                 }`}
               >
                 <span className="flex items-start gap-3.5">

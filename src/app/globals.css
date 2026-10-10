@@ -57,16 +57,16 @@ body {
 }
 
 @theme {
-  /* --- Default Dark Theme Palette --- */
-  --color-paper: #0c0a09;        /* stone-950 warm dark base */
-  --color-paper-deep: #1c1917;   /* stone-900 elevated surface */
-  --color-ink: #f5f5f4;          /* stone-100 primary text */
-  --color-ink-soft: #d6d3d1;     /* stone-300 secondary text */
-  --color-ink-faint: #a8a29e;    /* stone-400 tertiary text */
+  /* --- Default Dark Theme Palette: Deep Cosmic Slate & Midnight Glass --- */
+  --color-paper: #090d16;        /* cosmic slate base — luminous, never pitch-black */
+  --color-paper-deep: #111827;   /* deep navy/slate surface */
+  --color-ink: #f8fafc;          /* slate-50 bright primary text */
+  --color-ink-soft: #cbd5e1;     /* slate-300 rich secondary text */
+  --color-ink-faint: #94a3b8;    /* slate-400 crisp tertiary text */
 
-  /* One brand accent: luminous indigo */
+  /* One brand accent: luminous electric indigo & cyan */
   --color-accent: #818cf8;       /* indigo-400 — buttons, links, focus rings */
-  --color-accent-soft: rgb(99 102 241 / 0.15); /* soft accent fills */
+  --color-accent-soft: rgb(99 102 241 / 0.18); /* soft accent fills */
   --color-accent-strong: #a5b4fc;/* indigo-300 — hover states */
   --color-accent-btn: #4f46e5;   /* indigo-600 */
   --color-accent-btn-hover: #4338ca;
@@ -75,37 +75,37 @@ body {
   /* --- Per-topic hues --- */
   --color-topic-cloud: #38bdf8;
   --color-topic-devops: #2dd4bf;
-  --color-topic-ai: #a78bfa;
+  --color-topic-ai: #c084fc;
   --color-topic-linux: #fbbf24;
   --color-topic-mars: #f87171;
   --color-topic-ice: #38bdf8;
 
   /* Status hues */
   --color-success: #34d399;
-  --color-success-soft: rgb(16 185 129 / 0.15);
+  --color-success-soft: rgb(16 185 129 / 0.18);
   --color-danger: #f87171;
-  --color-danger-soft: rgb(239 68 68 / 0.15);
+  --color-danger-soft: rgb(239 68 68 / 0.18);
   --color-warning: #fbbf24;
-  --color-warning-soft: rgb(245 158 11 / 0.15);
+  --color-warning-soft: rgb(245 158 11 / 0.18);
 
   /* Deep-text variants */
   --color-topic-cloud-deep: #7dd3fc;
   --color-topic-devops-deep: #5eead4;
-  --color-topic-ai-deep: #c4b5fd;
-  --color-topic-linux-deep: #fcd34d;
-  --color-topic-mars-deep: #fca5a5;
+  --color-topic-ai-deep: #e9d5ff;
+  --color-topic-linux-deep: #fde68a;
+  --color-topic-mars-deep: #fecaca;
   --color-topic-ice-deep: #7dd3fc;
 
   /* Stat-numeral shades */
   --color-stat-cloud: #38bdf8;
   --color-stat-devops: #2dd4bf;
-  --color-stat-ai: #a78bfa;
+  --color-stat-ai: #c084fc;
   --color-stat-linux: #fbbf24;
   --color-stat-mars: #f87171;
 
-  /* --- Card surfaces --- */
-  --color-card: #181513;         /* warm dark card */
-  --color-card-border: #292524;  /* stone-800 */
+  /* --- Card surfaces: Frosted Cosmic Glass --- */
+  --color-card: #131c2e;         /* translucent midnight navy card */
+  --color-card-border: rgba(148, 163, 184, 0.16);  /* soft crisp glass border */
 
   /* --- Typography --- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -607,8 +607,8 @@ html:has(.snap-section) {
   border-radius: inherit;
   padding: 1px;
   background: radial-gradient(
-    420px circle at var(--sx, 50%) var(--sy, 50%),
-    color-mix(in oklab, var(--color-accent) 45%, transparent),
+    520px circle at var(--sx, 50%) var(--sy, 50%),
+    color-mix(in oklab, var(--color-accent) 65%, var(--color-accent-cyan) 35%),
     transparent 65%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);

@@ -207,7 +207,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
                 el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
               }}
-              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-card-border bg-card p-6 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
+              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-card-border/80 bg-card/85 backdrop-blur-md p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-card/95 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
             >
             <div className="flex items-center justify-between text-xs text-ink-soft">
               <time dateTime={post.publishedAt} className="flex items-center gap-2">

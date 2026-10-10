@@ -244,7 +244,7 @@ export default function Contact({
         </div>
         <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
-        <div className="rounded-card border border-card-border bg-paper-deep/40 p-6 shadow-card sm:p-7">
+        <div className="rounded-2xl border border-card-border/80 bg-card/80 backdrop-blur-md p-6 shadow-card sm:p-7">
           {/* P25: availability pill — the same CMS line as the hero,
               now literally the same component (#74) */}
           {availability && <AvailabilityPill text={availability} />}
@@ -300,19 +300,19 @@ export default function Contact({
           </div>
 
           {/* Ground Station Telemetry Specs (MNC Transparency) */}
-          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper/60 p-4">
+          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper-deep/60 p-4">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
               Ground Station Telemetry
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2.5 text-xs sm:text-sm font-mono">
-              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2.5">
+              <div className="rounded-lg border border-card-border/60 bg-card/80 p-2.5">
                 <span className="text-ink-faint block text-xs">TIMEZONE</span>
                 <span className="font-semibold text-ink">IST (UTC+5:30)</span>
               </div>
-              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2.5">
+              <div className="rounded-lg border border-card-border/60 bg-card/80 p-2.5">
                 <span className="text-ink-faint block text-xs">AVG RESPONSE</span>
-                <span className="font-semibold text-emerald-600">&lt; 24 Hours</span>
+                <span className="font-semibold text-emerald-400">&lt; 24 Hours</span>
               </div>
             </div>
           </div>

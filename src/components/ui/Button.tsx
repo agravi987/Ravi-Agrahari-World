@@ -23,10 +23,10 @@ type ButtonProps = BaseProps &
 const variantClasses: Record<Variant, string> = {
   // active:translate-y-px is the tactile "pressed" state (P7 polish)
   primary:
-    "bg-accent-btn text-white shadow-md hover:bg-accent-btn-hover hover:shadow-orbital active:translate-y-px transition-all duration-200",
+    "bg-gradient-to-r from-accent-btn to-accent text-white shadow-md hover:from-accent-btn-hover hover:to-accent-strong hover:shadow-orbital active:translate-y-px transition-all duration-200",
   secondary:
-    "border border-card-border/80 bg-card/80 backdrop-blur-xs text-ink shadow-xs hover:border-accent/60 hover:text-accent hover:bg-card active:translate-y-px transition-all duration-200",
-  ghost: "text-ink-soft transition-colors hover:text-accent",
+    "border border-card-border/80 bg-card/80 backdrop-blur-md text-ink shadow-xs hover:border-accent/60 hover:text-accent hover:bg-card/95 hover:shadow-card-hover active:translate-y-px transition-all duration-200",
+  ghost: "text-ink-soft transition-colors hover:text-accent hover:bg-card/40",
 };
 
 const baseClasses =

@@ -75,10 +75,10 @@ function domainOf(url: string): string | null {
 
 /** Topic-hued fallback tiles, rotated per cert. */
 const TILES = [
-  "bg-topic-cloud/10 text-topic-cloud",
-  "bg-topic-devops/10 text-topic-devops",
-  "bg-topic-ai/10 text-topic-ai",
-  "bg-topic-linux/10 text-topic-linux",
+  "bg-topic-cloud/15 border border-topic-cloud/30 text-topic-cloud shadow-[0_0_15px_rgba(56,189,248,0.2)]",
+  "bg-topic-devops/15 border border-topic-devops/30 text-topic-devops shadow-[0_0_15px_rgba(45,212,191,0.2)]",
+  "bg-topic-ai/15 border border-topic-ai/30 text-topic-ai shadow-[0_0_15px_rgba(192,132,252,0.2)]",
+  "bg-topic-linux/15 border border-topic-linux/30 text-topic-linux shadow-[0_0_15px_rgba(251,191,36,0.2)]",
 ];
 
 /** Active-chip underline hue per index. */
@@ -91,10 +91,10 @@ const CHIP_HUES = [
 
 /** P25: category chips cycle the topic hues too (was accent always). */
 const CATEGORY_HUES = [
-  "bg-topic-cloud/10 text-topic-cloud",
-  "bg-topic-devops/10 text-topic-devops",
-  "bg-topic-ai/10 text-topic-ai",
-  "bg-topic-linux/10 text-topic-linux",
+  "bg-topic-cloud/15 text-topic-cloud border-topic-cloud/30",
+  "bg-topic-devops/15 text-topic-devops border-topic-devops/30",
+  "bg-topic-ai/15 text-topic-ai border-topic-ai/30",
+  "bg-topic-linux/15 text-topic-linux border-topic-linux/30",
 ];
 
 /** Phase 16 (#19): colored top hairline per cert, cycling the hues. */
