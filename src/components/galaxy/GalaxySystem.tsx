@@ -453,7 +453,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
       <div className="relative mt-4 flex flex-col lg:flex-row items-start gap-8">
         {/* Full Floating Celestial Solar System */}
         <div className="flex-1 w-full min-w-0">
-          <div ref={stageWrapRef} className="relative mx-auto w-full max-w-[min(960px,58vh)]">
+          <div ref={stageWrapRef} className="relative mx-auto w-full">
           {mode === "3d" ? (
             <GalaxyErrorBoundary
               fallback={
