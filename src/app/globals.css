@@ -936,7 +936,7 @@ body {
   body::before { display: none; }
 }
 
-/* White transparent overlay — subtle luminous frosted wash over the cosmic image */
+/* Darker atmospheric cosmic overlay — subtle deep midnight wash for elevated contrast */
 @media (prefers-reduced-motion: no-preference) {
   body::after {
     content: "";
@@ -946,9 +946,9 @@ body {
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      rgba(129, 140, 248, 0.08) 0%,
-      rgba(34, 211, 238, 0.05) 40%,
-      rgba(192, 132, 252, 0.08) 100%
+      rgba(9, 12, 26, 0.40) 0%,
+      rgba(15, 17, 38, 0.28) 40%,
+      rgba(9, 12, 26, 0.45) 100%
     );
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
