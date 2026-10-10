@@ -1303,15 +1303,10 @@ html[data-theme="rose"] {
   overflow: hidden;
   /* Container for the scaling world below (container-query units). */
   container-type: inline-size;
-  /* Rectangular FRAMED viewport (design feedback: the old circular frame
-     read as a stamp, not a solar system). A rounded-rect "space panel":
-     hairline border + faint accent-tinted backdrop + inset ring. The
-     world (and every celestial body) clips to this frame. */
-  border-radius: 1.25rem;
-  border: 1px solid color-mix(in oklab, var(--color-card-border) 80%, transparent);
-  background:
-    radial-gradient(130% 130% at 50% 0%, color-mix(in oklab, var(--color-accent) 7%, transparent), transparent 62%),
-    var(--color-paper);
+  /* Borderless celestial horizon: zero box containers, transparent backdrop */
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
 }
 
 /* The full-size coordinate space (2 × farthest orbit + padding).
@@ -1322,71 +1317,25 @@ html[data-theme="rose"] {
    length and invalidate the transform). */
 .galaxy-world {
   position: absolute;
-  /* CENTER the world box in the stage (top:0/left:0 was the "nothing
-     visible on home" bug: scaling a corner-anchored box around its own
-     center pushes the whole system off the bottom-right, out of the
-     stage entirely on small/home stages). Centering via 50% + negative
-     half-size margins keeps the border box world×world, so the origin
-     math below (border-box px) still matches DOM-rect positions. */
   top: 50%;
   left: 50%;
   margin-top: calc(var(--galaxy-world) * 1px * -0.5);
   margin-left: calc(var(--galaxy-world) * 1px * -0.5);
   width: calc(var(--galaxy-world) * 1px);
   height: calc(var(--galaxy-world) * 1px);
-  /* P6+ zoom: origin at the WORLD CENTER (the sun), so zooming scales
-     about the sun instead of drifting the system toward the bottom-right
-     (top-left origin was the bug). At zoom=1 the world exactly fills the
-     square stage, so the origin choice is invisible there.
-     P8 planet-click zoom: the origin is overridden to the clicked
-     planet's world position (--galaxy-ox/--galaxy-oy), so scaling keeps
-     THAT planet pinned center-screen while the system expands. */
   transform-origin: var(--galaxy-ox, 50%) var(--galaxy-oy, 50%);
-  /* P6 zoom: the container-query fit scale times a unitless zoom
-     multiplier (length ÷ length = number, × number = number —
-     valid for scale()). Set via --galaxy-zoom on the stage. */
   transform: scale(calc((100cqw / (var(--galaxy-world) * 1px)) * var(--galaxy-zoom, 1)));
 }
 
-/* ============================================================
-   Learning Galaxy: Immersive Full-Screen Cosmic Observatory
-   ============================================================ */
-.galaxy-observatory-wrapper {
-  position: relative;
-  width: 100vw;
-  margin-left: calc(-50vw + 50%);
-  margin-right: calc(-50vw + 50%);
-  background: radial-gradient(circle at 50% 30%, #0d0e1b 0%, #06070c 60%, #020205 100%);
-  color: #f1f5f9;
-  overflow: hidden;
-}
-
-.galaxy-observatory-hud {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: rgba(10, 12, 24, 0.65);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.galaxy-stage-observatory {
-  width: 100%;
-  max-width: 980px;
-  aspect-ratio: 1 / 1;
-  margin: 0 auto;
-  border-radius: 2rem;
-  background: radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.25) 0%, transparent 70%);
-}
-
+/* T2 WebGL stage box — seamless borderless space viewport */
 .galaxy-stage-3d {
   position: relative;
   aspect-ratio: 1 / 1;
   touch-action: none; /* drag-to-rotate lives on the canvas */
   overflow: hidden;
-  border-radius: 1.25rem;
-  border: 1px solid color-mix(in oklab, var(--color-card-border) 80%, transparent);
-  background:
-    radial-gradient(130% 130% at 50% 0%, color-mix(in oklab, var(--color-accent) 7%, transparent), transparent 62%),
-    var(--color-paper);
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
 }
 .galaxy-stage-3d canvas {
   display: block;

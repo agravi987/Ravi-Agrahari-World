@@ -340,101 +340,102 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
   );
 
   return (
-    <div
-      className={`grid gap-10 lg:items-start ${
-        indexOpen ? "lg:grid-cols-[minmax(0,1fr)_300px]" : "lg:grid-cols-1"
-      }`}
-    >
-      {/* ---------- The system ---------- */}
-      <div>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <FilterChips moonTypes={settings.moonTypes} filter={filter} onChange={setFilter} />
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Index toggle — ALWAYS visible so the directory is one tap
-                away while the collapsed system takes the full page (P8). */}
+    <div className="relative w-full">
+      {/* ---------- Floating Seamless Space HUD Controls (Zero box cards) ---------- */}
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-white/5">
+        <FilterChips moonTypes={settings.moonTypes} filter={filter} onChange={setFilter} />
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Index toggle — Sleek minimalist glass button */}
+          <button
+            type="button"
+            data-compact-touch
+            onClick={() => setIndexOpen((o) => !o)}
+            aria-pressed={indexOpen}
+            aria-controls="galaxy-index-panel"
+            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
+              indexOpen
+                ? "border-accent bg-accent/20 text-accent"
+                : "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:text-white"
+            }`}
+          >
+            {indexOpen ? "✕ Close Drawer" : "🪐 Planet Directory"}
+          </button>
+          {mode === "3d" && (
             <button
               type="button"
               data-compact-touch
-              onClick={() => setIndexOpen((o) => !o)}
-              aria-pressed={indexOpen}
-              aria-controls="galaxy-index-panel"
-              className="rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
+              onClick={() => setMode("2d")}
+              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-white hover:border-white/20"
             >
-              {indexOpen ? "✕ Hide index" : "☰ Planet index"}
+              ⌾ 3D View · Switch 2D
             </button>
-            {mode === "3d" && (
-              <button
-                type="button"
-                data-compact-touch
-                onClick={() => setMode("2d")}
-                className="rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-accent"
-              >
-                ⌾ 3D view · switch to static
-              </button>
-            )}
-            {/* Phase 15 (#11): per-session view toggles (2D tier) —
-                orbits / stars / labels, starting from the CMS settings */}
-            {mode === "2d" && (
-              <div
-                className="flex items-center gap-0.5 rounded-full border border-card-border bg-card/80 p-0.5"
-                role="group"
-                aria-label="View toggles"
-              >
-                {(
-                  [
-                    ["orbits", viewOverrides.orbits],
-                    ["stars", viewOverrides.stars],
-                    ["labels", viewOverrides.labels],
-                  ] as [keyof typeof viewOverrides, boolean][]
-                ).map(([key, on]) => (
-                  <button
-                    key={key}
-                    type="button"
-                    data-compact-touch
-                    onClick={() =>
-                      setViewOverrides((v) => ({ ...v, [key]: !v[key] }))
-                    }
-                    aria-pressed={on}
-                    className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
-                      on
-                        ? "bg-accent-soft text-accent"
-                        : "text-ink-faint hover:text-ink"
-                    }`}
-                  >
-                    {key}
-                  </button>
-                ))}
-              </div>
-            )}
-            {/* Phase 15 (#16): orbit-speed multiplier — 0.5× / 1× / 2× */}
-            {mode === "2d" && (
-              <div
-                className="flex items-center gap-0.5 rounded-full border border-card-border bg-card/80 p-0.5"
-                role="group"
-                aria-label="Orbit speed"
-              >
-                {[0.5, 1, 2].map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    data-compact-touch
-                    onClick={() => setSpeed(s)}
-                    aria-pressed={speed === s}
-                    className={`rounded-full px-2 py-1 font-mono text-[10px] font-medium transition-colors ${
-                      speed === s
-                        ? "bg-accent-soft text-accent"
-                        : "text-ink-faint hover:text-ink"
-                    }`}
-                  >
-                    {s}×
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          )}
+          {/* Per-session view toggles */}
+          {mode === "2d" && (
+            <div
+              className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/5 p-0.5"
+              role="group"
+              aria-label="View toggles"
+            >
+              {(
+                [
+                  ["orbits", viewOverrides.orbits],
+                  ["stars", viewOverrides.stars],
+                  ["labels", viewOverrides.labels],
+                ] as [keyof typeof viewOverrides, boolean][]
+              ).map(([key, on]) => (
+                <button
+                  key={key}
+                  type="button"
+                  data-compact-touch
+                  onClick={() =>
+                    setViewOverrides((v) => ({ ...v, [key]: !v[key] }))
+                  }
+                  aria-pressed={on}
+                  className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
+                    on
+                      ? "bg-accent/30 text-accent"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {key}
+                </button>
+              ))}
+            </div>
+          )}
+          {/* Orbit-speed multiplier */}
+          {mode === "2d" && (
+            <div
+              className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/5 p-0.5"
+              role="group"
+              aria-label="Orbit speed"
+            >
+              {[0.5, 1, 2].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  data-compact-touch
+                  onClick={() => setSpeed(s)}
+                  aria-pressed={speed === s}
+                  className={`rounded-full px-2 py-1 font-mono text-[10px] font-medium transition-colors ${
+                    speed === s
+                      ? "bg-accent/30 text-accent"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {s}×
+                </button>
+              ))}
+            </div>
+          )}
         </div>
+      </div>
 
-        <div ref={stageWrapRef} className="relative mx-auto mt-8 w-full max-w-[920px]">
+      {/* ---------- Main Observatory Viewport & Drawer ---------- */}
+      <div className="relative mt-4 flex flex-col lg:flex-row items-start gap-8">
+        {/* Full Floating Celestial Solar System */}
+        <div className="flex-1 w-full min-w-0">
+          <div ref={stageWrapRef} className="relative mx-auto w-full max-w-[960px]">
           {mode === "3d" ? (
             <GalaxyErrorBoundary
               fallback={
@@ -507,21 +508,25 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
           </div>
         </div>
 
-        <MoonLegend moonTypes={settings.moonTypes} planets={planets} />
+        </div>
+
+        {/* ---------- Sliding Planet Directory Drawer (Zero clunky boxes) ---------- */}
+        {indexOpen && (
+          <div className="w-full lg:w-80 shrink-0 rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl backdrop-blur-2xl">
+            <IndexPanel
+              id="galaxy-index-panel"
+              planets={planets}
+              activeId={activeId}
+              triggerHandlers={triggerHandlers}
+              onFocusPlanet={handleFocusPlanet}
+              onSelectPlanet={handleSelectPlanet}
+              onClose={() => setIndexOpen(false)}
+            />
+          </div>
+        )}
       </div>
 
-      {/* ---------- Index panel (planet directory, both modes) ---------- */}
-      {indexOpen && (
-        <IndexPanel
-          id="galaxy-index-panel"
-          planets={planets}
-          activeId={activeId}
-          triggerHandlers={triggerHandlers}
-          onFocusPlanet={handleFocusPlanet}
-          onSelectPlanet={handleSelectPlanet}
-          onClose={() => setIndexOpen(false)}
-        />
-      )}
+      <MoonLegend moonTypes={settings.moonTypes} planets={planets} />
 
       {/* ---------- Sticky card overlay ---------- */}
       {showCard && (

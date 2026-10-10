@@ -115,43 +115,43 @@ export default async function DetailedGalaxyPage() {
           </div>
         </header>
 
-        {/* The Solar System Canvas Component */}
+        {/* The Solar System Canvas — Pure Borderless Cosmic Viewport */}
         {galaxy.planets.length > 0 ? (
-          <div className="relative rounded-3xl border border-white/10 bg-slate-950/60 p-4 shadow-2xl backdrop-blur-xl sm:p-8">
+          <div className="relative w-full py-4 sm:py-8">
             <GalaxySystem galaxy={galaxy} />
           </div>
         ) : (
-          <p className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">
+          <p className="mt-10 py-6 text-center text-sm text-slate-500">
             The galaxy is currently forming — please check back soon.
           </p>
         )}
 
-        {/* Mission Log (Recently Shipped Learning Moons) */}
+        {/* Mission Log (Recently Shipped Learning Moons) — Sleek Glass Telemetry, Zero Chunky Boxes */}
         {log.length > 0 && (
           <section
             aria-labelledby="mission-log-heading"
-            className="mt-12 rounded-3xl border border-white/10 bg-slate-950/40 p-6 shadow-xl backdrop-blur-md"
+            className="mt-16 border-t border-white/10 pt-8"
           >
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 pb-4">
-              <h2 id="mission-log-heading" className="font-display text-lg font-semibold text-white">
-                Mission Log · Recent Artifacts
+            <div className="flex flex-wrap items-baseline justify-between gap-2 pb-4">
+              <h2 id="mission-log-heading" className="font-display text-base font-semibold uppercase tracking-wider text-white/90">
+                Mission Log · Telemetry Feed
               </h2>
               <span className="font-mono text-xs text-slate-500">continuous telemetry</span>
             </div>
-            <ol className="mt-4 divide-y divide-white/5">
+            <ol className="mt-2 divide-y divide-white/5">
               {log.map(({ moon, planetName }) => (
                 <li
                   key={moon.slug}
-                  className="flex items-center gap-3 py-3"
+                  className="flex items-center gap-3 py-3.5 transition-colors hover:bg-white/[0.02] px-2 rounded-lg"
                 >
                   <span
                     aria-hidden="true"
                     className="h-2 w-2 shrink-0 rounded-full"
                     style={{ background: moonTypeColor(moon.type) }}
                   />
-                  <span className="min-w-0 flex-1 truncate text-sm text-slate-200">
+                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
                     {moon.icon && (
-                      <span aria-hidden="true" className="mr-1.5">
+                      <span aria-hidden="true" className="mr-2">
                         {moon.icon}
                       </span>
                     )}
