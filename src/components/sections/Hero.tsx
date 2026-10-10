@@ -27,15 +27,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Mail, Rocket, Flame, FileText, Terminal } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Mail, Rocket, FileText, Terminal } from "lucide-react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { gsapReady } from "@/lib/gsap";
 import { initials } from "@/lib/galaxyGeometry";
 import { isAllowedImageUrl, withCloudinaryOptimizations } from "@/lib/imageHosts";
 import { scrollToSection } from "@/lib/scrollTo";
 import Button from "@/components/ui/Button";
-import AvailabilityPill from "@/components/ui/AvailabilityPill";
 import SocialLink from "@/components/ui/SocialLink";
 import Magnetic from "@/components/ui/Magnetic";
 import HeroCosmicScene from "./HeroCosmicScene";
@@ -338,13 +337,10 @@ function useTilt(maxDeg = 4) {
 function PhotoComposition({
   name,
   image,
-  streak,
 }: {
   name: string;
   image?: string;
-  streak: number;
 }) {
-  const showStreak = Number.isFinite(streak) && streak >= 2;
   const parallaxRef = usePhotoParallax(5);
   // Phase 14 (#13): the card itself tilts toward the cursor.
   const tiltRef = useTilt(4);
@@ -354,16 +350,9 @@ function PhotoComposition({
   // URLs degrade to the initials fallback (same as "no photo").
   const imageOk = isAllowedImageUrl(image);
   return (
-    /* Explicit MEDIUM width (P24: was 360px and read as too big) —
-       w-fit would collapse the inner aspect box to its content width
-       (the QA caught a 38px photo on mobile).
-       data-hero-photo: the GSAP scroll-drift wrapper (deep-lens
-       parallax). The pointer parallax lives one level DOWN (the inner
-       wrapper holds parallaxRef) so the two transforms never write the
-       same element. */
     <div
       data-hero-photo
-      className="photo-composition relative mx-auto w-[min(70vw,260px)] lg:mx-0 lg:w-[260px] lg:justify-self-end"
+      className="photo-composition relative mx-auto w-[min(74vw,280px)] sm:w-[300px] lg:mx-0 lg:w-[320px] lg:justify-self-end"
       style={{ willChange: "transform" }}
     >
       <div
@@ -371,48 +360,47 @@ function PhotoComposition({
         className="relative"
         style={{ willChange: "transform" }}
       >
-      {/* Pulsing halo behind the composition (UX pass) — decorative.
-          P31: the dashed orbit ring + SVG ringed-planet were removed —
-          the real Jupiter rising behind the card is now the orbit
-          accent, and the galaxy below owns the full orbit motif. */}
-      <div
-        aria-hidden="true"
-        className="halo -inset-6 -z-10"
-        style={{ "--halo-color": "color-mix(in oklab, var(--color-accent) 20%, transparent)" } as CSSProperties}
-      />
-      {/* Offset paper block — the "printed photo on paper" anchor */}
-      <div
-        aria-hidden="true"
-        className="absolute -bottom-4 -left-4 h-full w-full rounded-[1.35rem] border border-accent/10 bg-accent-soft/70 lg:-bottom-5 lg:-left-5"
-      />
-      {/* Photo card — hairline indigo→cyan gradient frame.
-          P25: the card lifts slightly on hover (pointer-fine only).
-          Phase 14 (#13): tilt ref adds cursor-follow rotation. */}
-      <div
-        ref={tiltRef}
-        className="group relative rounded-[1.35rem] bg-gradient-to-br from-accent/70 via-accent-cyan/60 to-accent/70 p-1 shadow-card-hover transition-all duration-300 hover:-translate-y-1 hover:shadow-orbital focus-within:ring-2 focus-within:ring-accent/50 focus-within:ring-offset-2 focus-within:ring-offset-paper"
-        style={{ willChange: "transform" }}
-      >
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.1rem] bg-card transition-transform duration-500 md:group-hover:scale-[1.02]">
-          {imageOk && image ? (
-            <Image
-              src={withCloudinaryOptimizations(image)}
-              alt={`${name} portrait`}
-              fill
-              priority
-              fetchPriority="high"
-              sizes="(max-width: 640px) 78vw, 260px"
-              className="object-cover"
-            />
-          ) : (
-            <div className="grid h-full w-full place-items-center">
-              <span className="font-display text-6xl font-semibold text-accent/70">
-                {initials(name) || "✦"}
-              </span>
-            </div>
-          )}
+        {/* Ambient atmospheric glow behind the portrait */}
+        <div
+          aria-hidden="true"
+          className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-gradient-to-tr from-accent/30 via-accent-cyan/20 to-topic-ai/30 blur-xl opacity-75"
+        />
+
+        {/* Elevated glass card with gradient perimeter */}
+        <div
+          ref={tiltRef}
+          className="group relative rounded-[2rem] bg-gradient-to-br from-accent/70 via-accent-cyan/50 to-topic-ai/60 p-1.5 shadow-2xl transition-all duration-300 hover:-translate-y-1 hover:shadow-orbital focus-within:ring-2 focus-within:ring-accent/50 focus-within:ring-offset-2 focus-within:ring-offset-paper"
+          style={{ willChange: "transform" }}
+        >
+          <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[1.65rem] bg-card transition-transform duration-500 md:group-hover:scale-[1.02]">
+            {imageOk && image ? (
+              <Image
+                src={withCloudinaryOptimizations(image)}
+                alt={`${name} portrait`}
+                fill
+                priority
+                fetchPriority="high"
+                sizes="(max-width: 640px) 78vw, 320px"
+                className="object-cover"
+              />
+            ) : (
+              <div className="grid h-full w-full place-items-center bg-card">
+                <span className="font-display text-6xl font-bold text-accent/80">
+                  {initials(name) || "✦"}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Floating live status pill */}
+          <div
+            aria-hidden="true"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 whitespace-nowrap rounded-full border border-card-border/80 bg-paper/95 px-4 py-1.5 font-mono text-xs font-semibold text-ink shadow-md backdrop-blur-md"
+          >
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Open for Opportunities</span>
+          </div>
         </div>
-      </div>
       </div>
     </div>
   );
@@ -424,9 +412,7 @@ export default function Hero({
   roles,
   email,
   socialLinks,
-  currentlyLearning,
   streak,
-  availability,
   profileImage,
   firstEnabledSection,
   projectsCount = 0,
@@ -445,7 +431,7 @@ export default function Hero({
   /** P19 scroll cue: #section anchors only exist when the section
    *  is enabled AND we're on home. A disabled section made the chips dead
    *  links — fall back to navigating home with the hash instead. */
-  const jumpSection = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+  const jumpSection = (e: React.MouseEvent<HTMLElement>, href: string) => {
     if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
     e.preventDefault();
     if (!scrollToSection(href.slice(1))) router.push(`/${href}`);
@@ -513,16 +499,8 @@ export default function Hero({
             column a slow scroll parallax (transform-only). */}
         <div
           ref={driftRef}
-          className="text-center lg:text-left"
+          className="text-center lg:text-left relative z-10"
         >
-          {/* Status line — minimal and clean, no chunky notification borders */}
-          {availability && (
-            <div className="hero-in flex items-center justify-center lg:justify-start gap-2 text-xs font-mono text-ink-soft">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-              <span>{availability}</span>
-            </div>
-          )}
-
           {/* The h1 + headline are LCP-critical text — NO entrance
               animation on them (Chrome defers the LCP candidate until a
               running transform/opacity animation settles, which inflates
@@ -533,73 +511,70 @@ export default function Hero({
               Still zero entrance animation (LCP-critical text). */}
           <h1
             id="hero-title"
-            className="mt-4 font-display font-semibold tracking-tight text-ink"
+            className="font-display font-semibold tracking-tight text-ink"
           >
-            <span className="block text-4xl sm:text-6xl">
+            <span className="block text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
               {/* Phase 14 (#1): slow traveling shimmer on the gradient
                   text — background-position only, LCP-neutral. */}
               <span className="text-gradient">{name}</span>
             </span>
-            <span className="mt-2 block text-2xl text-accent sm:text-4xl">
+            <span className="mt-3 block text-2xl text-accent sm:text-4xl lg:text-5xl font-semibold">
               <TypewriterRole roles={roles} />
             </span>
           </h1>
 
-          <p className="mx-auto mt-5 max-w-xl text-lg text-balance text-ink-soft lg:mx-0">
+          <p className="mx-auto mt-5 sm:mt-6 max-w-xl text-lg sm:text-xl leading-relaxed text-balance text-ink-soft lg:mx-0">
             {headline}
           </p>
 
           {/* Gradient divider under the headline */}
           <div
             aria-hidden="true"
-            className="mx-auto mt-6 h-px max-w-md bg-gradient-to-r from-accent/50 via-accent-cyan/40 to-transparent lg:mx-0"
+            className="mx-auto mt-5 sm:mt-6 h-px max-w-md bg-gradient-to-r from-accent/50 via-accent-cyan/40 to-transparent lg:mx-0"
           />
 
           <div
-            className="hero-in delay-hero-2 mt-8 flex flex-wrap items-center justify-center gap-3 lg:justify-start"
+            className="hero-in delay-hero-2 mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 lg:justify-start"
           >
             {/* High-conversion 3-button cluster: Projects, Resume, Contact */}
-            <Magnetic strength={0.2}>
-              <Button href="#projects">
+            <Magnetic strength={0.2} className="w-full sm:w-auto">
+              <Button href="#projects" className="w-full sm:w-auto" onClick={(e) => jumpSection(e, "#projects")}>
                 <Rocket className="h-4 w-4" aria-hidden="true" />
                 Explore Projects
               </Button>
             </Magnetic>
-            <Magnetic strength={0.2}>
+            <Magnetic strength={0.2} className="w-full sm:w-auto">
               <Button
                 variant="secondary"
                 onClick={() => openResumeModal()}
+                className="w-full sm:w-auto"
               >
                 <FileText className="h-4 w-4 text-accent" aria-hidden="true" />
                 Resume / CV
               </Button>
             </Magnetic>
-            <Magnetic strength={0.2}>
-              <Button href={`mailto:${email}`} variant="secondary">
+            <Magnetic strength={0.2} className="w-full sm:w-auto">
+              <Button href="#contact" variant="secondary" className="w-full sm:w-auto" onClick={(e) => jumpSection(e, "#contact")}>
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 Get in Touch
               </Button>
             </Magnetic>
           </div>
 
-          {/* P31 recruiter proof-strip — static mono stat chips under the
-              CTAs (projects + internships from the CMS, streak from the
-              learning momentum). Each jumps to its section; zero-data:
-              the whole strip hides when every chip has nothing to show.
-              Static on purpose — a moving ticker here read as noise. */}
+          {/* P31 recruiter proof-strip — modern glass chips under the CTAs */}
           {(projectsCount > 0 || experienceCount > 0 || streak >= 2) && (
             <div
               aria-label="Highlights"
-              className="hero-fade delay-hero-3 mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 lg:justify-start"
+              className="hero-fade delay-hero-3 mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 lg:justify-start"
             >
               {projectsCount > 0 && (
                 <a
                   href="#projects"
                   onClick={(e) => jumpSection(e, "#projects")}
-                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-1.5 w-1.5 rounded-full bg-topic-cloud transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-topic-cloud transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {projectsCount} shipped {projectsCount === 1 ? "project" : "projects"}
@@ -609,10 +584,10 @@ export default function Hero({
                 <a
                   href="#experience"
                   onClick={(e) => jumpSection(e, "#experience")}
-                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-1.5 w-1.5 rounded-full bg-topic-mars transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-topic-mars transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {experienceCount} {experienceCount === 1 ? "internship" : "internships"}
@@ -621,10 +596,10 @@ export default function Hero({
               {streak >= 2 && (
                 <Link
                   href="/detailed-galaxy"
-                  className="link-underline group inline-flex items-center gap-2 font-mono text-xs font-medium text-ink-soft transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-1.5 w-1.5 rounded-full bg-accent-cyan transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-accent-cyan transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {streak}-day streak
@@ -633,10 +608,10 @@ export default function Hero({
               <button
                 type="button"
                 onClick={() => openTerminal()}
-                className="group inline-flex items-center gap-1.5 rounded-full border border-card-border/80 bg-paper px-2.5 py-0.5 font-mono text-[11px] text-ink-soft transition-all hover:border-accent hover:text-accent cursor-pointer shadow-2xs"
+                className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent cursor-pointer"
                 title="Launch interactive browser CLI terminal (Ctrl+Shift+K)"
               >
-                <Terminal className="h-3 w-3 text-accent" aria-hidden="true" />
+                <Terminal className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
                 <span>&gt;_ CLI Terminal</span>
               </button>
             </div>
@@ -673,7 +648,7 @@ export default function Hero({
         </div>
 
         {/* Right — the photo composition */}
-        <PhotoComposition name={name} image={profileImage} streak={streak} />
+        <PhotoComposition name={name} image={profileImage} />
       </div>
 
       {/* Scroll cue — desktop only (on mobile the composition sits low

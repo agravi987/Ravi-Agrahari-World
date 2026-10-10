@@ -483,41 +483,26 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     data-project-index={i}
                     className="block w-full flex-1 cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                   >
-                    {/* Browser Mockup Chrome Header */}
-                    <div className="browser-chrome" aria-hidden="true">
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="browser-dot browser-dot-red" />
-                        <span className="browser-dot browser-dot-yellow" />
-                        <span className="browser-dot browser-dot-green" />
-                      </div>
-                      <div className="browser-url-bar">
-                        <span className="text-emerald-500 font-bold">🔒</span>
-                        <span>ravi.dev/projects/{project.slug || project.title.toLowerCase().replace(/\W+/g, "-")}</span>
-                      </div>
-                    </div>
-
-                    {/* Cover-forward card: the cover dominates and the
-                        title sits ON it (dark scrim keeps white text AA),
-                        so the grid reads as a premium gallery wall. */}
-                    <div className="relative">
+                    {/* Cover-forward card: the cover dominates with sleek overlay */}
+                    <div className="relative overflow-hidden rounded-t-card">
                       <ProjectCover
                         image={project.coverImage}
                         title={project.title}
                         tech={project.tech}
-                        className={`cover-zoom ${hero ? "h-48 sm:h-56" : "h-40 sm:h-36"}`}
+                        className={`cover-zoom ${hero ? "h-52 sm:h-64" : "h-44 sm:h-48"}`}
                       />
                       {/* Scrim — guarantees the overlay text reads on any image */}
                       <span
                         aria-hidden="true"
-                        className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/25 to-transparent transition-opacity duration-300 group-hover:from-ink/85"
+                        className="absolute inset-0 bg-gradient-to-t from-ink/85 via-ink/30 to-transparent transition-opacity duration-300 group-hover:from-ink/90"
                       />
                       {/* Title on the cover */}
-                      <div className="absolute inset-x-0 bottom-0 flex items-start justify-between gap-3 p-4">
-                        <h3 className="flex items-center gap-1.5 font-display text-lg font-semibold text-white">
+                      <div className="absolute inset-x-0 bottom-0 flex items-start justify-between gap-3 p-4 sm:p-5">
+                        <h3 className="flex items-center gap-2 font-display text-xl sm:text-2xl font-bold text-white tracking-tight">
                           {project.title}
                           {project.featured && (
                             <Star
-                              className="h-4 w-4 -translate-y-0.5 fill-warning text-warning" /* #84 */
+                              className="h-4 w-4 -translate-y-0.5 fill-warning text-warning"
                               role="img"
                               aria-label="Featured project"
                             />
@@ -527,7 +512,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       {/* Mono index — the collection reads as a series */}
                       <span
                         aria-hidden="true"
-                        className="absolute right-3 top-3 rounded-full bg-ink/50 px-2 py-0.5 font-mono text-[10px] font-semibold text-white/90 backdrop-blur-sm"
+                        className="absolute right-3.5 top-3.5 rounded-full bg-ink/60 px-2.5 py-0.5 font-mono text-xs font-semibold text-white/90 backdrop-blur-sm"
                       >
                         {String(i + 1).padStart(2, "0")}
                       </span>
@@ -535,19 +520,19 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       {hero && (
                         <span
                           aria-hidden="true"
-                          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-amber-400/90 px-2.5 py-0.5 font-mono text-[10px] font-semibold text-ink shadow-card backdrop-blur-sm"
+                          className="absolute left-3.5 top-3.5 inline-flex items-center gap-1 rounded-full bg-amber-400/90 px-3 py-1 font-mono text-xs font-semibold text-ink shadow-card backdrop-blur-sm"
                         >
-                          <Star className="h-3 w-3 fill-ink" />
+                          <Star className="h-3.5 w-3.5 fill-ink" />
                           featured
                         </span>
                       )}
                     </div>
-                    <div className="p-5 pt-4">
-                      {/* Teaser only — the full story waits in the modal. */}
-                      <p className="line-clamp-2 text-sm text-ink-soft">
+                    <div className="p-5 sm:p-6">
+                      {/* Teaser text */}
+                      <p className="line-clamp-2 text-base leading-relaxed text-ink-soft">
                         {project.description}
                       </p>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
+                      <div className="mt-4 flex flex-wrap gap-1.5">
                         {visibleTech.map((t) => (
                           <Badge key={t} variant="colored" className={tagHueClasses(t)}>
                             {t}
@@ -560,64 +545,21 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           <SamplePill className="ml-1.5">sample</SamplePill>
                         )}
                       </div>
-
-                      {/* Architecture Pipeline Flow Strip (MNC Engineering Proof) */}
-                      {hero && (
-                        <div className="mt-4 rounded-xl border border-card-border/70 bg-paper-deep/50 p-3">
-                          <div className="flex items-center justify-between font-mono text-[10px] text-ink-faint mb-2">
-                            <span className="flex items-center gap-1.5 uppercase font-semibold tracking-wider text-accent">
-                              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-ping" aria-hidden="true" />
-                              System Pipeline Flow
-                            </span>
-                            <span className="hidden sm:inline">Automated Cloud CI/CD</span>
-                          </div>
-                          <div className="relative flex items-center justify-between gap-1 text-[10px] sm:text-[11px] font-mono">
-                            {/* Animated track line connecting steps */}
-                            <div
-                              aria-hidden="true"
-                              className="pipeline-flow-track absolute inset-x-3 top-1/2 -z-0 h-0.5 -translate-y-1/2 bg-card-border"
-                            >
-                              <div className="pipeline-flow-pulse h-full w-1/3 bg-gradient-to-r from-transparent via-accent to-transparent" />
-                            </div>
-                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
-                              Git Push
-                            </span>
-                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
-                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
-                              Actions CI
-                            </span>
-                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
-                            <span className="relative z-10 rounded-md border border-card-border bg-card px-1.5 sm:px-2 py-0.5 sm:py-1 text-ink shadow-sm">
-                              Docker Build
-                            </span>
-                            <span className="relative z-10 text-ink-faint text-[10px]">➔</span>
-                            <span className="relative z-10 rounded-md border border-accent/40 bg-accent-soft px-1.5 sm:px-2 py-0.5 sm:py-1 font-semibold text-accent shadow-sm">
-                              Cloud Deploy
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      {!hero && (
-                        <div className="mt-3.5 flex items-center gap-2 font-mono text-[10px] sm:text-[11px] text-ink-faint">
-                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                          <span>Containerized · Cloud Native Architecture</span>
-                        </div>
-                      )}
                     </div>
                   </button>
 
                   {/* Instant Launchpad — Direct 1-Click Access for Recruiters */}
-                  <div className="mt-auto flex flex-wrap items-center justify-between gap-2 border-t border-card-border/60 p-5 pt-3">
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-card-border/60 px-5 sm:px-6 py-4">
+                    <div className="flex flex-wrap items-center gap-2.5">
                       {project.demoUrl && (
                         <a
                           href={project.demoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-full bg-accent-btn px-3 py-1 text-xs font-semibold text-white shadow-sm transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-accent-btn px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
                         >
                           Live Demo
-                          <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                          <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
                         </a>
                       )}
                       {project.repoUrl && (
@@ -625,9 +567,9 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           href={project.repoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1 text-xs font-medium text-ink-soft shadow-sm transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-1.5 text-xs sm:text-sm font-semibold text-ink-soft shadow-xs transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
                         >
-                          <span className="font-mono text-[10px] font-bold">GH</span>
+                          <span className="font-mono text-xs font-bold">GH</span>
                           Code
                         </a>
                       )}
@@ -635,9 +577,9 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     <button
                       type="button"
                       onClick={() => openProject(project)}
-                      className="font-mono text-[11px] text-accent font-medium inline-flex items-center gap-0.5 hover:underline cursor-pointer"
+                      className="font-mono text-xs sm:text-sm text-accent font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
                     >
-                      Quick Specs ➔
+                      Details &amp; Specs ➔
                     </button>
                   </div>
                 </Card>

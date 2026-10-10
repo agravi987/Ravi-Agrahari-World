@@ -258,26 +258,26 @@ export default function Contact({
             </p>
           )}
 
-          <h3 className="mt-4 font-display text-xl font-semibold tracking-tight text-ink">
+          <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-ink">
             Prefer email?
           </h3>
-          <p className="mt-1.5 text-sm text-ink-soft">
+          <p className="mt-1.5 text-base leading-relaxed text-ink-soft">
             One click copies it — no forms, no friction.
           </p>
 
           <button
             type="button"
             onClick={copyEmail}
-            className="group mt-5 inline-flex w-full items-center justify-center gap-2 rounded-card border border-card-border bg-card px-5 py-3 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-card-border bg-card px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {copied ? (
               <Check className="h-4 w-4 text-accent" aria-hidden="true" />
             ) : (
               <Copy className="h-4 w-4 text-accent" aria-hidden="true" />
             )}
-            <span className="truncate font-mono text-sm">{email}</span>
+            <span className="truncate font-mono text-sm sm:text-base font-semibold">{email}</span>
           </button>
-          <p className="mt-2 text-xs text-ink-faint" aria-live="polite">
+          <p className="mt-2 text-xs sm:text-sm text-ink-faint" aria-live="polite">
             {copied
               ? "Copied to clipboard ✓"
               : "Click to copy — one click, no friction"}
@@ -300,24 +300,24 @@ export default function Contact({
           </div>
 
           {/* Ground Station Telemetry Specs (MNC Transparency) */}
-          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper/60 p-3.5">
-            <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" aria-hidden="true" />
+          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper/60 p-4">
+            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
               Ground Station Telemetry
             </p>
-            <div className="mt-2.5 grid grid-cols-2 gap-2 text-[11px] font-mono">
-              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2">
-                <span className="text-ink-faint block text-[10px]">TIMEZONE</span>
-                <span className="font-medium text-ink">IST (UTC+5:30)</span>
+            <div className="mt-3 grid grid-cols-2 gap-2.5 text-xs sm:text-sm font-mono">
+              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2.5">
+                <span className="text-ink-faint block text-xs">TIMEZONE</span>
+                <span className="font-semibold text-ink">IST (UTC+5:30)</span>
               </div>
-              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2">
-                <span className="text-ink-faint block text-[10px]">AVG RESPONSE</span>
-                <span className="font-medium text-emerald-600">&lt; 24 Hours</span>
+              <div className="rounded-lg border border-card-border/60 bg-card/70 p-2.5">
+                <span className="text-ink-faint block text-xs">AVG RESPONSE</span>
+                <span className="font-semibold text-emerald-600">&lt; 24 Hours</span>
               </div>
             </div>
           </div>
 
-          <p className="mt-5 border-t border-card-border pt-4 font-mono text-[10px] text-ink-faint">
+          <p className="mt-5 border-t border-card-border pt-4 font-mono text-xs text-ink-faint">
             replies within 24h · zero trackers
           </p>
         </div>
@@ -451,13 +451,13 @@ export default function Contact({
                   data-compact-touch
                   onClick={() => applyPreset(p.subject, p.opener)}
                   aria-pressed={active}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     active
                       ? "border-accent/40 bg-accent-soft text-accent"
                       : "border-card-border bg-paper/60 text-ink-soft hover:border-accent/40 hover:bg-card hover:text-ink"
                   }`}
                 >
-                  <PresetIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                  <PresetIcon className="h-4 w-4" aria-hidden="true" />
                   {p.label}
                 </button>
               );
@@ -468,7 +468,7 @@ export default function Contact({
             <div className="relative">
               <label
                 htmlFor="name"
-                className="mb-1.5 block text-sm font-medium text-ink"
+                className="mb-2 block text-sm sm:text-base font-semibold text-ink"
               >
                 Name
               </label>
@@ -481,7 +481,7 @@ export default function Contact({
                 autoComplete="name"
                 aria-invalid={nameError}
                 aria-describedby={nameError ? "name-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   nameError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -505,7 +505,7 @@ export default function Contact({
             <div className="relative">
               <label
                 htmlFor="email"
-                className="mb-1.5 block text-sm font-medium text-ink"
+                className="mb-2 block text-sm sm:text-base font-semibold text-ink"
               >
                 Email
               </label>
@@ -518,7 +518,7 @@ export default function Contact({
                 autoComplete="email"
                 aria-invalid={emailError}
                 aria-describedby={emailError ? "email-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                   emailError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                     : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -539,7 +539,7 @@ export default function Contact({
           <div className="relative">
             <label
               htmlFor="subject"
-              className="mb-1.5 block text-sm font-medium text-ink"
+              className="mb-2 block text-sm sm:text-base font-semibold text-ink"
             >
               Subject
             </label>
@@ -553,7 +553,7 @@ export default function Contact({
               enterKeyHint="next"
               aria-invalid={subjectError}
               aria-describedby={subjectError ? "subject-error" : undefined}
-              className={`w-full rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 subjectError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -571,7 +571,7 @@ export default function Contact({
               </p>
             )}
             {valid.subject && (
-              <Check                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
+              <Check className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
                 aria-hidden="true"
               />
             )}
@@ -579,7 +579,7 @@ export default function Contact({
           <div className="relative">
             <label
               htmlFor="message"
-              className="mb-1.5 block text-sm font-medium text-ink"
+              className="mb-2 block text-sm sm:text-base font-semibold text-ink"
             >
               Message
             </label>
@@ -596,7 +596,7 @@ export default function Contact({
               aria-describedby={
                 messageError ? "message-error message-counter" : "message-counter"
               }
-              className={`w-full resize-none rounded-card border bg-card px-4 py-2.5 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full resize-none rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
                 messageError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
                   : "border-card-border focus:border-accent focus:ring-accent/10"
@@ -615,14 +615,14 @@ export default function Contact({
               </p>
             )}
             {valid.message && (
-              <Check                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
+              <Check className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-success"
                 aria-hidden="true"
               />
             )}
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Magnetic strength={0.15} className="w-full sm:w-auto">
-              <Button type="submit" disabled={sending} className="w-full sm:w-auto">
+              <Button type="submit" disabled={sending} className="w-full sm:w-auto px-6 py-3 text-base font-semibold">
                 <Mail className="h-4 w-4" aria-hidden="true" />
                 {sending ? "Sending…" : "Send message"}
               </Button>
@@ -634,7 +634,7 @@ export default function Contact({
             <span className="flex items-center gap-3">
               <span
                 id="message-counter"
-                className={`font-mono text-[10px] ${
+                className={`font-mono text-xs ${
                   MESSAGE_MAX - message.length <= 50
                     ? "text-warning" /* near-limit nudge (audit #170) */
                     : "text-ink-faint"
@@ -656,7 +656,7 @@ export default function Contact({
               </span>
               <span
                 aria-hidden="true"
-                className="hidden font-mono text-[10px] text-ink-faint md:inline"
+                className="hidden font-mono text-xs text-ink-faint md:inline"
               >
                 Ctrl<span className="text-ink-faint">+</span>Enter to send
               </span>

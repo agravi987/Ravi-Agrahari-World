@@ -83,7 +83,7 @@ export default async function Footer({
       <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 pt-12 pb-28 sm:pb-16 sm:grid-cols-2 lg:grid-cols-3">
         {/* Identity */}
         <div className="flex flex-col items-start gap-2">
-          <p className="flex items-center gap-2 font-display text-lg font-semibold text-ink">
+          <p className="flex items-center gap-2 font-display text-lg sm:text-xl font-bold text-ink">
             {/* Brand monogram — the hero's ONE indigo→cyan pair, as a dot */}
             <span
               aria-hidden="true"
@@ -91,25 +91,25 @@ export default async function Footer({
             />
             {name}
           </p>
-          <p className="text-sm text-ink-soft">
+          <p className="text-sm sm:text-base text-ink-soft">
             Built while learning in public ·{" "}
-            <span className="rounded-full border border-card-border bg-card px-2 py-0.5 font-mono text-[10px] text-ink-faint">
+            <span className="rounded-full border border-card-border bg-card px-2.5 py-0.5 font-mono text-xs text-ink-faint">
               orbital v1
             </span>
           </p>
           {/* P25: dynamic copyright + tech credit — honest, no hardcoding */}
-          <p className="text-xs text-ink-faint">
+          <p className="text-xs sm:text-sm text-ink-faint">
             © {new Date().getFullYear()} {name}
           </p>
-          <p className="text-xs text-ink-faint">
+          <p className="text-xs sm:text-sm text-ink-faint">
             Built with Next.js · Tailwind · TypeScript
           </p>
           {/* P26: a quiet, honest privacy note — this site is zero-tracker */}
-          <p className="text-xs text-ink-faint">
+          <p className="text-xs sm:text-sm text-ink-faint">
             No trackers, no cookies — just a portfolio.
           </p>
           {/* ⌘K / ? hints (P7/P15) — hidden on touch devices (no keyboard). */}
-          <p className="hidden font-mono text-[10px] text-ink-faint md:block">
+          <p className="hidden font-mono text-xs text-ink-faint md:block">
             <CmdKey /> jump · <Kbd>?</Kbd> shortcuts
           </p>
         </div>
@@ -120,7 +120,7 @@ export default async function Footer({
 
         {/* Connect + deploy badge */}
         <div className="flex flex-col items-start gap-3">
-          <p className="text-xs font-semibold uppercase tracking-wider text-ink-faint">
+          <p className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-ink-faint">
             Connect
           </p>
           <div className="flex flex-wrap gap-3">

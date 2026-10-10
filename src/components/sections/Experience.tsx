@@ -14,7 +14,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Activity, Check, ChevronDown, Copy, Link2, Sparkles, Zap } from "lucide-react";
+import { Activity, Check, ChevronDown, Copy, Link2, Sparkles } from "lucide-react";
 import { gsapReady } from "@/lib/gsap";
 import CosmicDecor from "@/components/ui/CosmicDecor";
 import ExploreLink from "@/components/ui/ExploreLink";
@@ -267,15 +267,15 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                 aria-controls={`experience-detail-${i}`}
                 aria-label={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
                 title={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
-                className={`block w-full cursor-pointer rounded-card p-4 text-left transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`block w-full cursor-pointer rounded-2xl p-4.5 sm:p-5 text-left transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   // P25: the open row raises — a card with a topic-hued
                   // left accent marking the active role
                   open
-                    ? `border border-card-border border-l-[3px] bg-card shadow-card ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]}`
-                    : "border border-transparent hover:bg-card/60"
+                    ? `border border-card-border/80 bg-card/90 shadow-card ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]}`
+                    : "border border-transparent hover:border-card-border/60 hover:bg-card/50"
                 }`}
               >
-                <span className="flex items-start gap-3">
+                <span className="flex items-start gap-3.5">
                   {/* Company avatar — CMS logo when present, monogram
                       otherwise (Phase 16 #2/#17). */}
                   {item.companyLogo && !logoFailed.has(i) ? (
@@ -296,12 +296,12 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                           return next;
                         })
                       }
-                      className="experience-logo h-10 w-10 shrink-0 rounded-xl border border-card-border bg-card object-contain p-1"
+                      className="experience-logo h-11 w-11 shrink-0 rounded-xl border border-card-border bg-card object-contain p-1"
                     />
                   ) : (
                     <span
                       aria-hidden="true"
-                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-display text-sm font-bold ${
+                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
                         AVATAR_STYLES[i % AVATAR_STYLES.length]
                       }`}
                     >
@@ -312,19 +312,19 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                     <span className="min-w-0">
                       {/* P26: mono index + role + company */}
                       <span className="flex items-baseline gap-2">
-                        <span aria-hidden="true" className="font-mono text-xs text-ink-faint">
+                        <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-ink-faint">
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <h3 className="font-display text-lg font-semibold text-ink">{item.role}</h3>
+                        <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{item.role}</h3>
                       </span>
-                      <p className="mt-0.5 text-sm font-medium text-accent">{item.company}</p>
+                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-accent">{item.company}</p>
                     </span>
-                    <span className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <span className="flex flex-wrap items-center gap-2">
                       {/* Active pulse + achievements count (UX pass) */}
                       {isActive && (
                         <span
                           role="status"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-2 py-0.5 font-mono text-[10px] text-success sm:px-2.5 sm:py-1"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-3 py-1 font-mono text-xs font-semibold text-success"
                         >
                           <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
                           active
@@ -333,10 +333,10 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {item.metrics.length > 0 && (
                         <span
                           title={`${item.metrics.length} achievements at ${item.company}`}
-                          className="hidden items-center gap-1 rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:inline-flex sm:px-2.5 sm:py-1"
+                          className="hidden items-center gap-1 rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft sm:inline-flex"
                         >
                           {item.metrics.length}
-                          <Sparkles className="h-3 w-3" aria-hidden="true" />
+                          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
                         </span>
                       )}
                       {/* Phase 16 (#13): auto-computed duration, when the
@@ -344,7 +344,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {dur && (
                         <span
                           title={`Computed from the period — ${item.period}`}
-                          className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:px-2.5 sm:py-1"
+                          className="inline-block rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft"
                         >
                           {dur}
                         </span>
@@ -352,7 +352,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {/* P25 chip, P26: now on mobile too (smaller) — hidden
                           when the period is empty (zero-data rule) */}
                       {item.period && (
-                        <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint sm:px-2.5 sm:py-1">
+                        <span className="inline-block rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft">
                           {item.period}
                         </span>
                       )}
@@ -377,22 +377,22 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   {...(open ? {} : ({ inert: true } as object))}
                 >
                   {item.description && (
-                    <p className="text-sm leading-relaxed text-ink-soft">{item.description}</p>
+                    <p className="text-base leading-relaxed text-ink-soft">{item.description}</p>
                   )}
                   {item.metrics.length > 0 && (
                     /* Phase 16 (#4): metrics stagger in when the row opens */
-                    <div className="mt-4 pt-3 border-t border-card-border/60">
+                    <div className="mt-4 pt-3.5 border-t border-card-border/60">
                       <div className="flex items-center gap-2 mb-2.5">
-                        <Activity className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
-                        <span className="font-mono text-[11px] font-semibold uppercase tracking-wider text-ink-faint">
-                          Mission Telemetry & Key Impact
+                        <Activity className="h-4 w-4 text-accent" aria-hidden="true" />
+                        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                          Key Impact &amp; Accomplishments
                         </span>
                       </div>
-                      <ul className="metric-stagger space-y-2">
+                      <ul className="metric-stagger space-y-2.5">
                         {item.metrics.map((m, mi) => (
                           <li
                             key={m}
-                            className="flex items-start gap-2.5 rounded-lg border border-card-border/70 bg-card/60 px-3 py-2 text-sm text-ink-soft shadow-xs transition-colors hover:border-accent/40"
+                            className="flex items-start gap-3 rounded-xl border border-card-border/70 bg-card/60 px-3.5 py-2.5 text-sm sm:text-base text-ink-soft shadow-xs transition-colors hover:border-accent/40"
                             style={{ animationDelay: `${mi * 70}ms` }}
                           >
                             <span
@@ -409,11 +409,11 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                   )}
                   {/* Phase 16 (#19): tools used — chips, only when present */}
                   {item.tools && item.tools.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className="mt-3.5 flex flex-wrap gap-2">
                       {item.tools.map((t) => (
                         <span
                           key={t}
-                          className="rounded-full border border-card-border bg-paper px-2.5 py-0.5 font-mono text-[10px] text-ink-soft"
+                          className="rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft"
                         >
                           {t}
                         </span>

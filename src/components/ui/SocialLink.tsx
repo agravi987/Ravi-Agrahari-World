@@ -40,12 +40,12 @@ export default function SocialLink({ label, url, variant, className }: SocialLin
         aria-label={externalName}
         title={label}
         className={clsx(
-          "inline-flex h-9 w-9 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+          "inline-flex h-10 w-10 items-center justify-center rounded-full border border-card-border/80 bg-card/80 text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:shadow-card hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
           hover,
           className
         )}
       >
-        {brand && <BrandIcon name={brand} className="h-4 w-4" aria-hidden="true" />}
+        {brand && <BrandIcon name={brand} className="h-4.5 w-4.5" aria-hidden="true" />}
       </a>
     );
   }
@@ -58,12 +58,12 @@ export default function SocialLink({ label, url, variant, className }: SocialLin
         rel="noopener noreferrer"
         aria-label={externalName}
         className={clsx(
-          "inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-2 text-sm font-medium text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
+          "inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/80 px-4.5 py-2.5 text-sm sm:text-base font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:shadow-card hover:border-accent/40 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent",
           hover,
           className
         )}
       >
-        {brand && <BrandIcon name={brand} className="h-4 w-4" aria-hidden="true" />}
+        {brand && <BrandIcon name={brand} className="h-4.5 w-4.5" aria-hidden="true" />}
         {label}
       </a>
     );

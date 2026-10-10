@@ -32,7 +32,7 @@ import {
   FileText,
   type LucideIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { scrollToSection } from "@/lib/scrollTo";
@@ -124,6 +124,7 @@ export default function CommandPalette({
   const openRef = useRef(false);
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
+  const [actions, setActions] = useState<Action[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -135,19 +136,7 @@ export default function CommandPalette({
     openRef.current = open;
   }, [open]);
 
-  // Open with a clean slate (query + selection) — called only from
-  // event callbacks (keydown, store notify), never from an effect
-  // (lint: set-state-in-effect). Focus happens after paint.
   const originalThemeRef = useRef<ThemeChoice>("system");
-  const openPalette = useCallback(() => {
-    lastTriggerRef.current = document.activeElement as HTMLElement | null;
-    originalThemeRef.current = storedChoice(); // theme previews restore to this
-    setQuery("");
-    setIndex(0);
-    setOpen(true);
-    requestAnimationFrame(() => inputRef.current?.focus());
-  }, []);
-
   const closePalette = useCallback(() => {
     // A theme row may be left highlighted — undo the preview so closing
     // without running never changes the theme.
@@ -155,58 +144,6 @@ export default function CommandPalette({
     setOpen(false);
     lastTriggerRef.current?.focus?.();
   }, []);
-
-  // Module store: header button / mobile nav → open.
-  useEffect(() => subscribe(() => openPalette()), [openPalette]);
-
-  // Global Ctrl/Cmd+K (the terminal moved to Ctrl+Shift+K in P7).
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "k") {
-        e.preventDefault();
-        if (openRef.current) closePalette();
-        else openPalette();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [openPalette, closePalette]);
-
-  // Escape + click-outside close (with focus restore) + focus trap:
-  // Tab / Shift+Tab cycle inside the dialog so keyboard users can't
-  // tab out into the page behind an open modal (P16).
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        closePalette();
-        return;
-      }
-      if (e.key !== "Tab") return;
-      const el = dialogRef.current;
-      if (!el) return;
-      const focusables = [...el.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
-      )];
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-      if (e.shiftKey) {
-        if (active === first || !el.contains(active)) {
-          e.preventDefault();
-          last.focus();
-        }
-      } else if (active === last || !el.contains(active)) {
-        e.preventDefault();
-        first.focus();
-      }
-    };
-    window.addEventListener("keydown", onKey);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-    };
-  }, [open, closePalette]);
 
   const copyEmail = useCallback(async () => {
     try {
@@ -254,11 +191,14 @@ export default function CommandPalette({
     }
   }, [getRecent]);
 
-  /** Actions are rebuilt on open so DOM-scanned sections stay fresh.
-   *  SSR-safe: `document` only exists on the client — the palette is
-   *  closed (returns null) during server render, so sections resolve
-   *  to [] and the static pages/posts/commands still show. */
-  const actions = useMemo<Action[]>(() => {
+  /** Actions are rebuilt each time the palette OPENS so DOM-scanned
+   *  sections stay fresh. They live in state (set by `openPalette`, an
+   *  event handler) rather than a useMemo because the run/preview
+   *  closures reach into refs (theme restore + focus) — building them
+   *  during render trips the React `refs` lint rule. SSR-safe: `document`
+   *  only exists on the client and `buildActions` never runs while
+   *  rendering (the palette returns null when closed). */
+  const buildActions = useCallback((): Action[] => {
     const sections =
       typeof document === "undefined"
         ? []
@@ -396,31 +336,91 @@ export default function CommandPalette({
     }));
 
     return [...pages, ...sections, ...commands, ...projectActions, ...planetActions, ...postActions];
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, email, github, projects, posts, planets]);
+  }, [email, github, projects, posts, planets, go, closePalette, copyEmail, openTerminal]);
+
+  // Open with a clean slate (query + selection + action list) — called
+  // only from event callbacks (keydown, store notify), never from an
+  // effect (lint: set-state-in-effect). Focus happens after paint.
+  const openPalette = useCallback(() => {
+    lastTriggerRef.current = document.activeElement as HTMLElement | null;
+    originalThemeRef.current = storedChoice(); // theme previews restore to this
+    setActions(buildActions());
+    setQuery("");
+    setIndex(0);
+    setOpen(true);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, [buildActions]);
+
+  // Module store: header button / mobile nav → open.
+  useEffect(() => subscribe(() => openPalette()), [openPalette]);
+
+  // Global Ctrl/Cmd+K (the terminal moved to Ctrl+Shift+K in P7).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        if (openRef.current) closePalette();
+        else openPalette();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [openPalette, closePalette]);
+
+  // Escape + click-outside close (with focus restore) + focus trap:
+  // Tab / Shift+Tab cycle inside the dialog so keyboard users can't
+  // tab out into the page behind an open modal (P16).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closePalette();
+        return;
+      }
+      if (e.key !== "Tab") return;
+      const el = dialogRef.current;
+      if (!el) return;
+      const focusables = [...el.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
+      )];
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      const active = document.activeElement;
+      if (e.shiftKey) {
+        if (active === first || !el.contains(active)) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else if (active === last || !el.contains(active)) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open, closePalette]);
 
   /** Resolved recent actions (ids that still exist in `actions`). */
-  const recents = useMemo<Action[]>(
-    () =>
-      getRecent()
-        .map((id) => actions.find((a) => a.id === id))
-        .filter((a): a is Action => Boolean(a)),
-    [actions, getRecent]
-  );
+  const recents: Action[] = getRecent()
+    .map((id) => actions.find((a) => a.id === id))
+    .filter((a): a is Action => Boolean(a));
 
   // Empty query → recents lead (deduped), then everything else.
-  const base = useMemo<Action[]>(() => {
+  const base: Action[] = (() => {
     if (query.trim()) return actions;
     if (recents.length === 0) return actions;
     const recentIds = new Set(recents.map((r) => r.id));
     return [...recents, ...actions.filter((a) => !recentIds.has(a.id))];
-  }, [actions, recents, query]);
+  })();
 
-  const filtered = useMemo(() => {
+  const filtered: Action[] = (() => {
     const q = query.trim().toLowerCase();
     if (!q) return base;
     return base.filter((a) => a.keywords.toLowerCase().includes(q));
-  }, [base, query]);
+  })();
 
   // Clamp the selection to the list — derived, never setState-in-effect.
   const safeIndex = filtered.length === 0 ? 0 : Math.min(index, filtered.length - 1);

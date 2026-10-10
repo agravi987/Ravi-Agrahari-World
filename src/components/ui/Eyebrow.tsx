@@ -17,7 +17,7 @@ export default function Eyebrow({ label, cursor = false, className }: EyebrowPro
   return (
     <p
       className={clsx(
-        "font-mono text-xs font-medium tracking-tight text-accent",
+        "font-mono text-xs sm:text-sm font-semibold tracking-wider uppercase text-accent",
         className
       )}
     >

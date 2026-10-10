@@ -23,14 +23,14 @@ type ButtonProps = BaseProps &
 const variantClasses: Record<Variant, string> = {
   // active:translate-y-px is the tactile "pressed" state (P7 polish)
   primary:
-    "bg-accent-btn text-white shadow-card transition-colors hover:bg-accent-btn-hover active:translate-y-px",
+    "bg-accent-btn text-white shadow-md hover:bg-accent-btn-hover hover:shadow-orbital active:translate-y-px transition-all duration-200",
   secondary:
-    "border border-card-border bg-card text-ink transition-colors hover:border-accent hover:text-accent active:translate-y-px",
+    "border border-card-border/80 bg-card/80 backdrop-blur-xs text-ink shadow-xs hover:border-accent/60 hover:text-accent hover:bg-card active:translate-y-px transition-all duration-200",
   ghost: "text-ink-soft transition-colors hover:text-accent",
 };
 
 const baseClasses =
-  "inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+  "inline-flex items-center justify-center gap-2 rounded-full px-5 sm:px-6 py-2.5 sm:py-3 text-sm sm:text-base font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent shadow-xs active:scale-[0.98] transition-all";
 
 export default function Button({ variant = "primary", className, href, ...rest }: ButtonProps) {
   const classes = clsx(baseClasses, variantClasses[variant], className);

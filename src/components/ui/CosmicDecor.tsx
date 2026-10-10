@@ -122,7 +122,7 @@ export default function CosmicDecor({
     <div
       aria-hidden="true"
       className={clsx(
-        "cs-layer pointer-events-none absolute inset-0 no-print",
+        "cs-layer pointer-events-none absolute inset-0 no-print overflow-hidden",
         className
       )}
     >

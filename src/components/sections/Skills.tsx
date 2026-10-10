@@ -53,13 +53,6 @@ const CHIP_ACTIVE: Record<string, string> = {
   bot: "after:bg-topic-ai",
 };
 
-/** P27: focus-card left accent per domain (subtle color echo). */
-const PANEL_ACCENT: Record<string, string> = {
-  cloud: "border-l-topic-cloud/60",
-  workflow: "border-l-topic-devops/60",
-  bot: "border-l-topic-ai/60",
-};
-
 /** Phase 14 (#2): focus-card ring tint per domain (focus-within). */
 const RING_ACTIVE: Record<string, string> = {
   cloud: "focus-within:ring-topic-cloud/20",
@@ -329,14 +322,14 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                   moveTab(i, e.key === "ArrowUp" ? -1 : 1);
                 }
               }}
-              className={`relative inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
+              className={`relative inline-flex items-center gap-2 rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
                 selected
                   ? `border-transparent bg-card text-ink shadow-card after:opacity-100 ${CHIP_ACTIVE[s.icon] ?? "after:bg-accent"}`
                   : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
               }`}
             >
               <ChipIcon
-                className={`h-3.5 w-3.5 ${selected ? ((TILE_STYLES[s.icon] ?? "text-accent").split(" ")[1] ?? "text-accent") : "text-ink-faint"}`}
+                className={`h-4 w-4 ${selected ? ((TILE_STYLES[s.icon] ?? "text-accent").split(" ")[1] ?? "text-accent") : "text-ink-faint"}`}
                 aria-hidden="true"
               />
               {s.name}
@@ -346,7 +339,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
       </div>
 
       {/* P26: honest scale — how many domains are tracked */}
-      <p className="mt-3 text-center font-mono text-xs text-ink-faint">
+      <p className="mt-3.5 text-center font-mono text-xs sm:text-sm text-ink-faint">
         {skills.length} skill {skills.length === 1 ? "domain" : "domains"}
       </p>
 
@@ -397,7 +390,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                 )}
                 <TiltCard
                   max={5}
-                  className={`relative z-10 rounded-card ${isActive ? "skill-glow skill-glow-pulse" : ""}`}
+                  className={`relative z-10 rounded-2xl ${isActive ? "skill-glow skill-glow-pulse" : ""}`}
                   style={
                     isActive
                       ? ({
@@ -409,9 +402,9 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                 >
                   <Card
                     hover
-                    className={`group border-l-4 p-5 sm:p-8 outline-none transition-shadow focus-within:ring-4 ${
+                    className={`group p-6 sm:p-8 outline-none transition-shadow focus-within:ring-4 ${
                       RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
-                    } ${PANEL_ACCENT[s.icon] ?? "border-l-accent/40"}`}
+                    }`}
                   >
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}>
@@ -419,18 +412,18 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">{s.name}</h3>
+                          <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{s.name}</h3>
                           <Tooltip label="1 = getting started · 5 = confident" side="left">
                             <LevelRing level={s.level} className={`shrink-0 ${barFor(s.icon).text}`} />
                           </Tooltip>
                         </div>
-                        {s.blurb && <p className="mt-1.5 text-sm leading-relaxed text-ink-soft">{s.blurb}</p>}
+                        {s.blurb && <p className="mt-2 text-base sm:text-lg leading-relaxed text-ink-soft">{s.blurb}</p>}
                         <div className="mt-5">
-                          <div className="flex items-center justify-between text-xs text-ink-faint">
-                            <span aria-hidden="true">level</span>
-                            <span className={`flex items-center gap-2 font-medium ${barFor(s.icon).text}`}>
+                          <div className="flex items-center justify-between text-xs sm:text-sm text-ink-faint">
+                            <span aria-hidden="true" className="font-medium">level</span>
+                            <span className={`flex items-center gap-2 font-semibold ${barFor(s.icon).text}`}>
                               {s.level < 3 && (
-                                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
+                                <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold uppercase tracking-wide text-amber-600 dark:text-amber-400">
                                   still learning
                                 </span>
                               )}
@@ -439,7 +432,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                           </div>
                           <LevelBar level={s.level} fillClass={barFor(s.icon).fill} />
                         </div>
-                        <Link href={skillGalaxyHref} className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:underline">
+                        <Link href={skillGalaxyHref} className="mt-5 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent transition-colors hover:underline">
                           explore in galaxy <span aria-hidden="true">→</span>
                         </Link>
                       </div>

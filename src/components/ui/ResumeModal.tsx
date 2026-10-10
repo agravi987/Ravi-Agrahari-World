@@ -62,14 +62,14 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
       <DialogContent
         title={`${name} — Resume & Profile Summary`}
         description="Recruiter overview, core capabilities, and one-click export."
-        className="w-[calc(100vw-2rem)] max-w-2xl"
+        className="w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] max-w-2xl"
       >
-        <DialogBody className="space-y-5 pr-2 max-h-[60vh]">
+        <DialogBody className="space-y-4 sm:space-y-5 pr-1 sm:pr-2 max-h-[68svh] sm:max-h-[60vh]">
           {/* Top banner / role lockup */}
-          <div className="rounded-xl border border-card-border bg-paper-deep/60 p-4 sm:p-5">
+          <div className="rounded-xl border border-card-border bg-paper-deep/60 p-3.5 sm:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="font-display text-xl font-bold text-ink">{name}</h3>
+                <h3 className="font-display text-lg sm:text-xl font-bold text-ink">{name}</h3>
                 <p className="font-mono text-xs text-accent mt-0.5">
                   {roles.join(" · ")}
                 </p>
@@ -77,10 +77,10 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
                   Actively seeking Junior Cloud / DevOps / Full-Stack opportunities
                 </p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                 <Button
                   onClick={handlePrint}
-                  className="px-3.5 py-1.5 text-xs inline-flex items-center gap-1.5"
+                  className="w-full sm:w-auto px-3.5 py-1.5 text-xs inline-flex items-center justify-center gap-1.5"
                 >
                   <Printer className="h-3.5 w-3.5" aria-hidden="true" />
                   Print / Save PDF
@@ -89,7 +89,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
                   type="button"
                   data-compact-touch
                   onClick={handleCopyEmail}
-                  className="inline-flex items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent/40 hover:text-ink transition-colors"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent/40 hover:text-ink transition-colors"
                 >
                   {copied ? (
                     <Check className="h-3 w-3 text-success" />

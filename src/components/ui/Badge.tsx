@@ -13,7 +13,7 @@ interface BadgeProps extends ComponentPropsWithoutRef<"span"> {
 }
 
 const variantClasses: Record<Variant, string> = {
-  neutral: "bg-paper-deep text-ink-soft",
+  neutral: "border border-card-border/80 bg-paper-deep/60 text-ink-soft",
   accent: "bg-accent-soft text-accent",
   colored: "bg-accent-soft text-accent",
 };
@@ -22,7 +22,7 @@ export default function Badge({ variant = "neutral", className, ...rest }: Badge
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs sm:text-[13px] font-semibold tracking-wide",
         variantClasses[variant],
         className
       )}
@@ -44,7 +44,7 @@ export function SamplePill({
   return (
     <span
       className={clsx(
-        "inline-flex items-center gap-1 rounded-full border border-ink-faint/30 bg-ink-faint/8 px-2 py-0.5 font-mono text-[10px] font-medium text-ink-faint",
+        "inline-flex items-center gap-1 rounded-full border border-ink-faint/30 bg-ink-faint/8 px-2.5 py-0.5 font-mono text-xs font-semibold text-ink-faint",
         className
       )}
     >

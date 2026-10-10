@@ -141,7 +141,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 moveFilter(0, 1);
               }
             }}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+            className={`rounded-full border px-4.5 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
               filter === "all"
                 ? "border-transparent bg-accent-btn text-white shadow-card"
                 : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
@@ -171,7 +171,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                     moveFilter(idx, 1);
                   }
                 }}
-                className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                className={`rounded-full border px-4.5 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                   filter === tag
                     ? "border-transparent bg-topic-linux text-white shadow-card"
                     : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
@@ -182,7 +182,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
             );
           })}
           {/* P25: live count — how many notes match the current filter */}
-          <span aria-hidden="true" className="ml-1 font-mono text-[10px] text-ink-faint">
+          <span aria-hidden="true" className="ml-1 font-mono text-xs text-ink-faint">
             {visible.length} {visible.length === 1 ? "note" : "notes"}
           </span>
         </div>
@@ -198,7 +198,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
           <Reveal key={post.slug} delay={(i % 4) * 70} className="h-full blog-float">
             {/* Phase 10: 3D tilt + pointer spotlight on hover — parity
                 with the projects grid (same interaction language). */}
-            <TiltCard max={6} className="h-full rounded-card">
+            <TiltCard max={6} className="h-full rounded-2xl">
             <Link
               href={`/blog/${post.slug}`}
               onMouseMove={(e) => {
@@ -207,7 +207,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
                 el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
               }}
-              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-card border border-card-border bg-card p-6 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
+              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-card-border bg-card p-6 shadow-card transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
             >
             <div className="flex items-center justify-between text-xs text-ink-soft">
               <time dateTime={post.publishedAt} className="flex items-center gap-2">
@@ -228,17 +228,17 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 }) ?? "someday"}
                 {/* Phase 17 (#22): fresh note — fades with time, zero-data */}
                 {isNew(post.publishedAt) && post.slug !== newestSlug && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-success">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide text-success">
                     new
                   </span>
                 )}
               </time>
-              <span>{readTimeMinutes(post.contentMarkdown)} min read</span>
+              <span className="font-mono text-xs">{readTimeMinutes(post.contentMarkdown)} min read</span>
             </div>
-            <h3 className="mt-2 font-display text-lg font-semibold text-ink transition-colors group-hover:text-accent">
+            <h3 className="mt-2.5 font-display text-xl sm:text-2xl font-bold text-ink transition-colors group-hover:text-accent">
               {post.title}
             </h3>
-            <p className="mt-2 line-clamp-3 text-sm text-ink-soft">{post.excerpt}</p>
+            <p className="mt-2.5 line-clamp-3 text-base leading-relaxed text-ink-soft">{post.excerpt}</p>
             {post.tags.length > 0 && (
               /* Cards are whole-card <a> — chips stay plain (nested <a>
                  is invalid HTML). Tag destinations live on the archive
@@ -251,7 +251,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 ))}
               </div>
             )}
-            <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-accent">
+            <span className="mt-4 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent">
               Read note
               <ArrowRight
                 className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5"

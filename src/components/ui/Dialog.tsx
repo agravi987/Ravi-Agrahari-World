@@ -36,8 +36,8 @@ function DialogContentPrimitive({ className, children, ...props }: DialogPrimiti
       {/* Panel: paper card, scales in. */}
       <DialogPrimitive.Content
         className={clsx(
-          "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
-          "rounded-2xl border border-card-border bg-card p-6 shadow-orbital",
+          "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
+          "rounded-2xl border border-card-border bg-card p-4.5 sm:p-6 shadow-orbital max-h-[90svh] flex flex-col",
           "data-[state=open]:animate-dialog-in",
           className
         )}
@@ -67,11 +67,11 @@ export function DialogContent({
 }) {
   return (
     <DialogContentPrimitive {...props}>
-      <DialogPrimitive.Title className="font-display text-xl font-semibold tracking-tight text-ink">
+      <DialogPrimitive.Title className="font-display text-xl sm:text-2xl font-bold tracking-tight text-ink">
         {title}
       </DialogPrimitive.Title>
       {description ? (
-        <DialogPrimitive.Description className="mt-1 text-sm text-ink-soft">
+        <DialogPrimitive.Description className="mt-1 text-base text-ink-soft">
           {description}
         </DialogPrimitive.Description>
       ) : (

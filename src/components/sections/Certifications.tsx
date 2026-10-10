@@ -267,7 +267,7 @@ export default function Certifications({
                   goTo(activeRef.current + 1);
                 }
               }}
-              className={`relative rounded-full border px-4 py-1.5 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
+              className={`relative rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
                 selected
                   ? `border-transparent bg-card text-ink shadow-card chip-breathe after:opacity-100 ${CHIP_HUES[i % 4]}`
                   : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
@@ -288,7 +288,7 @@ export default function Certifications({
           />
         </div>
       )}
-      <p className="mt-3 text-center font-mono text-xs text-ink-faint">
+      <p className="mt-3.5 text-center font-mono text-xs sm:text-sm text-ink-faint">
         {shownCerts.length} of {visible.length} certification{visible.length === 1 ? "" : "s"} in this view
       </p>
 
@@ -311,7 +311,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-5 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-6 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
             {/* P8: issuer logo when the CMS provides one; topic-hued Award
@@ -336,20 +336,20 @@ export default function Certifications({
             )}
 
             <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-emerald-600">
-                  <ShieldCheck className="h-3 w-3" />
+              <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-emerald-600">
+                  <ShieldCheck className="h-3.5 w-3.5" />
                   Verified Credential
                 </span>
                 {domain && (
-                  <span className="font-mono text-[10px] text-ink-faint">
+                  <span className="font-mono text-xs text-ink-faint">
                     via {domain}
                   </span>
                 )}
               </div>
-              <h3 className="font-display text-lg sm:text-xl font-semibold text-ink">{cert.name}</h3>
-              <p className="mt-0.5 text-sm text-ink-soft">{cert.issuer}</p>
-              <div className="mt-2.5 sm:mt-3 flex flex-wrap items-center gap-2">
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{cert.name}</h3>
+              <p className="mt-1 text-base sm:text-lg font-medium text-ink-soft">{cert.issuer}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
                 {/* Phase 16 (#15): when the category matches a galaxy planet,
                     the badge deep-links to it (zero-data: plain badge otherwise) */}
                 {(() => {
@@ -372,7 +372,7 @@ export default function Certifications({
                   );
                 })()}
                 {/* Phase 16 (#5): "2026-06" reads "Jun 2026" */}
-                <span className="inline-block rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-faint">
+                <span className="inline-block rounded-full border border-card-border bg-paper px-2.5 py-0.5 font-mono text-xs font-medium text-ink-soft">
                   {formatDate(cert.date)}
                 </span>
               </div>
@@ -392,7 +392,7 @@ export default function Certifications({
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={`Verify ${cert.name}`}
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-5 py-2.5 text-sm font-semibold text-accent shadow-xs transition-all duration-200 hover:scale-105 hover:bg-accent hover:text-white"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-2 rounded-full border border-accent/40 bg-accent/10 px-5 py-2.5 text-sm sm:text-base font-semibold text-accent shadow-xs transition-all duration-200 hover:scale-105 hover:bg-accent hover:text-white"
                 >
                   <span>Verify Credential</span>
                   <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
@@ -413,7 +413,7 @@ export default function Certifications({
           >
             <ChevronLeft className="h-4 w-4" aria-hidden="true" />
           </button>
-          <span aria-live="polite" className="font-mono text-[10px] text-ink-faint">
+          <span aria-live="polite" className="font-mono text-xs text-ink-faint">
             {idx + 1} of {visible.length}
           </span>
           <button

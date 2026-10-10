@@ -245,7 +245,7 @@ export default function Section({
         // the viewport instead of fixed steps that feel too airy on
         // phones and too cramped on wide screens.
         SPACING[spacing],
-        "section-reveal relative",
+        "section-reveal relative overflow-x-clip",
         inView && "is-in-view",
         band && "band-bg",
         fit && "snap-section flex flex-col justify-center lg:min-h-svh",
@@ -275,7 +275,7 @@ export default function Section({
                 <span
                   aria-hidden="true"
                   className={clsx(
-                    "inline-flex h-6 items-center justify-center rounded-full border px-2 font-mono text-[11px] font-medium",
+                    "inline-flex h-6 items-center justify-center rounded-full border px-2.5 font-mono text-xs font-semibold",
                     t.pill
                   )}
                 >
@@ -288,11 +288,10 @@ export default function Section({
               <h2
                 ref={titleRef}
                 id={`${id}-title`}
-                className="title-sweep animated mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
-                style={{ "--sweep": t.sweep } as CSSProperties}
+                className="mt-3 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-5xl"
               >
                 {title}
-             </h2>
+              </h2>
               {/* Phase 9: copy-section-link — appears on hover/focus, copies
                   #id so any part of the page is shareable. */}
               <button
@@ -308,7 +307,7 @@ export default function Section({
               </button>
             </div>
           </div>
-          {description && <p className="mt-3 max-w-2xl text-ink-soft">{description}</p>}
+          {description && <p className="mt-3.5 max-w-2xl text-base sm:text-lg leading-relaxed text-ink-soft">{description}</p>}
         </StaggerReveal>
         <div className="mt-[clamp(1.5rem,1rem+2vw,2.5rem)]">{children}</div>
      </div>

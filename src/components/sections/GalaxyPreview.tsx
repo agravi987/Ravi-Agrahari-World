@@ -48,30 +48,30 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
       aria-labelledby="galaxy-title"
       className="snap-section flex min-h-svh flex-col justify-center py-10 sm:py-12"
     >
-      <div className="mx-auto max-w-5xl px-6">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Eyebrow label="learning-galaxy" />
         <h2
           id="galaxy-title"
-          className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl"
+          className="mt-3 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-5xl"
         >
           Learning Galaxy
         </h2>
-        <p className="mt-3 max-w-2xl text-ink-soft">
+        <p className="mt-3 max-w-2xl text-base sm:text-lg leading-relaxed text-ink-soft">
           My learning universe — every planet is a skill I&apos;m exploring, and every moon
           is a project, lab or note I&apos;ve actually shipped. A small taste here; the full
           system lives on the galaxy page.
         </p>
 
-        <div className="mt-10 grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="mt-8 sm:mt-10 grid items-center gap-8 lg:gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           {/* The system */}
           <GalaxyPreviewStage galaxy={previewGalaxy} />
 
           {/* Description + CTA */}
           <div className="text-center lg:text-left">
-            <h3 className="font-display text-xl font-semibold text-ink">
+            <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">
               {profile.name}&apos;s solar system
             </h3>
-            <p className="mt-3 text-ink-soft">
+            <p className="mt-3 text-base leading-relaxed text-ink-soft">
               {shown.length} planet{shown.length === 1 ? "" : "s"} on screen, {moonCount} moon
               {moonCount === 1 ? "" : "s"} in total — skills and the artifacts that prove
               them, arranged as a living map of what I&apos;m learning.
@@ -79,13 +79,13 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
 
             {/* P25 chips + P26 deep-links — each chip jumps straight to
                 its planet on the explorer page (#planet-<slug>) */}
-            <div className="mt-4 flex flex-wrap justify-center gap-1.5 lg:justify-start">
+            <div className="mt-4 flex flex-wrap justify-center gap-2 lg:justify-start">
               {topChips.map((p, i) => (
                 <Link
                   key={p.slug}
                   href={`/detailed-galaxy#planet-${p.slug}`}
                   title={`Open ${p.name} in the galaxy`}
-                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-mono text-xs font-medium transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${PLANET_HUES[i % PLANET_HUES.length]}`}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold transition-all hover:-translate-y-0.5 hover:shadow-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${PLANET_HUES[i % PLANET_HUES.length]}`}
                 >
                   <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                   {p.name}
@@ -94,14 +94,14 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
               {moreCount > 0 && (
                 /* P25: ink-soft, not ink-faint — the audit flagged 12px
                    ink-faint on the card bg (fails AA in both themes) */
-                <span className="inline-flex items-center rounded-full border border-card-border bg-card px-3 py-1 font-mono text-xs text-ink-soft">
+                <span className="inline-flex items-center rounded-full border border-card-border bg-card px-3.5 py-1.5 font-mono text-xs sm:text-sm font-medium text-ink-soft">
                   +{moreCount} more
                 </span>
               )}
             </div>
 
             {/* #78: through the shared Button primitive (still SPA via Link). */}
-            <Button href="/detailed-galaxy" className="group mt-6 px-6 py-3">
+            <Button href="/detailed-galaxy" className="group mt-6 w-full sm:w-auto px-6 py-3">
               Explore my galaxy
               {/* P25: arrow slides on hover */}
               <span

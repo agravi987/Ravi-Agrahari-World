@@ -165,9 +165,9 @@ export default function ConstellationDock({
               </span>
               <span
                 className={clsx(
-                  "hidden font-mono text-[10px] uppercase tracking-wider leading-none md:block",
+                  "hidden font-mono text-xs uppercase tracking-wider leading-none md:block",
                   active
-                    ? "font-medium text-[var(--nav-hue)]"
+                    ? "font-semibold text-[var(--nav-hue)]"
                     : "text-ink-faint group-hover:text-ink-soft"
                 )}
               >

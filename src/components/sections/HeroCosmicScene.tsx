@@ -81,7 +81,7 @@ const PLANETS: PlanetSpec[] = [
     float: "animate-float-c",
     depth: 10,
     scrollY: 10,
-    cls: "left-[4%] top-20 w-14 opacity-80 md:w-24",
+    cls: "left-[2%] top-8 w-12 opacity-25 md:left-[4%] md:top-10 md:w-16 md:opacity-40",
   },
   {
     src: "/images/planets/web-dev.png",
@@ -90,7 +90,7 @@ const PLANETS: PlanetSpec[] = [
     float: "animate-float-d",
     depth: 22,
     scrollY: 24,
-    cls: "bottom-[30%] left-[1%] w-10 opacity-70 md:w-16",
+    cls: "bottom-[22%] left-[1%] w-10 opacity-20 md:opacity-30 md:w-14",
   },
   {
     src: "/images/planets/system-design.png",
@@ -99,7 +99,7 @@ const PLANETS: PlanetSpec[] = [
     float: "animate-float-e",
     depth: 34,
     scrollY: 34,
-    cls: "top-[34%] right-[3%] w-12 opacity-75 md:w-20",
+    cls: "top-[32%] right-[3%] w-12 opacity-70 md:w-20",
   },
 ];
 
@@ -359,7 +359,7 @@ function HeroCosmicScene() {
       <div
         ref={rootRef}
         aria-hidden="true"
-        className="no-print pointer-events-none absolute inset-0 -z-30"
+        className="no-print pointer-events-none absolute inset-0 -z-30 overflow-hidden"
       >
         <div className="absolute inset-0 bg-paper" />
         <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/70 to-paper/10" />
@@ -393,7 +393,7 @@ function HeroCosmicScene() {
           below all content. Distinct depth/scroll layers per body. */}
       <div
         aria-hidden="true"
-        className="no-print pointer-events-none absolute inset-0 -z-10"
+        className="no-print pointer-events-none absolute inset-0 -z-10 overflow-hidden"
       >
         {PLANETS.map((p) => (
           <div
@@ -422,7 +422,7 @@ function HeroCosmicScene() {
         {/* Vector Research Satellite — Precision orbital probe with telemetry pulses */}
         <div
           data-scroll-y={-12}
-          className="absolute left-[3%] top-14 w-16 md:left-[10%] md:top-16 md:w-24 opacity-85 pointer-events-none"
+          className="absolute left-[2%] top-6 w-12 md:left-[6%] md:top-8 md:w-16 opacity-35 sm:opacity-50 pointer-events-none"
           style={{ willChange: "transform" }}
         >
           <div data-depth={18} className="relative">

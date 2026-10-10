@@ -204,19 +204,19 @@ export default function TerminalEasterEgg({ name }: { name: string }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/40 p-3 sm:p-4 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="Hidden terminal — press Escape to close"
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-xl overflow-hidden rounded-card border border-card-border bg-card shadow-orbital"
+        className="w-full max-w-xl max-h-[85svh] flex flex-col overflow-hidden rounded-card border border-card-border bg-card shadow-orbital"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Title bar */}
-        <div className="flex items-center justify-between border-b border-card-border bg-paper-deep px-4 py-2">
-          <p className="font-mono text-xs text-ink-soft">~/terminal — Ctrl+Shift+K to toggle</p>
+        <div className="flex items-center justify-between border-b border-card-border bg-paper-deep px-3 sm:px-4 py-2">
+          <p className="font-mono text-xs text-ink-soft">~/terminal — Ctrl+Shift+K</p>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -230,7 +230,7 @@ export default function TerminalEasterEgg({ name }: { name: string }) {
         {/* Output */}
         <div
           ref={bodyRef}
-          className="max-h-72 overflow-y-auto bg-ink px-4 py-3 font-mono text-xs leading-relaxed text-emerald-300"
+          className="max-h-60 sm:max-h-72 flex-1 overflow-y-auto bg-ink px-3 sm:px-4 py-3 font-mono text-xs leading-relaxed text-emerald-300"
         >
           {lines.map((line, i) => (
             <p

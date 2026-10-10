@@ -49,7 +49,7 @@ export default function BackToTop() {
       }
       aria-label="Back to top"
       title={`Page progress ${Math.round(progress * 100)}%`}
-      className={`group fixed bottom-[max(1rem,env(safe-area-inset-bottom,1rem))] left-3.5 sm:left-auto sm:right-6 sm:bottom-6 z-40 inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+      className={`group fixed bottom-[calc(max(1rem,env(safe-area-inset-bottom,1rem))+4.25rem)] right-3.5 sm:bottom-6 sm:right-6 z-40 inline-flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full border border-card-border bg-card text-ink-soft shadow-card transition-all hover:-translate-y-0.5 hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
         // Entrance (audit #115): fade + settle instead of a hard pop-in.
         reduceMotion ? "" : "animate-menu-in"
       }`}

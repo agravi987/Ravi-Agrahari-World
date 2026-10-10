@@ -376,7 +376,7 @@ export default function Header({
         <a
           href={hrefFor("#hero")}
           onClick={navClickHandler(navigate, "#hero")}
-          className="font-display text-lg font-semibold tracking-tight text-ink transition-colors hover:text-accent"
+          className="font-display text-xl font-bold tracking-tight text-ink transition-colors hover:text-accent"
         >
           {name}
           <span className="text-accent">.</span>
@@ -405,7 +405,7 @@ export default function Header({
               href={hrefFor("/detailed-galaxy")}
               onClick={navClickHandler(navigate, "/detailed-galaxy")}
               title="See this topic in the learning galaxy"
-              className="hidden items-center gap-1.5 rounded-full border border-card-border bg-card px-3 py-1 text-xs text-ink-soft transition-colors hover:border-accent/40 hover:text-accent lg:inline-flex"
+              className="hidden items-center gap-1.5 rounded-full border border-card-border bg-card px-3 py-1 font-mono text-xs text-ink-soft transition-colors hover:border-accent/40 hover:text-accent lg:inline-flex"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-accent-cyan" aria-hidden="true" />
               learning: {currentlyLearning}
@@ -453,7 +453,7 @@ export default function Header({
           aria-label="Mobile"
           className="border-t border-card-border bg-paper/95 backdrop-blur-md md:hidden max-h-[calc(100svh-4rem)] overflow-y-auto"
         >
-          <ul className="mx-auto max-w-5xl space-y-1 px-4 sm:px-6 py-4">
+          <ul className="mx-auto max-w-5xl space-y-1.5 px-4 sm:px-6 py-4">
             {navLinks.map((link) => (
               <li key={link.id}>
                 <a
@@ -463,11 +463,11 @@ export default function Header({
                     setMenuOpen(false); // …and close the panel either way
                   }}
                   aria-current={link.id === activeId ? "page" : undefined}
-                  className={`block rounded-lg px-3 py-3 font-mono text-sm transition-colors hover:bg-accent-soft hover:text-accent ${
+                  className={`block rounded-lg px-3.5 py-3 font-mono text-base font-semibold transition-colors hover:bg-accent-soft hover:text-accent ${
                     // P26: the mobile menu shows where you are, like desktop;
                     // Phase 9: colored by the section's topic hue
                     link.id === activeId
-                      ? `font-medium ${NAV_TEXT_ACTIVE[link.id] ?? "text-accent"}`
+                      ? `${NAV_TEXT_ACTIVE[link.id] ?? "text-accent"}`
                       : "text-ink-soft"
                   }`}
                 >

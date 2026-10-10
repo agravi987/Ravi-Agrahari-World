@@ -19,10 +19,10 @@ export default function FooterNav({ links }: { links: FooterLink[] }) {
 
   return (
     <nav aria-label="Footer">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-ink-faint">
+      <p className="mb-2 text-xs sm:text-sm font-semibold uppercase tracking-wider text-ink-faint">
         Explore
       </p>
-      <div className="flex flex-col items-start gap-1">
+      <div className="flex flex-col items-start gap-2">
         {links.map((link) => (
           <a
             key={link.href + link.label}
@@ -32,7 +32,7 @@ export default function FooterNav({ links }: { links: FooterLink[] }) {
               e.preventDefault();
               navigate(link.href);
             }}
-            className="text-sm text-ink-soft transition-colors hover:text-accent"
+            className="text-sm sm:text-base text-ink-soft transition-colors hover:text-accent"
           >
             {link.label}
           </a>

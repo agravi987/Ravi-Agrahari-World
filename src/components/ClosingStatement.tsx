@@ -63,7 +63,7 @@ export default function ClosingStatement() {
   return (
     <p
       ref={ref}
-      className="mx-auto max-w-5xl px-6 pb-10 pt-14 font-display text-3xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl"
+      className="mx-auto max-w-5xl px-6 pb-12 pt-16 font-display text-3xl font-bold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl"
       style={{ willChange: "transform, opacity" }}
     >
       If it&apos;s worth building,
