@@ -471,7 +471,7 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="snap-section relative flex min-h-[100svh] items-center overflow-hidden px-4 sm:px-6 py-12 sm:py-14 lg:py-16"
+      className="snap-section relative flex min-h-[92svh] items-center overflow-hidden px-4 sm:px-6 py-8 sm:py-10 lg:py-12"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* P32 cosmic scene — the full decorative cosmos (nebula wash,
@@ -481,138 +481,71 @@ export default function Hero({
           aria-hidden, pointer-events-none, behind all content. */}
       <HeroCosmicScene />
 
-      <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-        {/* Left — the pitch. Phase 14 (#5): the drift ref gives this
-            column a slow scroll parallax (transform-only). */}
+      <div className="mx-auto grid max-w-5xl items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
+        {/* Left Column — Text Pitch, vertically centered */}
         <div
           ref={driftRef}
-          className="text-center lg:text-left relative z-10"
+          className="relative z-10 space-y-3.5 text-center lg:text-left"
         >
-          {/* The h1 + headline are LCP-critical text — NO entrance
-              animation on them (Chrome defers the LCP candidate until a
-              running transform/opacity animation settles, which inflates
-              LCP on throttled connections). Badge + CTA still animate. */}
-          {/* Two-line h1 (P24): the full name on its own line, the
-              rotating role as an accent sub-line below — scannable for
-              recruiters and handles longer names without awkward wraps.
-              Still zero entrance animation (LCP-critical text). */}
+          {/* Two-line h1 with larger text */}
           <h1
             id="hero-title"
-            className="font-display font-semibold tracking-tight text-ink"
+            className="font-display font-semibold tracking-tight text-ink leading-tight sm:leading-snug"
           >
-            <span className="block text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-              {/* Phase 14 (#1): slow traveling shimmer on the gradient
-                  text — background-position only, LCP-neutral. */}
+            <span className="block text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
               <span className="text-gradient">{name}</span>
             </span>
-            <span className="mt-3 block text-2xl text-accent sm:text-4xl lg:text-5xl font-semibold">
+            <span className="mt-2 block text-2xl sm:text-3xl lg:text-4xl font-medium text-accent">
               <TypewriterRole roles={roles} />
             </span>
           </h1>
 
-          <p className="mx-auto mt-5 sm:mt-6 max-w-xl text-lg sm:text-xl leading-relaxed text-balance text-ink-soft lg:mx-0">
+          <p className="mx-auto max-w-xl text-base sm:text-lg lg:text-xl leading-relaxed text-ink-soft/90 lg:mx-0">
             {headline}
           </p>
 
-          {/* Gradient divider under the headline */}
+          {/* High-conversion 3-button cluster: Projects, Resume, Contact - 1 Line */}
           <div
-            aria-hidden="true"
-            className="mx-auto mt-5 sm:mt-6 h-px max-w-md bg-gradient-to-r from-accent/50 via-accent-cyan/40 to-transparent lg:mx-0"
-          />
-
-          <div
-            className="hero-in delay-hero-2 mt-6 sm:mt-8 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 lg:justify-start"
+            className="hero-in delay-hero-2 pt-2 flex flex-row items-center justify-center lg:justify-start gap-2.5 sm:gap-3 flex-nowrap"
           >
-            {/* High-conversion 3-button cluster: Projects, Resume, Contact */}
-            <Magnetic strength={0.2} className="w-full sm:w-auto">
-              <Button href="#projects" className="w-full sm:w-auto" onClick={(e) => jumpSection(e, "#projects")}>
-                <Rocket className="h-4 w-4" aria-hidden="true" />
-                Explore Projects
+            <Magnetic strength={0.2}>
+              <Button
+                href="#projects"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap"
+                onClick={(e) => jumpSection(e, "#projects")}
+              >
+                <Rocket className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                <span>Explore Projects</span>
               </Button>
             </Magnetic>
-            <Magnetic strength={0.2} className="w-full sm:w-auto">
+            <Magnetic strength={0.2}>
               <Button
                 variant="secondary"
                 onClick={() => openResumeModal()}
-                className="w-full sm:w-auto"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap"
               >
-                <FileText className="h-4 w-4 text-accent" aria-hidden="true" />
-                Resume / CV
+                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent" aria-hidden="true" />
+                <span>Resume / CV</span>
               </Button>
             </Magnetic>
-            <Magnetic strength={0.2} className="w-full sm:w-auto">
-              <Button href="#contact" variant="secondary" className="w-full sm:w-auto" onClick={(e) => jumpSection(e, "#contact")}>
-                <Mail className="h-4 w-4" aria-hidden="true" />
-                Get in Touch
+            <Magnetic strength={0.2}>
+              <Button
+                href="#contact"
+                variant="secondary"
+                className="px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm whitespace-nowrap"
+                onClick={(e) => jumpSection(e, "#contact")}
+              >
+                <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                <span>Get in Touch</span>
               </Button>
             </Magnetic>
           </div>
 
-          {/* P31 recruiter proof-strip — modern glass chips under the CTAs */}
-          {(projectsCount > 0 || experienceCount > 0 || streak >= 2) && (
-            <div
-              aria-label="Highlights"
-              className="hero-fade delay-hero-3 mt-7 sm:mt-8 flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 lg:justify-start"
-            >
-              {projectsCount > 0 && (
-                <a
-                  href="#projects"
-                  onClick={(e) => jumpSection(e, "#projects")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-topic-cloud/50 bg-gradient-to-r from-topic-cloud/20 to-indigo-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-cloud-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-cloud hover:shadow-[0_0_12px_rgba(56,189,248,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
-                  <span
-                    className="h-2 w-2 rounded-full bg-topic-cloud shadow-[0_0_8px_rgba(56,189,248,0.8)] transition-transform duration-300 group-hover:scale-125"
-                    aria-hidden="true"
-                  />
-                  {projectsCount} shipped {projectsCount === 1 ? "project" : "projects"}
-                </a>
-              )}
-              {experienceCount > 0 && (
-                <a
-                  href="#experience"
-                  onClick={(e) => jumpSection(e, "#experience")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-topic-mars/50 bg-gradient-to-r from-topic-mars/20 to-orange-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-mars-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-mars hover:shadow-[0_0_12px_rgba(248,113,113,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
-                  <span
-                    className="h-2 w-2 rounded-full bg-topic-mars shadow-[0_0_8px_rgba(248,113,113,0.8)] transition-transform duration-300 group-hover:scale-125"
-                    aria-hidden="true"
-                  />
-                  {experienceCount} {experienceCount === 1 ? "internship" : "internships"}
-                </a>
-              )}
-              {streak >= 2 && (
-                <Link
-                  href="/detailed-galaxy"
-                  className="group inline-flex items-center gap-2 rounded-full border border-accent-cyan/50 bg-gradient-to-r from-accent-cyan/20 to-topic-cloud/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-cyan-200 shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent-cyan hover:shadow-[0_0_12px_rgba(34,211,238,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                >
-                  <span
-                    className="h-2 w-2 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-transform duration-300 group-hover:scale-125"
-                    aria-hidden="true"
-                  />
-                  {streak}-day streak
-                </Link>
-              )}
-              <button
-                type="button"
-                onClick={() => openTerminal()}
-                className="group inline-flex items-center gap-2 rounded-full border border-accent/50 bg-gradient-to-r from-accent/20 to-purple-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-accent-strong shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_12px_rgba(129,140,248,0.35)] cursor-pointer"
-                title="Launch interactive browser CLI terminal (Ctrl+Shift+K)"
-              >
-                <Terminal className="h-3.5 w-3.5 text-accent-cyan" aria-hidden="true" />
-                <span>&gt;_ CLI Terminal</span>
-              </button>
-            </div>
-          )}
-
-          {/* Social row (P24) — icon pills for known brands (GitHub,
-              X), text pill for the rest (LinkedIn etc.). Zero-data:
-              hidden when no links are configured. P31: each pill is
-              wrapped in Magnetic so the icons pull toward the cursor
-              (interactive socials, same primitives as the CTAs). */}
+          {/* Social links row */}
           {socialLinks.length > 0 && (
             <nav
               aria-label="Social links"
-              className="hero-fade delay-hero-3 mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
+              className="hero-fade delay-hero-3 pt-1 flex flex-wrap items-center justify-center lg:justify-start gap-2"
             >
               {socialLinks.map((link) => (
                 <Magnetic key={link.label} strength={0.15}>
@@ -620,7 +553,6 @@ export default function Hero({
                     label={link.label}
                     url={link.url}
                     variant="icon"
-                    /* Phase 14 (#14): the "G" shortcut focuses this */
                     className={
                       link.label.toLowerCase().replace(/\W/g, "") === "github"
                         ? "hero-github-anchor"
@@ -634,8 +566,10 @@ export default function Hero({
 
         </div>
 
-        {/* Right — the photo composition */}
-        <PhotoComposition name={name} image={profileImage} />
+        {/* Right Column — Photo composition, vertically centered and aligned nicely */}
+        <div className="flex items-center justify-center lg:justify-end">
+          <PhotoComposition name={name} image={profileImage} />
+        </div>
       </div>
 
       {/* Scroll cue — desktop only (on mobile the composition sits low

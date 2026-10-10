@@ -20,7 +20,6 @@ import Shortcuts from "@/components/ui/Shortcuts";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Toaster from "@/components/ui/Toast";
-import Header from "@/components/Header";
 import TerminalEasterEgg from "@/components/TerminalEasterEgg";
 import IdleMount from "@/components/ui/IdleMount";
 import { getContent, getGalaxy } from "@/lib/content";
@@ -125,12 +124,6 @@ export default async function RootLayout({
         {/* Page-load reveal curtain — fires once per session */}
         <PageReveal />
 
-        <Header
-          name={config.name}
-          currentlyLearning={config.currentlyLearning}
-          github={config.github}
-          sectionsEnabled={config.sectionsEnabled}
-        />
         <main id="main" className="flex-1">
           {children}
         </main>
