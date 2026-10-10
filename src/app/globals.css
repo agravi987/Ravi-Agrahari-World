@@ -895,20 +895,19 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Global cosmic background — the JWST "Cosmic Cliffs" nebula as a
-   subtle fixed wash behind all content. Low opacity + multiply blend
-   keeps the warm paper ground readable while adding depth. Respects
-   reduced-motion (static) and high-contrast (hidden). */
+/* Global cosmic background — the JWST "Cosmic Cliffs" nebula with a
+   clean translucent white wash. Soft white transparency keeps the warm
+   paper ground readable, luminous, and clean while letting the nebula texture shine through. */
 @media (prefers-reduced-motion: no-preference) {
   body::before {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: -2;
     pointer-events: none;
     background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
-    opacity: 0.38;
-    mix-blend-mode: overlay;
+    opacity: 0.28;
+    filter: saturate(1.1) brightness(1.05);
   }
 }
 
@@ -916,8 +915,8 @@ body {
   body::before { display: none; }
 }
 
-/* Glassy overlay — a whisper of frosted glass over the nebula to
-   lift brightness and add depth without washing out text. */
+/* White transparent overlay — soft luminous frosted wash over the cosmic image,
+   matching the bright translucent background under the solar system. */
 @media (prefers-reduced-motion: no-preference) {
   body::after {
     content: "";
@@ -926,13 +925,26 @@ body {
     z-index: -1;
     pointer-events: none;
     background: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.06) 0%,
-      rgba(255, 255, 255, 0.02) 50%,
-      rgba(255, 255, 255, 0.04) 100%
+      180deg,
+      rgba(255, 255, 255, 0.72) 0%,
+      rgba(255, 255, 255, 0.62) 50%,
+      rgba(255, 255, 255, 0.75) 100%
     );
-    backdrop-filter: blur(0.5px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
+}
+
+/* Dark mode overrides: adapts overlay to dark tones when dark theme is active */
+html[data-theme="dark"] body::after,
+html[data-theme="midnight"] body::after,
+html[data-theme="nord"] body::after {
+  background: linear-gradient(
+    180deg,
+    rgba(12, 10, 9, 0.78) 0%,
+    rgba(12, 10, 9, 0.68) 50%,
+    rgba(12, 10, 9, 0.82) 100%
+  );
 }
 
 @media (prefers-contrast: more) {
