@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  /* `standalone` output is only for the self-hosted Docker image (the
+     Dockerfile copies `.next/standalone`). On Vercel it MUST stay unset:
+     Next 16.3 stops emitting `.next/next-server.js.nft.json` when Vercel's
+     build adapter is present, while the standalone finalizer still reads
+     that file → the build crashes with ENOENT (vercel/next.js#96646).
+     Vercel ignores the standalone directory anyway, so we let it use its
+     own packaging there and keep standalone for local/Docker builds. */
+  output: process.env.VERCEL ? undefined : "standalone",
   /* Remote images (plan D8): Cloudinary hosts CMS uploads; GitHub
      hosts avatars/repo images. Only these hosts are ever allowed.
      NOTE: keep in sync with ALLOWED_IMAGE_HOSTS in src/lib/imageHosts.ts
