@@ -64,7 +64,7 @@ export default function EditCollectionPage() {
   if (spec.singleDoc) return null; // redirecting
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <Link href={`/admin/${collection}`} className="font-mono text-xs text-accent hover:underline">

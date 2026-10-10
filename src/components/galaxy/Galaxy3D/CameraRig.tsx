@@ -37,10 +37,10 @@ export interface RigState {
 
 const PHI_MIN = 1.15;
 const PHI_MAX = 1.48;
-const ZOOM_MIN = 0.35;
+const ZOOM_MIN = 0.45;
 const ZOOM_MAX = 2.5;
-/** Distance multiplier when fully focused on a planet (≈ 42% of fit). */
-const FOCUS_DIST = 0.42;
+/** Distance multiplier when fully focused on a planet (≈ 52% of fit so moons and planet stay framed). */
+const FOCUS_DIST = 0.52;
 
 export default function CameraRig({
   worldSize,

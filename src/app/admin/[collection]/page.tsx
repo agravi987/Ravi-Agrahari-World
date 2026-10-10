@@ -328,7 +328,7 @@ export default function CollectionListPage() {
     }
 
     return (
-      <div className="mx-auto max-w-3xl px-6 py-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
         {/* Path doubles as the back-link — no dead-end pages. */}
         <Link href="/admin" className="font-mono text-xs text-accent hover:underline">
           ~/admin/{collection}
@@ -540,7 +540,7 @@ export default function CollectionListPage() {
   const previewKey = spec?.previewKey;
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           {/* Path doubles as the back-link — no dead-end pages. */}

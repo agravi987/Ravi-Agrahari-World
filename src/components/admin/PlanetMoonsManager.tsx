@@ -469,7 +469,7 @@ export default function PlanetMoonsManager({
       {/* In-Page Quick Add / Edit Moon Modal */}
       {modalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-indigo-500/40 bg-[#0d1226] p-6 shadow-2xl">
+          <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border border-indigo-500/40 bg-[#0d1226] p-6 sm:p-8 shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-indigo-500/20 pb-4">
               <div>

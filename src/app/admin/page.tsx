@@ -68,7 +68,7 @@ export default async function AdminDashboard() {
   const recent = Object.keys(counts).length > 0 ? await getRecentEdits(6) : [];
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
       <div className="flex items-center justify-between">
         <div>
           <p className="font-mono text-xs text-accent">~/admin</p>
@@ -203,7 +203,7 @@ export default async function AdminDashboard() {
         </section>
       )}
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {COLLECTIONS.map((c, i) => (
           <Link
             key={c.key}

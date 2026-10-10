@@ -68,7 +68,7 @@ export default function System2D({
 
   return (
     <div
-      className="galaxy-stage relative mx-auto w-full max-w-[920px]"
+      className="galaxy-stage relative mx-auto"
       data-static={!settings.animationEnabled || undefined}
       data-paused={paused || undefined}
       data-labels={labels ? undefined : "false"}

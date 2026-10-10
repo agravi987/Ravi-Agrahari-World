@@ -1045,11 +1045,12 @@ export default function CollectionForm({
         break;
       case "sectionsEnabled": {
         control = (
-          <div className="space-y-2" role="group" aria-label="Section visibility">
+          <div className="space-y-3" role="group" aria-label="Section visibility">
             <p className="text-xs text-ink-faint">
               Hidden sections disappear from the page <em>and</em> from navigation —
               perfect while content is still in progress.
             </p>
+            <div className="grid gap-3 sm:grid-cols-2">
             {(f.options ?? []).map((section) => {
               const enabled = Boolean((value as Record<string, boolean> | undefined)?.[section]);
               return (
@@ -1092,6 +1093,7 @@ export default function CollectionForm({
                 </label>
               );
             })}
+            </div>
           </div>
         );
         break;

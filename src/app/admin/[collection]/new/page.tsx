@@ -38,7 +38,7 @@ export default function NewCollectionPage() {
   if (spec.singleDoc) return null; // redirecting
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-12">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
       <Link href={`/admin/${collection}`} className="font-mono text-xs text-accent hover:underline">
         ~/admin/{collection}
       </Link>
