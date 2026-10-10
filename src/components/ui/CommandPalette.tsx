@@ -19,15 +19,9 @@ import {
   ArrowUp,
   BookOpen,
   Copy,
-  Flower2,
   Home,
-  Monitor,
-  Moon,
-  MoonStar,
   Rocket,
   Search,
-  Snowflake,
-  Sun,
   Terminal,
   FileText,
   type LucideIcon,
@@ -36,7 +30,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { scrollToSection } from "@/lib/scrollTo";
-import { applyTheme, cycleTheme, previewTheme, storedChoice, THEMES, THEME_LIST, type ThemeChoice } from "@/lib/theme";
 import { showToast } from "@/components/ui/Toast";
 import { openResumeModal } from "@/components/ui/ResumeModal";
 
@@ -88,21 +81,7 @@ interface Action {
   icon?: LucideIcon;
   keywords: string;
   run: () => void;
-  /** Live preview while the row is highlighted (theme rows) — the
-   *  palette restores the original theme when the highlight moves off
-   *  or the palette closes without running. */
-  preview?: () => void;
 }
-
-/** lucide icon per theme choice (mirrors ThemeToggle's map). */
-const THEME_ICONS: Record<ThemeChoice, LucideIcon> = {
-  system: Monitor,
-  light: Sun,
-  dark: Moon,
-  midnight: MoonStar,
-  nord: Snowflake,
-  rose: Flower2,
-};
 
 // (shared reduced-motion-aware helper from @/lib/scrollTo)
 
@@ -136,11 +115,7 @@ export default function CommandPalette({
     openRef.current = open;
   }, [open]);
 
-  const originalThemeRef = useRef<ThemeChoice>("system");
   const closePalette = useCallback(() => {
-    // A theme row may be left highlighted — undo the preview so closing
-    // without running never changes the theme.
-    previewTheme(originalThemeRef.current);
     setOpen(false);
     lastTriggerRef.current?.focus?.();
   }, []);
@@ -239,21 +214,6 @@ export default function CommandPalette({
       },
     ];
 
-    // Theme rows: highlight previews live, Enter commits. "Cycle" stays
-    // for muscle memory (and the header toggle's keyboard sibling).
-    const themeActions: Action[] = THEME_LIST.map((choice) => ({
-      id: `theme:${choice}`,
-      label: `Theme: ${choice === "system" ? "System" : THEMES[choice].label}`,
-      hint: "live preview",
-      icon: THEME_ICONS[choice],
-      keywords: `theme ${choice} appearance color mode ${choice === "system" ? "auto os" : THEMES[choice].label}`,
-      preview: () => previewTheme(choice),
-      run: () => {
-        applyTheme(choice);
-        showToast(choice === "system" ? "Theme: System" : `Theme: ${THEMES[choice].label}`);
-      },
-    }));
-
     const commands: Action[] = [
       {
         id: "resume",
@@ -274,17 +234,6 @@ export default function CommandPalette({
         keywords: "terminal easter egg shell",
         run: openTerminal,
       },
-      {
-        id: "theme",
-        label: "Cycle theme",
-        icon: Moon,
-        keywords: "theme dark light mode color cycle next",
-        run: () => {
-          const next = cycleTheme();
-          showToast(`Theme: ${next === "system" ? "System" : THEMES[next].label}`);
-        },
-      },
-      ...themeActions,
       {
         id: "email",
         label: "Copy email address",
@@ -343,7 +292,6 @@ export default function CommandPalette({
   // effect (lint: set-state-in-effect). Focus happens after paint.
   const openPalette = useCallback(() => {
     lastTriggerRef.current = document.activeElement as HTMLElement | null;
-    originalThemeRef.current = storedChoice(); // theme previews restore to this
     setActions(buildActions());
     setQuery("");
     setIndex(0);
@@ -425,17 +373,11 @@ export default function CommandPalette({
   // Clamp the selection to the list — derived, never setState-in-effect.
   const safeIndex = filtered.length === 0 ? 0 : Math.min(index, filtered.length - 1);
 
-  // Keep the active row visible while arrowing (DOM-only — allowed),
-  // and drive live theme previews: highlighting a theme row previews
-  // it; moving off any row restores the original until Enter commits.
+  // Keep the active row visible while arrowing (DOM-only — allowed)
   useEffect(() => {
     const el = listRef.current?.querySelector<HTMLElement>(`[data-palette-row="${safeIndex}"]`);
     el?.scrollIntoView({ block: "nearest" });
-    if (!open) return;
-    const a = filtered[safeIndex];
-    if (a?.preview) a.preview();
-    else previewTheme(originalThemeRef.current);
-  }, [safeIndex, filtered, open]);
+  }, [safeIndex]);
 
   if (!open) return null;
 

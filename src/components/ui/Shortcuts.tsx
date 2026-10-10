@@ -16,7 +16,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Keyboard } from "lucide-react";
 import { scrollToSection } from "@/lib/scrollTo";
-import { cycleTheme } from "@/lib/theme";
 import CmdKey from "@/components/ui/CmdKey";
 
 interface Shortcut {
@@ -32,7 +31,6 @@ const SHORTCUTS: Shortcut[] = [
   { keys: ["b"], label: "Jump to blog", hue: "text-topic-ai" },
   { keys: ["c"], label: "Jump to contact", hue: "text-topic-mars" },
   { keys: ["x"], label: "Open the galaxy explorer", hue: "text-accent" },
-  { keys: ["t"], label: "Cycle theme", hue: "text-accent-cyan" },
   { keys: ["esc"], label: "Close this overlay", hue: "text-ink-faint" },
 ];
 /** The palette row renders a platform-correct ⌘K / Ctrl K chip (audit
@@ -150,11 +148,6 @@ export default function Shortcuts() {
           e.preventDefault();
           router.push("/detailed-galaxy");
           break;
-        case "t": {
-          e.preventDefault();
-          cycleTheme();
-          break;
-        }
       }
     };
     window.addEventListener("keydown", onKey);

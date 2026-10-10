@@ -9,7 +9,6 @@
 import Link from "next/link";
 import SignOutButton from "@/components/admin/SignOutButton";
 import SectionsPanel from "@/components/admin/SectionsPanel";
-import ThemeToggle from "@/components/ThemeToggle";
 import LiveTimeAgo from "@/components/ui/LiveTimeAgo";
 import { connectDb, dbConfigured } from "@/lib/db";
 import { getRecentEdits, MODEL_GETTERS, timeAgo } from "@/lib/collections.server";
@@ -77,7 +76,6 @@ export default async function AdminDashboard() {
           <p className="mt-1 text-sm text-ink-soft">Manage site content — edits go live instantly.</p>
         </div>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
           <SignOutButton />
         </div>
       </div>

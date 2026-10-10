@@ -16,7 +16,6 @@ import { openCommandPalette } from "./ui/CommandPalette";
 import BrandIcon from "./ui/BrandIcon";
 import CmdKey from "./ui/CmdKey";
 import ConstellationDock, { type DockLink } from "./ui/ConstellationDock";
-import ThemeToggle from "./ThemeToggle";
 import Tooltip from "./ui/Tooltip";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { useSmartNav } from "@/lib/smartNav";
@@ -421,9 +420,6 @@ export default function Header({
             >
               <BrandIcon name="github" className="h-5 w-5" aria-hidden="true" />
             </a>
-          </Tooltip>
-          <Tooltip label="Toggle theme">
-            <ThemeToggle />
           </Tooltip>
 
           {/* Mobile menu toggle — md:hidden; links live in the panel below */}

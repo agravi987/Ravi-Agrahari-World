@@ -22,7 +22,6 @@ import JsonLd from "@/components/JsonLd";
 import Toaster from "@/components/ui/Toast";
 import Header from "@/components/Header";
 import TerminalEasterEgg from "@/components/TerminalEasterEgg";
-import ThemeInit from "@/components/ThemeInit";
 import IdleMount from "@/components/ui/IdleMount";
 import { getContent, getGalaxy } from "@/lib/content";
 import "./globals.css";
@@ -85,12 +84,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Browser-chrome tint (P10) — rendered in <head> via the viewport
  *  export; lib/theme.applyTheme swaps it live when themes change. */
 export const viewport: Viewport = {
-  themeColor: "#faf9f6",
+  themeColor: "#0c0a09",
 };
-
-/** Theme no-flash script moved to ThemeInit.tsx (useServerInsertedHTML)
- *  — React 19 warns on any <script> inside its tree, so the script is
- *  injected into the SSR stream outside React (see ThemeInit.tsx). */
 
 export default async function RootLayout({
   children,
@@ -102,12 +97,10 @@ export default async function RootLayout({
   const galaxy = await getGalaxy();
 
   return (
-    // suppressHydrationWarning: the theme script mutates html[data-theme]
-    // before React hydrates, so the attribute can differ from SSR output.
     <html
       lang="en"
-      suppressHydrationWarning
-      className={`${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}
+      data-theme="dark"
+      className={`dark ${inter.variable} ${spaceGrotesk.variable} ${geistMono.variable}`}
     >
       <body className="min-h-dvh antialiased">
         {/* PERF: warm the connection to the CMS image CDN (Cloudinary
@@ -147,8 +140,6 @@ export default async function RootLayout({
           socialLinks={config.socialLinks}
           sectionsEnabled={config.sectionsEnabled}
         />
-        {/* Theme no-flash script — injected outside React's tree (see above) */}
-        <ThemeInit />
         {/* JSON-LD structured data (P8 SEO) */}
         <JsonLd
           name={config.name}

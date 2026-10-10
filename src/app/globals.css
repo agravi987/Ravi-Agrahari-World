@@ -30,7 +30,7 @@
    follow the theme too — light page → light chrome, dark → dark.
    (Can't live in @theme: that block only allows custom props.) */
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --safe-area-top: env(safe-area-inset-top, 0px);
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
@@ -49,8 +49,7 @@ body {
   position: relative;
 }
 
-/* #104: no gray tap flash on mobile — every interactive element already
-   has real :active/hover feedback, the native highlight just fights it. */
+/* #104: no gray tap flash on mobile */
 *,
 *::before,
 *::after {
@@ -58,87 +57,78 @@ body {
 }
 
 @theme {
-  /* --- Core palette --- */
-  --color-paper: #faf9f6;        /* warm off-white page background */
-  --color-paper-deep: #f3f1ec;   /* slightly deeper paper (cards-on-paper, footer) */
-  --color-ink: #1c1917;          /* near-black warm text (stone-900) */
-  --color-ink-soft: #57534e;     /* secondary text (stone-600) */
-  --color-ink-faint: #78716c;    /* tertiary text (stone-500) — a11y: the
-                                   old stone-400 was ~2.5:1 on paper, well
-                                   below WCAG AA, and it renders at 10–11px */
+  /* --- Default Dark Theme Palette --- */
+  --color-paper: #0c0a09;        /* stone-950 warm dark base */
+  --color-paper-deep: #1c1917;   /* stone-900 elevated surface */
+  --color-ink: #f5f5f4;          /* stone-100 primary text */
+  --color-ink-soft: #d6d3d1;     /* stone-300 secondary text */
+  --color-ink-faint: #a8a29e;    /* stone-400 tertiary text */
 
-  /* One brand accent: indigo */
-  --color-accent: #4f46e5;       /* indigo-600 — buttons, links, focus rings */
-  --color-accent-soft: #eef2ff;  /* indigo-50 — soft accent fills */
-  --color-accent-strong: #4338ca;/* indigo-700 — hover states */
-  --color-accent-btn: #4f46e5;   /* P16: FILL for filled buttons — stays indigo-600 in BOTH themes so white text passes AA (dark-mode accent indigo-400 would be 2.98:1) */
+  /* One brand accent: luminous indigo */
+  --color-accent: #818cf8;       /* indigo-400 — buttons, links, focus rings */
+  --color-accent-soft: rgb(99 102 241 / 0.15); /* soft accent fills */
+  --color-accent-strong: #a5b4fc;/* indigo-300 — hover states */
+  --color-accent-btn: #4f46e5;   /* indigo-600 */
   --color-accent-btn-hover: #4338ca;
-  --color-accent-cyan: #06b6d4;  /* cyan-500 — ONLY for the hero-ring/gradient */
+  --color-accent-cyan: #22d3ee;  /* cyan-400 */
 
-  /* --- Per-topic hues (muted not neon) --- */
-  --color-topic-cloud: #0ea5e9;  /* sky blue — Cloud */
-  --color-topic-devops: #14b8a6; /* teal — DevOps */
-  --color-topic-ai: #8b5cf6;     /* violet — AI */
-  --color-topic-linux: #f59e0b;  /* amber — Linux */
-  --color-topic-mars: #f87171;   /* soft mars-red — networking/systems */
-  --color-topic-ice: #38bdf8;    /* ice blue — misc topics */
+  /* --- Per-topic hues --- */
+  --color-topic-cloud: #38bdf8;
+  --color-topic-devops: #2dd4bf;
+  --color-topic-ai: #a78bfa;
+  --color-topic-linux: #fbbf24;
+  --color-topic-mars: #f87171;
+  --color-topic-ice: #38bdf8;
 
-  /* Status hues (#83): one semantic set instead of ad-hoc emerald/red/
-     amber utilities sprinkled per component. Light theme uses 700-level
-     text on ~10% fills (AA at small sizes); dark themes brighten below. */
-  --color-success: #047857;        /* emerald-700 text */
-  --color-success-soft: rgb(16 185 129 / 0.10);
-  --color-danger: #b91c1c;         /* red-700 text */
-  --color-danger-soft: rgb(239 68 68 / 0.10);
-  --color-warning: #b45309;        /* amber-700 text */
-  --color-warning-soft: rgb(245 158 11 / 0.12);
+  /* Status hues */
+  --color-success: #34d399;
+  --color-success-soft: rgb(16 185 129 / 0.15);
+  --color-danger: #f87171;
+  --color-danger-soft: rgb(239 68 68 / 0.15);
+  --color-warning: #fbbf24;
+  --color-warning-soft: rgb(245 158 11 / 0.15);
 
-  /* Deep-text variants (P25): the soft topic-* hues fail AA contrast
-     for small (<14px) colored text on paper — these 700/800 shades are
-     the light-mode text tokens; dark mode brightens them below. */
-  --color-topic-cloud-deep: #075985;   /* sky-800 */
-  --color-topic-devops-deep: #0f766e;  /* teal-800 */
-  --color-topic-ai-deep: #6d28d9;      /* violet-700 */
-  --color-topic-linux-deep: #92400e;   /* amber-800 */
-  --color-topic-mars-deep: #b91c1c;    /* red-700 */
-  --color-topic-ice-deep: #0369a1;     /* sky-700 */
+  /* Deep-text variants */
+  --color-topic-cloud-deep: #7dd3fc;
+  --color-topic-devops-deep: #5eead4;
+  --color-topic-ai-deep: #c4b5fd;
+  --color-topic-linux-deep: #fcd34d;
+  --color-topic-mars-deep: #fca5a5;
+  --color-topic-ice-deep: #7dd3fc;
 
-  /* Stat-numeral shades (P7 MomentumStats) — DARK enough for AA on
-     white paper (light theme), overridden per theme below. */
-  --color-stat-cloud: #0284c7;   /* sky-600 */
-  --color-stat-devops: #0d9488;  /* teal-600 */
-  --color-stat-ai: #7c3aed;      /* violet-600 */
-  --color-stat-linux: #d97706;   /* amber-600 */
-  --color-stat-mars: #dc2626;    /* red-600 */
+  /* Stat-numeral shades */
+  --color-stat-cloud: #38bdf8;
+  --color-stat-devops: #2dd4bf;
+  --color-stat-ai: #a78bfa;
+  --color-stat-linux: #fbbf24;
+  --color-stat-mars: #f87171;
 
   /* --- Card surfaces --- */
-  --color-card: #ffffff;
-  --color-card-border: #e7e5e4;  /* stone-200 */
+  --color-card: #181513;         /* warm dark card */
+  --color-card-border: #292524;  /* stone-800 */
 
   /* --- Typography --- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace; /* terminal eyebrows (plan §4.1) */
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  /* --- Easing scale (spring for hovers, smooth for transitions) --- */
+  /* --- Easing scale --- */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
 
-  /* --- Radius scale (one consistent scale everywhere) --- */
-  --radius-card: 0.75rem;   /* 12px — cards */
-  --radius-pill: 9999px;    /* pills, badges, buttons */
+  /* --- Radius scale --- */
+  --radius-card: 0.75rem;
+  --radius-pill: 9999px;
 
-  /* --- Shadow scale (one consistent scale) --- */
-  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.05), 0 4px 16px rgb(28 25 23 / 0.06);
-  --shadow-card-hover: 0 2px 4px rgb(28 25 23 / 0.06), 0 10px 28px rgb(28 25 23 / 0.1);
-  --shadow-orbital: 0 0 0 1px rgb(79 70 229 / 0.08), 0 8px 40px rgb(79 70 229 / 0.12);
-  /* Elevation for floating layers (dialogs, toasts) — deeper + wider
-     than card shadows so they read as clearly ABOVE the page. */
-  --shadow-pop: 0 2px 6px rgb(28 25 23 / 0.08), 0 24px 64px rgb(28 25 23 / 0.18);
+  /* --- Shadow scale --- */
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.35);
+  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.45), 0 10px 28px rgb(0 0 0 / 0.45);
+  --shadow-orbital: 0 0 0 1px rgb(129 140 248 / 0.2), 0 8px 40px rgb(99 102 241 / 0.25);
+  --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.55), 0 24px 64px rgb(0 0 0 / 0.65);
 
-  /* --- Animations (plan §4: orbital ring, slow + calm) --- */
+  /* --- Animations --- */
   --animate-spin-slow: spin 24s linear infinite;
-  --animate-spin-slower: spin 40s linear infinite; /* P17: 404 drift */
+  --animate-spin-slower: spin 40s linear infinite;
 }
 
 @keyframes spin {
@@ -587,9 +577,7 @@ html:has(.snap-section) {
 
 /* Phase 15 (Projects #23): CMS cover images get a gentle dark-mode
    treatment so light art doesn't glare on the dark paper. */
-html[data-theme="dark"] .project-cover-img,
-html[data-theme="midnight"] .project-cover-img,
-html[data-theme="nord"] .project-cover-img {
+.project-cover-img {
   filter: brightness(0.92);
 }
 
@@ -772,15 +760,11 @@ html[data-theme="nord"] .project-cover-img {
 .cert-print-list {
   display: none;
 }
-html[data-theme="dark"] .cert-logo,
-html[data-theme="midnight"] .cert-logo,
-html[data-theme="nord"] .cert-logo {
+.cert-logo {
   filter: brightness(0.92);
 }
 /* Experience company logos — same dark-mode treatment as cert-logo. */
-html[data-theme="dark"] .experience-logo,
-html[data-theme="midnight"] .experience-logo,
-html[data-theme="nord"] .experience-logo {
+.experience-logo {
   filter: brightness(0.92);
 }
 
@@ -913,9 +897,7 @@ body {
   body::before { display: none; }
 }
 
-/* White transparent overlay — soft luminous frosted wash over the cosmic image
-   matching the bright translucent background under the solar system.
-   In dark mode: also white, but with higher transparency (more translucent) as requested. */
+/* White transparent overlay — subtle luminous frosted wash over the cosmic image */
 @media (prefers-reduced-motion: no-preference) {
   body::after {
     content: "";
@@ -925,27 +907,13 @@ body {
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.48) 0%,
-      rgba(255, 255, 255, 0.38) 50%,
-      rgba(255, 255, 255, 0.50) 100%
+      rgba(255, 255, 255, 0.10) 0%,
+      rgba(255, 255, 255, 0.06) 50%,
+      rgba(255, 255, 255, 0.12) 100%
     );
-    backdrop-filter: blur(6px);
-    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
-}
-
-/* Dark mode overrides: also white translucent overlay, but even more transparent */
-html[data-theme="dark"] body::after,
-html[data-theme="midnight"] body::after,
-html[data-theme="nord"] body::after {
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.10) 0%,
-    rgba(255, 255, 255, 0.06) 50%,
-    rgba(255, 255, 255, 0.12) 100%
-  );
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
 }
 
 @media (prefers-contrast: more) {
@@ -1037,157 +1005,7 @@ html[data-theme="nord"] body::after {
   }
 }
 
-html[data-theme="dark"] {
-  --color-paper: #0c0a09;        /* stone-950 warm dark */
-  color-scheme: dark;
-  --color-paper-deep: #1c1917;
-  --color-ink: #e7e5e4;          /* stone-200 */
-  --color-ink-soft: #a8a29e;
-  --color-ink-faint: #57534e;
-  --color-accent: #818cf8;       /* indigo-400 — brighter for dark bg */
-  --color-accent-soft: rgb(99 102 241 / 0.15);
-  --color-accent-strong: #a5b4fc;
-  --color-accent-btn: #4f46e5;
-  --color-accent-btn-hover: #4338ca;
-  --color-accent-cyan: #22d3ee;
-  --color-card: #1c1917;
-  --color-card-border: #292524;
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.4);
-  --shadow-card-hover: 0 2px 4px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.5);
-  --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.5), 0 24px 64px rgb(0 0 0 / 0.65);
-  --color-stat-cloud: #38bdf8;
-  --color-stat-devops: #2dd4bf;
-  --color-stat-ai: #a78bfa;
-  --color-stat-linux: #fbbf24;
-  --color-stat-mars: #f87171;
-  --color-topic-cloud-deep: #7dd3fc;
-  --color-topic-devops-deep: #5eead4;
-  --color-topic-ai-deep: #c4b5fd;
-  --color-topic-linux-deep: #fcd34d;
-  --color-topic-mars-deep: #fca5a5;
-  --color-topic-ice-deep: #7dd3fc;
-  /* Status hues — brightened for dark backgrounds (#83) */
-  --color-success: #34d399;      /* emerald-400 */
-  --color-success-soft: rgb(16 185 129 / 0.15);
-  --color-danger: #f87171;       /* red-400 */
-  --color-danger-soft: rgb(239 68 68 / 0.15);
-  --color-warning: #fbbf24;      /* amber-400 */
-  --color-warning-soft: rgb(245 158 11 / 0.15);
-}
 
-/* ============================================================
-   Midnight — deep navy blue (Linear / Vercel aesthetic)
-   ============================================================ */
-html[data-theme="midnight"] {
-  --color-paper: #0b1120;        /* deep navy */
-  color-scheme: dark;
-  --color-paper-deep: #111827;   /* slightly lighter navy */
-  --color-ink: #e2e8f0;          /* slate-200 */
-  --color-ink-soft: #94a3b8;     /* slate-400 */
-  --color-ink-faint: #475569;    /* slate-600 */
-  --color-accent: #818cf8;       /* indigo-400 */
-  --color-accent-soft: rgb(99 102 241 / 0.12);
-  --color-accent-strong: #a5b4fc;
-  --color-accent-btn: #6366f1;   /* indigo-500 */
-  --color-accent-btn-hover: #4f46e5;
-  --color-accent-cyan: #22d3ee;
-  --color-card: #111827;
-  --color-card-border: #1e293b;  /* slate-800 */
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.5), 0 4px 20px rgb(0 0 0 / 0.35);
-  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.5), 0 10px 30px rgb(0 0 0 / 0.45);
-  --shadow-pop: 0 2px 6px rgb(0 0 0 / 0.55), 0 24px 64px rgb(0 0 0 / 0.6);
-  --color-stat-cloud: #38bdf8;
-  --color-stat-devops: #2dd4bf;
-  --color-stat-ai: #a78bfa;
-  --color-stat-linux: #fbbf24;
-  --color-stat-mars: #f87171;
-  --color-topic-cloud-deep: #7dd3fc;
-  --color-topic-devops-deep: #5eead4;
-  --color-topic-ai-deep: #c4b5fd;
-  --color-topic-linux-deep: #fcd34d;
-  --color-topic-mars-deep: #fca5a5;
-  --color-topic-ice-deep: #7dd3fc;
-  /* Status hues — brightened for dark backgrounds (#83) */
-  --color-success: #34d399;      /* emerald-400 */
-  --color-success-soft: rgb(16 185 129 / 0.15);
-  --color-danger: #f87171;       /* red-400 */
-  --color-danger-soft: rgb(239 68 68 / 0.15);
-  --color-warning: #fbbf24;      /* amber-400 */
-  --color-warning-soft: rgb(245 158 11 / 0.15);
-}
-
-/* ============================================================
-   Nord — arctic blue palette (nordtheme.com inspired)
-   ============================================================ */
-html[data-theme="nord"] {
-  --color-paper: #2e3440;        /* nord1 — dark base */
-  color-scheme: dark;
-  --color-paper-deep: #3b4252;   /* nord2 */
-  --color-ink: #eceff4;          /* nord6 — snow white */
-  --color-ink-soft: #d8dee9;     /* nord4 */
-  --color-ink-faint: #4c566a;    /* nord3 */
-  --color-accent: #88c0d0;       /* nord8 — frost cyan */
-  --color-accent-soft: rgb(136 192 208 / 0.12);
-  --color-accent-strong: #8fbcbb; /* nord7 */
-  --color-accent-btn: #5e81ac;   /* nord9 — nordic blue */
-  --color-accent-btn-hover: #4c6a8f;
-  --color-accent-cyan: #88c0d0;
-  --color-card: #3b4252;
-  --color-card-border: #434c5e;  /* nord3-ish */
-  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
-  --shadow-card-hover: 0 2px 6px rgb(0 0 0 / 0.4), 0 10px 28px rgb(0 0 0 / 0.4);
-  --color-stat-cloud: #88c0d0;
-  --color-stat-devops: #a3be8c;  /* nord14 — green */
-  --color-stat-ai: #b48ead;      /* nord15 — purple */
-  --color-stat-linux: #ebcb8b;   /* nord13 — yellow */
-  --color-stat-mars: #bf616a;    /* nord11 — red */
-  --color-topic-cloud-deep: #88c0d0;
-  --color-topic-devops-deep: #a3be8c;
-  --color-topic-ai-deep: #b48ead;
-  --color-topic-linux-deep: #ebcb8b;
-  --color-topic-mars-deep: #bf616a;
-  --color-topic-ice-deep: #8fbcbb;
-  /* Status hues — nord's own green/red/yellow family (#83) */
-  --color-success: #a3be8c;      /* nord14 */
-  --color-success-soft: rgb(163 190 140 / 0.15);
-  --color-danger: #bf616a;       /* nord11 */
-  --color-danger-soft: rgb(191 97 106 / 0.15);
-  --color-warning: #ebcb8b;      /* nord13 */
-  --color-warning-soft: rgb(235 203 139 / 0.15);
-}
-
-/* ============================================================
-   Rose — warm rose-tinted light theme
-   ============================================================ */
-html[data-theme="rose"] {
-  --color-paper: #fff1f2;        /* rose-50 */
-  color-scheme: light;
-  --color-paper-deep: #ffe4e6;   /* rose-100 */
-  --color-ink: #1c1917;          /* stone-900 */
-  --color-ink-soft: #57534e;     /* stone-600 */
-  --color-ink-faint: #a8a29e;    /* stone-400 */
-  --color-accent: #e11d48;       /* rose-600 */
-  --color-accent-soft: rgb(225 29 72 / 0.08);
-  --color-accent-strong: #be123c; /* rose-700 */
-  --color-accent-btn: #e11d48;
-  --color-accent-btn-hover: #be123c;
-  --color-accent-cyan: #06b6d4;
-  --color-card: #ffffff;
-  --color-card-border: #fecdd3;  /* rose-200 */
-  --shadow-card: 0 1px 2px rgb(28 25 23 / 0.04), 0 4px 16px rgb(225 29 72 / 0.06);
-  --shadow-card-hover: 0 2px 4px rgb(28 25 23 / 0.05), 0 10px 28px rgb(225 29 72 / 0.1);
-  --color-stat-cloud: #0284c7;
-  --color-stat-devops: #0d9488;
-  --color-stat-ai: #7c3aed;
-  --color-stat-linux: #d97706;
-  --color-stat-mars: #dc2626;
-  --color-topic-cloud-deep: #075985;
-  --color-topic-devops-deep: #0f766e;
-  --color-topic-ai-deep: #6d28d9;
-  --color-topic-linux-deep: #92400e;
-  --color-topic-mars-deep: #b91c1c;
-  --color-topic-ice-deep: #0369a1;
-}
 
 /* ============================================================
    Blog markdown rendering (ui-ux-design.md P0)
@@ -1388,19 +1206,11 @@ html[data-theme="rose"] {
   inset: 0;
   border-radius: inherit;
   background-image:
-    radial-gradient(circle, rgb(28 25 23 / 0.12) 1px, transparent 1.4px),
-    radial-gradient(circle, rgb(28 25 23 / 0.09) 1px, transparent 1.4px),
-    radial-gradient(circle, rgb(28 25 23 / 0.07) 1px, transparent 1.4px);
-  background-size: 110px 110px, 74px 74px, 48px 48px;
-  background-position: 12% 22%, 68% 58%, 32% 78%;
-}
-html[data-theme="dark"] .galaxy-stars,
-html[data-theme="midnight"] .galaxy-stars,
-html[data-theme="nord"] .galaxy-stars {
-  background-image:
     radial-gradient(circle, rgb(255 255 255 / 0.2) 1px, transparent 1.4px),
     radial-gradient(circle, rgb(255 255 255 / 0.13) 1px, transparent 1.4px),
     radial-gradient(circle, rgb(255 255 255 / 0.09) 1px, transparent 1.4px);
+  background-size: 110px 110px, 74px 74px, 48px 48px;
+  background-position: 12% 22%, 68% 58%, 32% 78%;
 }
 
 /* ------------------------------------------------------------
@@ -1425,18 +1235,11 @@ html[data-theme="nord"] .galaxy-stars {
   inset: 0;
   border-radius: inherit;
   background-image:
-    radial-gradient(circle, rgb(28 25 23 / 0.3) 1.5px, transparent 2px),
-    radial-gradient(circle, rgb(28 25 23 / 0.22) 1px, transparent 1.6px);
+    radial-gradient(circle, rgb(255 255 255 / 0.55) 1.5px, transparent 2px),
+    radial-gradient(circle, rgb(255 255 255 / 0.4) 1px, transparent 1.6px);
   background-size: 240px 240px, 330px 330px;
   background-position: 6% 14%, 73% 86%;
   animation: star-twinkle 3.6s ease-in-out infinite;
-}
-html[data-theme="dark"] .galaxy-stars::after,
-html[data-theme="midnight"] .galaxy-stars::after,
-html[data-theme="nord"] .galaxy-stars::after {
-  background-image:
-    radial-gradient(circle, rgb(255 255 255 / 0.55) 1.5px, transparent 2px),
-    radial-gradient(circle, rgb(255 255 255 / 0.4) 1px, transparent 1.6px);
 }
 @keyframes star-twinkle {
   0%,
@@ -1633,15 +1436,10 @@ html[data-theme="nord"] .galaxy-stars::after {
 }
 .galaxy-orbit-line circle {
   fill: none;
-  stroke: rgb(28 25 23 / 0.16); /* faint, never dark */
+  stroke: rgb(255 255 255 / 0.16);
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-dasharray: 1.6 7;
-}
-html[data-theme="dark"] .galaxy-orbit-line circle,
-html[data-theme="midnight"] .galaxy-orbit-line circle,
-html[data-theme="nord"] .galaxy-orbit-line circle {
-  stroke: rgb(255 255 255 / 0.12);
 }
 /* The planet whose card is open: its orbit lights up in its color. */
 .galaxy-orbit-ring[data-active="true"] .galaxy-orbit-line circle {
