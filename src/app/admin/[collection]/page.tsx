@@ -92,6 +92,8 @@ export default function CollectionListPage() {
   }, [query]);
   /** galaxyPlanet name map — lets the moon list show "AWS" not the raw _id. */
   const [planetNames, setPlanetNames] = useState<Record<string, string>>({});
+  /** moon count map per planet — lets the planet list show "(3 moons)" badge. */
+  const [planetMoonCounts, setPlanetMoonCounts] = useState<Record<string, number>>({});
   /** Phase 12: ids checked for bulk actions (toggle visibility / delete). */
   const [selected, setSelected] = useState<Set<string>>(new Set());
   /** Re-entrancy guard for Duplicate — double-clicks used to POST twice
@@ -235,6 +237,30 @@ export default function CollectionListPage() {
           const map: Record<string, string> = {};
           for (const p of list as Doc[]) map[String(p._id)] = String(p.name ?? p._id);
           setPlanetNames(map);
+        }
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [collection]);
+
+  // Planet list: load moon counts so each planet row shows its orbiting moon count
+  useEffect(() => {
+    if (collection !== "galaxyPlanet") return;
+    let cancelled = false;
+    fetch("/api/admin/galaxyMoon")
+      .then(async (res) => {
+        const json = await res.json().catch(() => null);
+        if (cancelled || !res.ok) return;
+        const list = json?.data;
+        if (Array.isArray(list)) {
+          const counts: Record<string, number> = {};
+          for (const m of list as Doc[]) {
+            const pid = String(m.planetId);
+            counts[pid] = (counts[pid] || 0) + 1;
+          }
+          setPlanetMoonCounts(counts);
         }
       })
       .catch(() => undefined);
@@ -801,9 +827,18 @@ export default function CollectionListPage() {
                       }
                       return (
                         <td key={col} className="px-4 py-3 text-ink">
-                          {collection === "galaxyMoon" && col === "planetId"
-                            ? (planetNames[String(doc[col])] ?? formatCell(doc[col]))
-                            : formatCell(doc[col])}
+                          {collection === "galaxyMoon" && col === "planetId" ? (
+                            planetNames[String(doc[col])] ?? formatCell(doc[col])
+                          ) : collection === "galaxyPlanet" && col === "name" ? (
+                            <div className="flex items-center gap-2">
+                              <span className="font-semibold">{formatCell(doc[col])}</span>
+                              <span className="inline-flex items-center gap-1 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-2 py-0.5 font-mono text-[10px] font-semibold text-indigo-300">
+                                🛰️ {planetMoonCounts[id] || 0} moons
+                              </span>
+                            </div>
+                          ) : (
+                            formatCell(doc[col])
+                          )}
                         </td>
                       );
                     })}

@@ -51,12 +51,21 @@ export async function GET(
     return NextResponse.json({ data: doc ?? null });
   }
 
+  // Support basic query filtering (e.g. ?planetId=xxx for moons)
+  const url = new URL(_req.url);
+  const filter: Record<string, unknown> = {};
+  for (const [key, val] of url.searchParams.entries()) {
+    if (val && key !== "sort" && key !== "limit") {
+      filter[key] = val;
+    }
+  }
+
   // Sort by the registry's orderKey when one exists (galaxy displayOrder,
   // project/experience order) so the server order matches what the list
   // shows — the old hardcoded { order: 1 } was a no-op for displayOrder.
   const docs = spec.orderKey
-    ? await Model.find().sort({ [spec.orderKey]: 1 }).lean()
-    : await Model.find().lean();
+    ? await Model.find(filter).sort({ [spec.orderKey]: 1 }).lean()
+    : await Model.find(filter).lean();
   return NextResponse.json({ data: docs });
 }
 

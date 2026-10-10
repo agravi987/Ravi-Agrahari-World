@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import CollectionForm from "@/components/admin/CollectionForm";
+import PlanetMoonsManager from "@/components/admin/PlanetMoonsManager";
+import ProjectGalaxyRibbon from "@/components/admin/ProjectGalaxyRibbon";
 import { getCollection, publicUrlFor } from "@/lib/collections";
 
 type Doc = Record<string, unknown> & { _id?: string };
@@ -107,20 +109,43 @@ export default function EditCollectionPage() {
       {!error && doc === null && <p className="mt-8 text-sm text-ink-faint">Loading…</p>}
 
       {!error && doc !== null && (
-        <div className="mt-8 rounded-card border border-card-border bg-card p-6 shadow-card">
-          <CollectionForm
-            // BUGFIX: key by id — without it, navigating from editing
-            // post A to post B (client-side link) REUSED the mounted
-            // form and its useState initializer never re-ran: the form
-            // showed A's values and saving silently overwrote B.
-            key={id}
-            spec={spec}
-            collection={collection}
-            initialData={doc}
-            id={id}
-            isNew={false}
-          />
-        </div>
+        <>
+          <div className="mt-8 rounded-card border border-card-border bg-card p-6 shadow-card">
+            <CollectionForm
+              // BUGFIX: key by id — without it, navigating from editing
+              // post A to post B (client-side link) REUSED the mounted
+              // form and its useState initializer never re-ran: the form
+              // showed A's values and saving silently overwrote B.
+              key={id}
+              spec={spec}
+              collection={collection}
+              initialData={doc}
+              id={id}
+              isNew={false}
+            />
+          </div>
+
+          {/* Unified Dependency Resolvers: */}
+          {/* 1. Orbiting Moons Manager inside Planet View */}
+          {collection === "galaxyPlanet" && (
+            <PlanetMoonsManager
+              planetId={id}
+              planetName={String(doc.name || "")}
+            />
+          )}
+
+          {/* 2. Connected Learning Ecosystem Ribbon inside Project View */}
+          {collection === "project" && (
+            <ProjectGalaxyRibbon
+              projectId={id}
+              projectTitle={String(doc.title || "")}
+              projectDescription={String(doc.description || "")}
+              projectRepoUrl={String(doc.repoUrl || "")}
+              projectDemoUrl={String(doc.demoUrl || "")}
+              projectTech={Array.isArray(doc.tech) ? (doc.tech as string[]) : []}
+            />
+          )}
+        </>
       )}
     </div>
   );
