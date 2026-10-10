@@ -96,11 +96,6 @@ export default function Galaxy3D({
 
   return (
     <div ref={boxRef} aria-hidden="true" className={stageCls}>
-      <GalaxyBackground
-        showStars={settings.showStars}
-        density={settings.starDensity}
-        nebula={settings.nebulaVisible}
-      />
       <GlErrorBoundary onError={onError}>
         <Canvas
           dpr={[1, 1.75]}
