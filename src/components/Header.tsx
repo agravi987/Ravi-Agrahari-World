@@ -354,7 +354,7 @@ export default function Header({
       inert={navHidden || undefined}
       className={`${
         heroMode ? "absolute inset-x-0 top-0" : "sticky top-0"
-      } z-50 border-b border-card-border bg-paper/70 backdrop-blur-xl transition-[transform,box-shadow] duration-300 supports-[backdrop-filter]:bg-paper/60 ${
+      } z-50 border-b border-indigo-400/25 bg-gradient-to-r from-indigo-950/75 via-[#131138]/70 to-slate-950/75 backdrop-blur-2xl transition-[transform,box-shadow] duration-300 ${
         scrolled ? "shadow-card" : ""
       } ${navHidden ? "nav-hidden" : ""}`}
     >
@@ -447,7 +447,7 @@ export default function Header({
         <nav
           id="mobile-nav"
           aria-label="Mobile"
-          className="border-t border-card-border bg-paper/95 backdrop-blur-md md:hidden max-h-[calc(100svh-4rem)] overflow-y-auto"
+          className="border-t border-indigo-400/30 bg-gradient-to-b from-[#131138]/95 via-indigo-950/95 to-slate-950/95 backdrop-blur-2xl md:hidden max-h-[calc(100svh-4rem)] overflow-y-auto"
         >
           <ul className="mx-auto max-w-5xl space-y-1.5 px-4 sm:px-6 py-4">
             {navLinks.map((link) => (

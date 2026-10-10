@@ -267,10 +267,10 @@ export default function Certifications({
                   goTo(activeRef.current + 1);
                 }
               }}
-              className={`relative rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
+              className={`relative rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
                 selected
-                  ? `border-transparent bg-card text-ink shadow-card chip-breathe after:opacity-100 ${CHIP_HUES[i % 4]}`
-                  : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
+                  ? `border-amber-400/50 bg-gradient-to-r from-amber-500/25 via-purple-500/20 to-cyan-500/25 text-white shadow-[0_0_16px_rgba(245,158,11,0.35)] backdrop-blur-md chip-breathe after:opacity-100 ${CHIP_HUES[i % 4]}`
+                  : "border-white/15 bg-white/[0.06] text-ink-soft hover:border-amber-400/40 hover:bg-white/[0.12] hover:text-white backdrop-blur-sm"
               }`}
             >
               {c.name}
@@ -311,7 +311,7 @@ export default function Certifications({
             el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
             el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
           }}
-          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-6 sm:p-8 border-t-2 shadow-card ${HAIRLINE[idx % HAIRLINE.length]}`}
+          className={`group card-spotlight cert-stamp-in flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 p-6 sm:p-8 border-t-2 shadow-[0_8px_32px_rgba(251,191,36,0.22)] bg-gradient-to-br from-amber-900/30 via-indigo-900/35 to-cyan-950/30 border-indigo-400/30 backdrop-blur-xl ${HAIRLINE[idx % HAIRLINE.length]}`}
         >
           <div className="flex items-start sm:items-center gap-4 sm:gap-5 min-w-0 flex-1">
             {/* P8: issuer logo when the CMS provides one; topic-hued Award

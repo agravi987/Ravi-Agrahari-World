@@ -73,6 +73,13 @@ const GLOW_B: Record<string, string> = {
   bot: "var(--color-topic-linux)",
 };
 
+/** Luminous topic-tinted card gradients (replaces dark background with cosmic atmosphere). */
+const CARD_GRADIENTS: Record<string, string> = {
+  cloud: "from-sky-900/40 via-indigo-900/30 to-blue-950/40 border-sky-400/40 shadow-[0_8px_32px_rgba(56,189,248,0.22)]",
+  workflow: "from-teal-900/40 via-emerald-900/30 to-cyan-950/40 border-teal-400/40 shadow-[0_8px_32px_rgba(45,212,191,0.22)]",
+  bot: "from-purple-900/40 via-fuchsia-900/30 to-indigo-950/40 border-purple-400/40 shadow-[0_8px_32px_rgba(192,132,252,0.22)]",
+};
+
 /** Splits the combined class into the bar fill (bg) + label (text). */
 const barFor = (icon: string) => {
   const combined = BAR_STYLES[icon] ?? "bg-accent text-accent";
@@ -322,10 +329,10 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                   moveTab(i, e.key === "ArrowUp" ? -1 : 1);
                 }
               }}
-              className={`relative inline-flex items-center gap-2 rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
+              className={`relative inline-flex items-center gap-2 rounded-full border px-4.5 py-2 text-sm sm:text-base font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent after:absolute after:inset-x-4 after:-bottom-0.5 after:h-0.5 after:rounded-full after:transition-opacity after:duration-300 ${
                 selected
-                  ? `border-transparent bg-card text-ink shadow-card after:opacity-100 ${CHIP_ACTIVE[s.icon] ?? "after:bg-accent"}`
-                  : "border-card-border bg-transparent text-ink-faint hover:border-accent/30 hover:text-ink"
+                  ? `border-indigo-400/50 bg-gradient-to-r from-accent/25 via-accent-cyan/20 to-topic-ai/25 text-white shadow-[0_0_16px_rgba(129,140,248,0.35)] backdrop-blur-md after:opacity-100 ${CHIP_ACTIVE[s.icon] ?? "after:bg-accent"}`
+                  : "border-white/15 bg-white/[0.06] text-ink-soft hover:border-accent/40 hover:bg-white/[0.12] hover:text-white backdrop-blur-sm"
               }`}
             >
               <ChipIcon
@@ -402,9 +409,9 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                 >
                   <Card
                     hover
-                    className={`group p-6 sm:p-8 outline-none transition-shadow focus-within:ring-4 ${
-                      RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"
-                    }`}
+                    className={`group p-6 sm:p-8 outline-none transition-all duration-300 focus-within:ring-4 bg-gradient-to-br backdrop-blur-xl ${
+                      CARD_GRADIENTS[s.icon] ?? "from-indigo-900/40 via-purple-900/30 to-blue-900/40 border-indigo-400/30"
+                    } ${RING_ACTIVE[s.icon] ?? "focus-within:ring-accent/15"}`}
                   >
                     <div className="flex items-start gap-3 sm:gap-4">
                       <div className={`flex h-11 w-11 sm:h-12 sm:w-12 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-110 ${skillTile}`}>

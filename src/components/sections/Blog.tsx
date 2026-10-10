@@ -113,7 +113,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search notes…"
             aria-label="Search notes"
-            className="w-full rounded-full border border-card-border bg-card py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink-faint transition-shadow focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/10"
+            className="w-full rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-md py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-slate-300 transition-all focus:border-cyan-400 focus:bg-white/[0.14] focus:outline-none focus:ring-4 focus:ring-cyan-400/20"
           />
         </div>
       </div>
@@ -207,7 +207,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
                 el.style.setProperty("--sx", `${((e.clientX - r.left) / r.width) * 100}%`);
                 el.style.setProperty("--sy", `${((e.clientY - r.top) / r.height) * 100}%`);
               }}
-              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-card-border/80 bg-card/85 backdrop-blur-md p-6 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:bg-card/95 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
+              className={`group card-spotlight relative flex h-full flex-col overflow-hidden rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-violet-900/40 via-indigo-900/35 to-sky-950/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(139,92,246,0.22)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:from-violet-850/50 hover:via-indigo-800/45 hover:to-sky-900/50 hover:shadow-[0_12px_40px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${hairline}`}
             >
             <div className="flex items-center justify-between text-xs text-ink-soft">
               <time dateTime={post.publishedAt} className="flex items-center gap-2">

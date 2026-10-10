@@ -54,6 +54,16 @@ const LEFT_ACCENTS = [
   "border-l-topic-ice",
 ];
 
+/** Rich topic gradients cycling for each timeline card (no dark backgrounds). */
+const ROW_GRADIENTS = [
+  "from-teal-900/40 via-cyan-900/30 to-blue-950/40 border-teal-400/40 hover:border-teal-300/60",
+  "from-indigo-900/40 via-purple-900/30 to-pink-950/40 border-indigo-400/40 hover:border-indigo-300/60",
+  "from-purple-900/40 via-fuchsia-900/30 to-indigo-950/40 border-purple-400/40 hover:border-purple-300/60",
+  "from-amber-900/40 via-orange-900/30 to-yellow-950/40 border-amber-400/40 hover:border-amber-300/60",
+  "from-rose-900/40 via-red-900/30 to-orange-950/40 border-rose-400/40 hover:border-rose-300/60",
+  "from-sky-900/40 via-blue-900/30 to-indigo-950/40 border-sky-400/40 hover:border-sky-300/60",
+];
+
 /** Open dot: ring glow matches the role's hue (was hardcoded devops). */
 const DOT_SHADOWS = [
   "shadow-topic-cloud/20",
@@ -267,12 +277,12 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                 aria-controls={`experience-detail-${i}`}
                 aria-label={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
                 title={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
-                className={`block w-full cursor-pointer rounded-2xl p-4.5 sm:p-5 text-left transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-                  // P25: the open row raises — a card with a topic-hued
-                  // left accent marking the active role
+                className={`block w-full cursor-pointer rounded-2xl p-4.5 sm:p-5 text-left transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent bg-gradient-to-br ${
+                  ROW_GRADIENTS[i % ROW_GRADIENTS.length]
+                } ${
                   open
-                    ? `border border-card-border/80 bg-card/90 backdrop-blur-md shadow-card ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]}`
-                    : "border border-card-border/40 bg-card/40 backdrop-blur-xs hover:border-card-border/80 hover:bg-card/70"
+                    ? `border-l-4 ${LEFT_ACCENTS[i % LEFT_ACCENTS.length]} backdrop-blur-xl shadow-[0_8px_32px_rgba(99,102,241,0.25)] ring-1 ring-white/20`
+                    : "opacity-85 backdrop-blur-md hover:opacity-100 hover:shadow-card"
                 }`}
               >
                 <span className="flex items-start gap-3.5">
@@ -296,7 +306,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                           return next;
                         })
                       }
-                      className="experience-logo h-11 w-11 shrink-0 rounded-xl border border-card-border bg-card object-contain p-1"
+                      className="experience-logo h-11 w-11 shrink-0 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm object-contain p-1"
                     />
                   ) : (
                     <span
@@ -333,7 +343,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {item.metrics.length > 0 && (
                         <span
                           title={`${item.metrics.length} achievements at ${item.company}`}
-                          className="hidden items-center gap-1 rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft sm:inline-flex"
+                          className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft sm:inline-flex"
                         >
                           {item.metrics.length}
                           <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
@@ -344,7 +354,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {dur && (
                         <span
                           title={`Computed from the period — ${item.period}`}
-                          className="inline-block rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft"
+                          className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
                         >
                           {dur}
                         </span>
@@ -352,7 +362,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {/* P25 chip, P26: now on mobile too (smaller) — hidden
                           when the period is empty (zero-data rule) */}
                       {item.period && (
-                        <span className="inline-block rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft">
+                        <span className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft">
                           {item.period}
                         </span>
                       )}
@@ -392,7 +402,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                         {item.metrics.map((m, mi) => (
                           <li
                             key={m}
-                            className="flex items-start gap-3 rounded-xl border border-card-border/70 bg-card/60 px-3.5 py-2.5 text-sm sm:text-base text-ink-soft shadow-xs transition-colors hover:border-accent/40"
+                            className="flex items-start gap-3 rounded-xl border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3.5 py-2.5 text-sm sm:text-base text-ink shadow-xs transition-colors hover:border-cyan-400/50 hover:bg-white/[0.14]"
                             style={{ animationDelay: `${mi * 70}ms` }}
                           >
                             <span
@@ -413,7 +423,7 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                       {item.tools.map((t) => (
                         <span
                           key={t}
-                          className="rounded-full border border-card-border bg-paper px-3 py-1 font-mono text-xs font-medium text-ink-soft"
+                          className="rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
                         >
                           {t}
                         </span>

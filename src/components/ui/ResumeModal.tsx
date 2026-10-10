@@ -66,7 +66,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
       >
         <DialogBody className="space-y-4 sm:space-y-5 pr-1 sm:pr-2 max-h-[68svh] sm:max-h-[60vh]">
           {/* Top banner / role lockup */}
-          <div className="rounded-xl border border-card-border bg-paper-deep/60 p-3.5 sm:p-5">
+          <div className="rounded-xl border border-indigo-400/35 bg-gradient-to-r from-indigo-950/45 via-purple-950/35 to-blue-950/45 backdrop-blur-md p-3.5 sm:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="font-display text-lg sm:text-xl font-bold text-ink">{name}</h3>
@@ -89,7 +89,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
                   type="button"
                   data-compact-touch
                   onClick={handleCopyEmail}
-                  className="inline-flex w-full sm:w-auto justify-center items-center gap-1 rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-accent/40 hover:text-ink transition-colors"
+                  className="inline-flex w-full sm:w-auto justify-center items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-cyan-400/50 hover:bg-white/[0.15] hover:text-white transition-colors"
                 >
                   {copied ? (
                     <Check className="h-3 w-3 text-success" />
@@ -104,7 +104,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
 
           {/* Quick Snapshot grid */}
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-card-border bg-card p-4">
+            <div className="rounded-xl border border-white/15 bg-white/[0.06] backdrop-blur-md p-4">
               <div className="flex items-center gap-2 text-ink font-semibold text-sm">
                 <Briefcase className="h-4 w-4 text-topic-cloud" />
                 <span>Target Roles</span>
@@ -117,7 +117,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
               </ul>
             </div>
 
-            <div className="rounded-xl border border-card-border bg-card p-4">
+            <div className="rounded-xl border border-white/15 bg-white/[0.06] backdrop-blur-md p-4">
               <div className="flex items-center gap-2 text-ink font-semibold text-sm">
                 <Code2 className="h-4 w-4 text-topic-devops" />
                 <span>Core Competencies</span>
@@ -132,7 +132,7 @@ export default function ResumeModal({ name, email, github, roles }: ResumeModalP
           </div>
 
           {/* Key Engineering Proof */}
-          <div className="rounded-xl border border-card-border bg-card p-4">
+          <div className="rounded-xl border border-white/15 bg-white/[0.06] backdrop-blur-md p-4">
             <div className="flex items-center gap-2 text-ink font-semibold text-sm">
               <Award className="h-4 w-4 text-topic-ai" />
               <span>Verified Highlights & Proof of Work</span>

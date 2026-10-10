@@ -37,7 +37,7 @@ function DialogContentPrimitive({ className, children, ...props }: DialogPrimiti
       <DialogPrimitive.Content
         className={clsx(
           "fixed left-1/2 top-1/2 z-50 w-[calc(100vw-1.5rem)] sm:w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2",
-          "rounded-2xl border border-card-border bg-card p-4.5 sm:p-6 shadow-orbital max-h-[90svh] flex flex-col",
+          "rounded-2xl border border-indigo-400/40 bg-gradient-to-br from-[#1c183d]/95 via-[#131d3d]/95 to-[#152345]/95 backdrop-blur-2xl p-4.5 sm:p-6 shadow-[0_16px_50px_rgba(99,102,241,0.35)] max-h-[90svh] flex flex-col",
           "data-[state=open]:animate-dialog-in",
           className
         )}
@@ -46,7 +46,7 @@ function DialogContentPrimitive({ className, children, ...props }: DialogPrimiti
         {children}
         <DialogPrimitive.Close
           aria-label="Close dialog"
-          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-paper-deep hover:text-ink"
+          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white/10 hover:text-white"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </DialogPrimitive.Close>

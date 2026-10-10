@@ -244,7 +244,7 @@ export default function Contact({
         </div>
         <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
-        <div className="rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-slate-900/90 via-[#11192e]/85 to-slate-950/90 backdrop-blur-md p-6 shadow-card sm:p-7">
+        <div className="rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-cyan-950/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_rgba(99,102,241,0.22)] sm:p-7">
           {/* P25: availability pill — the same CMS line as the hero,
               now literally the same component (#74) */}
           {availability && <AvailabilityPill text={availability} />}
@@ -268,7 +268,7 @@ export default function Contact({
           <button
             type="button"
             onClick={copyEmail}
-            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-accent/30 bg-card/90 px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_15px_rgba(129,140,248,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-indigo-400/40 bg-gradient-to-r from-indigo-600/25 via-purple-600/20 to-cyan-600/25 backdrop-blur-md px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {copied ? (
               <Check className="h-4 w-4 text-emerald-400" aria-hidden="true" />
@@ -300,17 +300,17 @@ export default function Contact({
           </div>
 
           {/* Ground Station Telemetry Specs (MNC Transparency) */}
-          <div className="mt-6 rounded-xl border border-card-border/80 bg-paper-deep/60 p-4">
+          <div className="mt-6 rounded-xl border border-indigo-400/30 bg-gradient-to-br from-cyan-950/30 via-indigo-950/40 to-purple-950/30 backdrop-blur-md p-4">
             <p className="font-mono text-xs font-semibold uppercase tracking-wider text-accent flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-accent animate-pulse" aria-hidden="true" />
               Ground Station Telemetry
             </p>
             <div className="mt-3 grid grid-cols-2 gap-2.5 text-xs sm:text-sm font-mono">
-              <div className="rounded-lg border border-card-border/60 bg-card/80 p-2.5">
+              <div className="rounded-lg border border-white/20 bg-white/[0.08] backdrop-blur-md p-2.5">
                 <span className="text-ink-faint block text-xs">TIMEZONE</span>
                 <span className="font-semibold text-ink">IST (UTC+5:30)</span>
               </div>
-              <div className="rounded-lg border border-card-border/60 bg-card/80 p-2.5">
+              <div className="rounded-lg border border-white/20 bg-white/[0.08] backdrop-blur-md p-2.5">
                 <span className="text-ink-faint block text-xs">AVG RESPONSE</span>
                 <span className="font-semibold text-emerald-400">&lt; 24 Hours</span>
               </div>
@@ -454,7 +454,7 @@ export default function Contact({
                   className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     active
                       ? "border-accent bg-gradient-to-r from-accent/25 to-accent-cyan/25 text-white shadow-[0_0_12px_rgba(129,140,248,0.35)]"
-                      : "border-card-border/80 bg-card/70 text-ink-soft hover:border-accent/50 hover:bg-card/90 hover:text-white"
+                      : "border-white/20 bg-white/[0.08] backdrop-blur-sm text-ink-soft hover:border-cyan-400/50 hover:bg-white/[0.15] hover:text-white"
                   }`}
                 >
                   <PresetIcon className="h-4 w-4" aria-hidden="true" />
@@ -481,10 +481,10 @@ export default function Contact({
                 autoComplete="name"
                 aria-invalid={nameError}
                 aria-describedby={nameError ? "name-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
                   nameError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-card-border focus:border-accent focus:ring-accent/10"
+                    : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
                 }`}
                 placeholder="Ada Lovelace"
               />
@@ -518,10 +518,10 @@ export default function Contact({
                 autoComplete="email"
                 aria-invalid={emailError}
                 aria-describedby={emailError ? "email-error" : undefined}
-                className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+                className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
                   emailError
                     ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                    : "border-card-border focus:border-accent focus:ring-accent/10"
+                    : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
                 }`}
                 placeholder="you@example.com"
               />
@@ -553,10 +553,10 @@ export default function Contact({
               enterKeyHint="next"
               aria-invalid={subjectError}
               aria-describedby={subjectError ? "subject-error" : undefined}
-              className={`w-full rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
                 subjectError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-card-border focus:border-accent focus:ring-accent/10"
+                  : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
               }`}
               placeholder="Let's talk about…"
             />
@@ -596,10 +596,10 @@ export default function Contact({
               aria-describedby={
                 messageError ? "message-error message-counter" : "message-counter"
               }
-              className={`w-full resize-none rounded-card border bg-card px-4 py-3 text-base sm:text-sm text-ink placeholder:text-ink-faint transition-shadow focus:outline-none focus:ring-4 field-glow ${
+              className={`w-full resize-none rounded-card border bg-white/[0.08] backdrop-blur-md px-4 py-3 text-base sm:text-sm text-ink placeholder:text-slate-300 transition-all focus:bg-white/[0.14] focus:outline-none focus:ring-4 field-glow ${
                 messageError
                   ? "border-red-500/60 focus:border-red-500 focus:ring-red-500/10"
-                  : "border-card-border focus:border-accent focus:ring-accent/10"
+                  : "border-white/20 focus:border-cyan-400 focus:ring-cyan-400/20"
               }`}
               // Phase 13 copy: messages land in the inbox now — the old
               // "nothing stored" text predates the Mongo inbox.

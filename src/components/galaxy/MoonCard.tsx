@@ -31,7 +31,7 @@ export default function MoonCard({ moon }: { moon: GalaxyMoon }) {
   const color = moonTypeColor(moon.type);
   const available = links(moon);
   return (
-    <div className="rounded-2xl border border-card-border bg-card/90 p-4 shadow-card backdrop-blur-sm">
+    <div className="rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-indigo-900/45 via-purple-900/35 to-blue-950/45 p-4 shadow-[0_8px_32px_rgba(99,102,241,0.25)] backdrop-blur-xl">
       <div className="flex items-start justify-between gap-2">
         <h4 className="font-display text-sm font-semibold text-ink">
           {moon.icon && <span aria-hidden="true">{moon.icon} </span>}
@@ -54,7 +54,7 @@ export default function MoonCard({ moon }: { moon: GalaxyMoon }) {
           {moon.technologies.map((t) => (
             <span
               key={t}
-              className="rounded-full border border-card-border bg-paper px-2 py-0.5 font-mono text-[10px] text-ink-soft"
+              className="rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-2 py-0.5 font-mono text-[10px] text-ink-soft"
             >
               {t}
             </span>

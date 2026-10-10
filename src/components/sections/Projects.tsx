@@ -472,7 +472,11 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       `${((e.clientY - r.top) / r.height) * 100}%`,
                     );
                   }}
-                  className="group card-spotlight h-full overflow-hidden flex flex-col"
+                  className={`group card-spotlight h-full overflow-hidden flex flex-col backdrop-blur-xl ${
+                    hero
+                      ? "bg-gradient-to-br from-amber-900/35 via-indigo-900/40 to-purple-900/40 border-amber-400/40 shadow-[0_8px_32px_rgba(245,158,11,0.25)]"
+                      : "bg-gradient-to-br from-indigo-900/40 via-[#18193f]/35 to-cyan-950/40 border-indigo-400/30 shadow-[0_8px_30px_rgba(99,102,241,0.2)]"
+                  }`}
                 >
                   <button
                     type="button"
@@ -549,14 +553,14 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                   </button>
 
                   {/* Instant Launchpad — Direct 1-Click Access for Recruiters */}
-                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-card-border/60 px-5 sm:px-6 py-4">
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t border-white/15 bg-white/[0.03] px-5 sm:px-6 py-4">
                     <div className="flex flex-wrap items-center gap-2.5">
                       {project.demoUrl && (
                         <a
                           href={project.demoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent-btn to-accent px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all hover:from-accent-btn-hover hover:to-accent-strong hover:shadow-orbital hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent-btn via-indigo-500 to-cyan-500 px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all hover:from-indigo-500 hover:to-cyan-400 hover:shadow-orbital hover:-translate-y-0.5"
                         >
                           Live Demo
                           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -567,7 +571,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           href={project.repoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-card-border/80 bg-card/80 px-4 py-1.5 text-xs sm:text-sm font-semibold text-ink-soft shadow-xs transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-4 py-1.5 text-xs sm:text-sm font-semibold text-ink-soft shadow-xs transition-all hover:border-cyan-400/60 hover:text-white hover:-translate-y-0.5"
                         >
                           <span className="font-mono text-xs font-bold text-accent-cyan">GH</span>
                           Code
@@ -697,7 +701,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                 </p>
 
                 {/* Engineering & Cloud Highlights for Recruiters */}
-                <div className="mt-4 rounded-xl border border-card-border/80 bg-paper-deep/50 p-3.5">
+                <div className="mt-4 rounded-xl border border-indigo-400/35 bg-gradient-to-r from-indigo-950/45 via-purple-950/35 to-blue-950/45 backdrop-blur-md p-3.5">
                   <p className="font-mono text-[10px] font-semibold uppercase tracking-wider text-accent flex items-center gap-1.5">
                     <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
                     Engineering Highlights &amp; Systems Design

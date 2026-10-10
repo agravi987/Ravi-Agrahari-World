@@ -40,7 +40,7 @@ export default function PlanetCard({
   const counts = [...byType.entries()].slice(0, 4);
 
   return (
-    <div className="rounded-2xl border border-card-border bg-card/90 p-4 shadow-card backdrop-blur-sm">
+    <div className="rounded-2xl border border-indigo-400/35 bg-gradient-to-br from-indigo-900/45 via-purple-900/35 to-blue-950/45 p-4 shadow-[0_8px_32px_rgba(99,102,241,0.25)] backdrop-blur-xl">
       <div className="flex items-center gap-2.5">
         <span
           aria-hidden="true"

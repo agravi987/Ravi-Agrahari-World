@@ -395,7 +395,7 @@ function PhotoComposition({
           {/* Floating live status pill */}
           <div
             aria-hidden="true"
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 whitespace-nowrap rounded-full border border-card-border/80 bg-card/90 px-4 py-1.5 font-mono text-xs font-semibold text-ink shadow-md backdrop-blur-md"
+            className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 whitespace-nowrap rounded-full border border-indigo-400/40 bg-gradient-to-r from-indigo-900/80 via-purple-900/70 to-blue-900/80 px-4 py-1.5 font-mono text-xs font-semibold text-ink shadow-md backdrop-blur-md"
           >
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             <span className="text-ink-soft">Open for Opportunities</span>
@@ -558,7 +558,7 @@ export default function Hero({
                 <a
                   href="#projects"
                   onClick={(e) => jumpSection(e, "#projects")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-topic-cloud/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-cloud-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-cloud hover:shadow-[0_0_12px_rgba(56,189,248,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-topic-cloud/50 bg-gradient-to-r from-topic-cloud/20 to-indigo-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-cloud-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-cloud hover:shadow-[0_0_12px_rgba(56,189,248,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
                     className="h-2 w-2 rounded-full bg-topic-cloud shadow-[0_0_8px_rgba(56,189,248,0.8)] transition-transform duration-300 group-hover:scale-125"
@@ -571,7 +571,7 @@ export default function Hero({
                 <a
                   href="#experience"
                   onClick={(e) => jumpSection(e, "#experience")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-topic-mars/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-mars-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-mars hover:shadow-[0_0_12px_rgba(248,113,113,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-topic-mars/50 bg-gradient-to-r from-topic-mars/20 to-orange-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-mars-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-mars hover:shadow-[0_0_12px_rgba(248,113,113,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
                     className="h-2 w-2 rounded-full bg-topic-mars shadow-[0_0_8px_rgba(248,113,113,0.8)] transition-transform duration-300 group-hover:scale-125"
@@ -583,7 +583,7 @@ export default function Hero({
               {streak >= 2 && (
                 <Link
                   href="/detailed-galaxy"
-                  className="group inline-flex items-center gap-2 rounded-full border border-accent-cyan/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-cyan-200 shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent-cyan hover:shadow-[0_0_12px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-accent-cyan/50 bg-gradient-to-r from-accent-cyan/20 to-topic-cloud/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-cyan-200 shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent-cyan hover:shadow-[0_0_12px_rgba(34,211,238,0.35)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
                     className="h-2 w-2 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-transform duration-300 group-hover:scale-125"
@@ -595,7 +595,7 @@ export default function Hero({
               <button
                 type="button"
                 onClick={() => openTerminal()}
-                className="group inline-flex items-center gap-2 rounded-full border border-accent/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-accent-strong shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_12px_rgba(129,140,248,0.3)] cursor-pointer"
+                className="group inline-flex items-center gap-2 rounded-full border border-accent/50 bg-gradient-to-r from-accent/20 to-purple-600/20 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-accent-strong shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_12px_rgba(129,140,248,0.35)] cursor-pointer"
                 title="Launch interactive browser CLI terminal (Ctrl+Shift+K)"
               >
                 <Terminal className="h-3.5 w-3.5 text-accent-cyan" aria-hidden="true" />

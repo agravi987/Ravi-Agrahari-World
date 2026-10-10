@@ -72,7 +72,7 @@ export default async function Footer({
   const visibleLinks = NAV_LINKS.filter((l) => !l.section || sectionsEnabled[l.section] !== false);
 
   return (
-    <footer className="relative mt-12 border-t border-card-border bg-paper-deep/50">
+    <footer className="relative mt-12 border-t border-indigo-400/25 bg-gradient-to-b from-[#131138]/50 via-indigo-950/40 to-slate-950/50 backdrop-blur-xl">
       {/* Gradient hairline — the footer opens with the brand pair (UX pass) */}
       <div
         aria-hidden="true"
@@ -93,7 +93,7 @@ export default async function Footer({
           </p>
           <p className="text-sm sm:text-base text-ink-soft">
             Built while learning in public ·{" "}
-            <span className="rounded-full border border-card-border bg-card px-2.5 py-0.5 font-mono text-xs text-ink-faint">
+            <span className="rounded-full border border-white/20 bg-white/[0.08] px-2.5 py-0.5 font-mono text-xs text-ink-soft">
               orbital v1
             </span>
           </p>

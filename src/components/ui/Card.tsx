@@ -15,9 +15,9 @@ export default function Card({ hover = true, className, ...rest }: CardProps) {
   return (
     <div
       className={clsx(
-        "rounded-2xl border border-indigo-400/20 bg-gradient-to-b from-slate-900/90 via-[#11192e]/85 to-slate-950/90 backdrop-blur-md shadow-card transition-all",
+        "rounded-2xl border border-indigo-400/30 bg-gradient-to-br from-indigo-900/40 via-purple-900/30 to-blue-900/40 backdrop-blur-xl shadow-[0_8px_32px_0_rgba(79,70,229,0.22)] transition-all",
         hover &&
-          "duration-300 hover:-translate-y-1 hover:border-cyan-400/40 hover:from-slate-900/95 hover:via-[#15203b]/95 hover:to-slate-950/95 hover:shadow-[0_8px_30px_rgba(99,102,241,0.2)]",
+          "duration-300 hover:-translate-y-1 hover:border-cyan-300/60 hover:from-indigo-800/55 hover:via-purple-800/45 hover:to-cyan-800/50 hover:shadow-[0_12px_40px_rgba(34,211,238,0.32)]",
         className
       )}
       {...rest}

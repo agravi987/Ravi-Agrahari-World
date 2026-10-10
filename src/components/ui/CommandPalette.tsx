@@ -396,12 +396,12 @@ export default function CommandPalette({
       }}
     >
       <div
-        className={`w-full max-w-lg overflow-hidden rounded-card border border-card-border bg-card shadow-orbital ${
+        className={`w-full max-w-lg overflow-hidden rounded-2xl border border-indigo-400/40 bg-gradient-to-br from-[#1b193e]/95 via-[#141b3b]/95 to-[#172242]/95 backdrop-blur-2xl shadow-[0_16px_50px_rgba(99,102,241,0.35)] ${
           reduceMotion ? "" : "animate-palette-in"
         }`}
       >
         {/* Input row */}
-        <div className="flex items-center gap-3 border-b border-card-border px-4 py-3">
+        <div className="flex items-center gap-3 border-b border-indigo-400/25 px-4 py-3">
           <Search className="h-4 w-4 shrink-0 text-ink-faint" aria-hidden="true" />
           <input
             ref={inputRef}

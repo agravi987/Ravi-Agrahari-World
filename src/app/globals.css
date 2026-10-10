@@ -58,8 +58,8 @@ body {
 
 @theme {
   /* --- Default Dark Theme Palette: Deep Cosmic Slate & Midnight Glass --- */
-  --color-paper: #090d16;        /* cosmic slate base — luminous, never pitch-black */
-  --color-paper-deep: #111827;   /* deep navy/slate surface */
+  --color-paper: #0b0e1e;        /* cosmic indigo-midnight base — luminous, never pitch-black */
+  --color-paper-deep: #161936;   /* deep celestial amethyst-slate surface */
   --color-ink: #f8fafc;          /* slate-50 bright primary text */
   --color-ink-soft: #cbd5e1;     /* slate-300 rich secondary text */
   --color-ink-faint: #94a3b8;    /* slate-400 crisp tertiary text */
@@ -103,9 +103,9 @@ body {
   --color-stat-linux: #fbbf24;
   --color-stat-mars: #f87171;
 
-  /* --- Card surfaces: Frosted Cosmic Glass --- */
-  --color-card: #131c2e;         /* translucent midnight navy card */
-  --color-card-border: rgba(148, 163, 184, 0.16);  /* soft crisp glass border */
+  /* --- Card surfaces: Luminous Frosted Cosmic Glass --- */
+  --color-card: #1c194a;         /* radiant celestial indigo-violet card */
+  --color-card-border: rgba(165, 180, 252, 0.28);  /* crisp luminous starlight glass border */
 
   /* --- Typography --- */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
