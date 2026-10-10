@@ -361,8 +361,6 @@ function HeroCosmicScene() {
         aria-hidden="true"
         className="no-print pointer-events-none absolute inset-0 -z-30 overflow-hidden"
       >
-        <div className="absolute inset-0 bg-paper" />
-        <div className="absolute inset-0 bg-gradient-to-r from-paper via-paper/70 to-paper/10" />
         <svg
           className="h-full w-full opacity-60"
           viewBox="0 0 1200 700"

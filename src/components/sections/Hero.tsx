@@ -474,19 +474,6 @@ export default function Hero({
       className="snap-section relative flex min-h-[100svh] items-center overflow-hidden px-4 sm:px-6 py-12 sm:py-14 lg:py-16"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
-      {/* ONE indigo→cyan gradient (plan §4.1): the photo card frame now
-          carries it; the soft glow below sits behind the composition */}
-      <div
-        aria-hidden="true"
-        className="absolute left-1/2 top-1/2 -z-20 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--color-accent-cyan)_15%,transparent),transparent_65%)] blur-2xl lg:left-[72%]"
-      />
-
-      {/* P27: soft bottom fade — the hero melts into the strip below */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-paper/90 to-transparent"
-      />
-
       {/* P32 cosmic scene — the full decorative cosmos (nebula wash,
           starfield, shooting stars, floating planets, spaceship, Saturn)
           now lives in HeroCosmicScene.tsx so ALL its GSAP depth (scroll
