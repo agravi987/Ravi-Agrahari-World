@@ -244,7 +244,7 @@ export default function Contact({
         </div>
         <div className="grid items-start gap-6 lg:grid-cols-[0.95fr_1.05fr]">
         {/* Left: a quiet panel — availability, one-click email, socials */}
-        <div className="rounded-2xl border border-card-border/80 bg-card/80 backdrop-blur-md p-6 shadow-card sm:p-7">
+        <div className="rounded-2xl border border-indigo-400/25 bg-gradient-to-b from-slate-900/90 via-[#11192e]/85 to-slate-950/90 backdrop-blur-md p-6 shadow-card sm:p-7">
           {/* P25: availability pill — the same CMS line as the hero,
               now literally the same component (#74) */}
           {availability && <AvailabilityPill text={availability} />}
@@ -451,10 +451,10 @@ export default function Contact({
                   data-compact-touch
                   onClick={() => applyPreset(p.subject, p.opener)}
                   aria-pressed={active}
-                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs sm:text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                  className={`inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-xs sm:text-sm font-semibold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                     active
-                      ? "border-accent/40 bg-accent-soft text-accent"
-                      : "border-card-border bg-paper/60 text-ink-soft hover:border-accent/40 hover:bg-card hover:text-ink"
+                      ? "border-accent bg-gradient-to-r from-accent/25 to-accent-cyan/25 text-white shadow-[0_0_12px_rgba(129,140,248,0.35)]"
+                      : "border-card-border/80 bg-card/70 text-ink-soft hover:border-accent/50 hover:bg-card/90 hover:text-white"
                   }`}
                 >
                   <PresetIcon className="h-4 w-4" aria-hidden="true" />

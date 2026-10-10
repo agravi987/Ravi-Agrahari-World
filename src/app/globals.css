@@ -927,8 +927,8 @@ body {
     z-index: -2;
     pointer-events: none;
     background: url("/images/hero/cosmic-cliffs.jpg") center / cover no-repeat;
-    opacity: 0.35;
-    filter: saturate(1.15) brightness(1.05);
+    opacity: 0.55;
+    filter: saturate(1.4) brightness(1.12);
   }
 }
 
@@ -946,12 +946,12 @@ body {
     pointer-events: none;
     background: linear-gradient(
       180deg,
-      rgba(255, 255, 255, 0.10) 0%,
-      rgba(255, 255, 255, 0.06) 50%,
-      rgba(255, 255, 255, 0.12) 100%
+      rgba(129, 140, 248, 0.08) 0%,
+      rgba(34, 211, 238, 0.05) 40%,
+      rgba(192, 132, 252, 0.08) 100%
     );
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 }
 
