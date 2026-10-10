@@ -143,9 +143,48 @@ body {
 .text-gradient {
   background: linear-gradient(
     100deg,
-    var(--color-accent) 10%,
-    var(--color-accent-cyan) 90%
+    #818cf8 0%,
+    #22d3ee 50%,
+    #c084fc 100%
   );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Luminous Chromatic Heading Gradients */
+.heading-gradient-cloud {
+  background: linear-gradient(135deg, #f8fafc 20%, #38bdf8 80%, #818cf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.heading-gradient-devops {
+  background: linear-gradient(135deg, #f8fafc 20%, #2dd4bf 80%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.heading-gradient-ai {
+  background: linear-gradient(135deg, #f8fafc 20%, #c084fc 80%, #818cf8 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.heading-gradient-linux {
+  background: linear-gradient(135deg, #f8fafc 20%, #fbbf24 80%, #f97316 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.heading-gradient-mars {
+  background: linear-gradient(135deg, #f8fafc 20%, #f87171 80%, #fb923c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.heading-gradient-accent {
+  background: linear-gradient(135deg, #f8fafc 15%, #818cf8 60%, #22d3ee 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

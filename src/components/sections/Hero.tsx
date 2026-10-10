@@ -138,13 +138,13 @@ function TypewriterRole({ roles }: { roles: string[] }) {
         onMouseEnter={() => (hoveredRef.current = true)}
         onMouseLeave={() => (hoveredRef.current = false)}
       >
-        <span className="inline-block">
+        <span className="inline-block bg-gradient-to-r from-accent-cyan via-accent to-topic-ai bg-clip-text text-transparent">
           {text}
           {/* P25: terminal caret — blinks while the role "types" in place.
               Reduced-motion freezes it via the global rule. */}
           <span
             aria-hidden="true"
-            className="role-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] rounded-full bg-accent align-baseline"
+            className="role-caret ml-0.5 inline-block h-[1em] w-[2px] translate-y-[0.15em] rounded-full bg-accent-cyan align-baseline"
           />
         </span>
       </span>
@@ -558,10 +558,10 @@ export default function Hero({
                 <a
                   href="#projects"
                   onClick={(e) => jumpSection(e, "#projects")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-topic-cloud/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-cloud-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-cloud hover:shadow-[0_0_12px_rgba(56,189,248,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-2 w-2 rounded-full bg-topic-cloud transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-topic-cloud shadow-[0_0_8px_rgba(56,189,248,0.8)] transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {projectsCount} shipped {projectsCount === 1 ? "project" : "projects"}
@@ -571,10 +571,10 @@ export default function Hero({
                 <a
                   href="#experience"
                   onClick={(e) => jumpSection(e, "#experience")}
-                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-topic-mars/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-topic-mars-deep shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-topic-mars hover:shadow-[0_0_12px_rgba(248,113,113,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-2 w-2 rounded-full bg-topic-mars transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-topic-mars shadow-[0_0_8px_rgba(248,113,113,0.8)] transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {experienceCount} {experienceCount === 1 ? "internship" : "internships"}
@@ -583,10 +583,10 @@ export default function Hero({
               {streak >= 2 && (
                 <Link
                   href="/detailed-galaxy"
-                  className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                  className="group inline-flex items-center gap-2 rounded-full border border-accent-cyan/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-cyan-200 shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent-cyan hover:shadow-[0_0_12px_rgba(34,211,238,0.3)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                 >
                   <span
-                    className="h-2 w-2 rounded-full bg-accent-cyan transition-transform duration-300 group-hover:scale-125"
+                    className="h-2 w-2 rounded-full bg-accent-cyan shadow-[0_0_8px_rgba(34,211,238,0.8)] transition-transform duration-300 group-hover:scale-125"
                     aria-hidden="true"
                   />
                   {streak}-day streak
@@ -595,10 +595,10 @@ export default function Hero({
               <button
                 type="button"
                 onClick={() => openTerminal()}
-                className="group inline-flex items-center gap-2 rounded-full border border-card-border/80 bg-card/70 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-ink-soft shadow-xs backdrop-blur-xs transition-all hover:-translate-y-0.5 hover:border-accent hover:text-accent cursor-pointer"
+                className="group inline-flex items-center gap-2 rounded-full border border-accent/40 bg-card/85 px-3.5 py-1.5 font-mono text-xs sm:text-sm font-semibold text-accent-strong shadow-xs backdrop-blur-md transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_12px_rgba(129,140,248,0.3)] cursor-pointer"
                 title="Launch interactive browser CLI terminal (Ctrl+Shift+K)"
               >
-                <Terminal className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                <Terminal className="h-3.5 w-3.5 text-accent-cyan" aria-hidden="true" />
                 <span>&gt;_ CLI Terminal</span>
               </button>
             </div>

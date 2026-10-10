@@ -82,45 +82,52 @@ const SPACING: Record<NonNullable<SectionProps["spacing"]>, string> = {
     "pt-[clamp(3.5rem,1.5rem+6vw,7rem)] pb-[clamp(2.75rem,1.25rem+4.75vw,5.5rem)]",
 };
 
-/** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
+/** Maps tone → eyebrow text color + title-sweep var + chromatic heading gradient. */
 const TONES: Record<
   NonNullable<SectionProps["tone"]>,
-  { eyebrow: string; sweep: string; pill: string }
+  { eyebrow: string; sweep: string; pill: string; titleGradient: string }
 > = {
   cloud: {
-    eyebrow: "text-topic-cloud-deep",
+    eyebrow: "text-topic-cloud-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-cloud)",
-    pill: "border-topic-cloud/40 bg-topic-cloud/10 text-topic-cloud-deep",
+    pill: "border-topic-cloud/40 bg-topic-cloud/15 text-topic-cloud-deep shadow-[0_0_12px_rgba(56,189,248,0.25)]",
+    titleGradient: "heading-gradient-cloud",
   },
   devops: {
-    eyebrow: "text-topic-devops-deep",
+    eyebrow: "text-topic-devops-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-devops)",
-    pill: "border-topic-devops/40 bg-topic-devops/10 text-topic-devops-deep",
+    pill: "border-topic-devops/40 bg-topic-devops/15 text-topic-devops-deep shadow-[0_0_12px_rgba(45,212,191,0.25)]",
+    titleGradient: "heading-gradient-devops",
   },
   ai: {
-    eyebrow: "text-topic-ai-deep",
+    eyebrow: "text-topic-ai-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-ai)",
-    pill: "border-topic-ai/40 bg-topic-ai/10 text-topic-ai-deep",
+    pill: "border-topic-ai/40 bg-topic-ai/15 text-topic-ai-deep shadow-[0_0_12px_rgba(192,132,252,0.25)]",
+    titleGradient: "heading-gradient-ai",
   },
   linux: {
-    eyebrow: "text-topic-linux-deep",
+    eyebrow: "text-topic-linux-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-linux)",
-    pill: "border-topic-linux/40 bg-topic-linux/10 text-topic-linux-deep",
+    pill: "border-topic-linux/40 bg-topic-linux/15 text-topic-linux-deep shadow-[0_0_12px_rgba(251,191,36,0.25)]",
+    titleGradient: "heading-gradient-linux",
   },
   mars: {
-    eyebrow: "text-topic-mars-deep",
+    eyebrow: "text-topic-mars-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-mars)",
-    pill: "border-topic-mars/40 bg-topic-mars/10 text-topic-mars-deep",
+    pill: "border-topic-mars/40 bg-topic-mars/15 text-topic-mars-deep shadow-[0_0_12px_rgba(248,113,113,0.25)]",
+    titleGradient: "heading-gradient-mars",
   },
   ice: {
-    eyebrow: "text-topic-ice-deep",
+    eyebrow: "text-topic-ice-deep font-semibold tracking-wider",
     sweep: "var(--color-topic-ice)",
-    pill: "border-topic-ice/40 bg-topic-ice/10 text-topic-ice-deep",
+    pill: "border-topic-ice/40 bg-topic-ice/15 text-topic-ice-deep shadow-[0_0_12px_rgba(56,189,248,0.25)]",
+    titleGradient: "heading-gradient-cloud",
   },
   accent: {
-    eyebrow: "text-accent",
+    eyebrow: "text-accent font-semibold tracking-wider",
     sweep: "var(--color-accent)",
-    pill: "border-accent/40 bg-accent/10 text-accent",
+    pill: "border-accent/40 bg-accent/15 text-accent shadow-[0_0_12px_rgba(129,140,248,0.25)]",
+    titleGradient: "heading-gradient-accent",
   },
 };
 
@@ -288,7 +295,10 @@ export default function Section({
               <h2
                 ref={titleRef}
                 id={`${id}-title`}
-                className="mt-3 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-5xl"
+                className={clsx(
+                  "mt-3 font-display text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl",
+                  t.titleGradient
+                )}
               >
                 {title}
               </h2>

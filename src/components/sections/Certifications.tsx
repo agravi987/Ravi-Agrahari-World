@@ -347,8 +347,8 @@ export default function Certifications({
                   </span>
                 )}
               </div>
-              <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{cert.name}</h3>
-              <p className="mt-1 text-base sm:text-lg font-medium text-ink-soft">{cert.issuer}</p>
+              <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{cert.name}</h3>
+              <p className="mt-1 text-base sm:text-lg font-semibold text-accent-strong">{cert.issuer}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {/* Phase 16 (#15): when the category matches a galaxy planet,
                     the badge deep-links to it (zero-data: plain badge otherwise) */}

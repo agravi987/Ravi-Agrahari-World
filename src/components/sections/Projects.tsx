@@ -498,7 +498,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       />
                       {/* Title on the cover */}
                       <div className="absolute inset-x-0 bottom-0 flex items-start justify-between gap-3 p-4 sm:p-5">
-                        <h3 className="flex items-center gap-2 font-display text-xl sm:text-2xl font-bold text-white tracking-tight">
+                        <h3 className="flex items-center gap-2 font-display text-xl sm:text-2xl font-bold text-white tracking-tight group-hover:text-cyan-200 transition-colors">
                           {project.title}
                           {project.featured && (
                             <Star
@@ -520,9 +520,9 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                       {hero && (
                         <span
                           aria-hidden="true"
-                          className="absolute left-3.5 top-3.5 inline-flex items-center gap-1 rounded-full bg-amber-400/90 px-3 py-1 font-mono text-xs font-semibold text-ink shadow-card backdrop-blur-sm"
+                          className="absolute left-3.5 top-3.5 inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-300 px-3 py-1 font-mono text-xs font-bold text-slate-950 shadow-md backdrop-blur-sm"
                         >
-                          <Star className="h-3.5 w-3.5 fill-ink" />
+                          <Star className="h-3.5 w-3.5 fill-slate-950" />
                           featured
                         </span>
                       )}
@@ -556,7 +556,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           href={project.demoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full bg-accent-btn px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all hover:bg-accent-btn-hover hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-accent-btn to-accent px-4 py-1.5 text-xs sm:text-sm font-semibold text-white shadow-xs transition-all hover:from-accent-btn-hover hover:to-accent-strong hover:shadow-orbital hover:-translate-y-0.5"
                         >
                           Live Demo
                           <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
@@ -567,9 +567,9 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                           href={project.repoUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-card px-4 py-1.5 text-xs sm:text-sm font-semibold text-ink-soft shadow-xs transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
+                          className="inline-flex items-center gap-1.5 rounded-full border border-card-border/80 bg-card/80 px-4 py-1.5 text-xs sm:text-sm font-semibold text-ink-soft shadow-xs transition-all hover:border-accent/40 hover:text-ink hover:-translate-y-0.5"
                         >
-                          <span className="font-mono text-xs font-bold">GH</span>
+                          <span className="font-mono text-xs font-bold text-accent-cyan">GH</span>
                           Code
                         </a>
                       )}
@@ -577,7 +577,7 @@ export default function Projects({ projects, github, exploreHref, fit, cue }: Pr
                     <button
                       type="button"
                       onClick={() => openProject(project)}
-                      className="font-mono text-xs sm:text-sm text-accent font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                      className="font-mono text-xs sm:text-sm text-accent hover:text-accent-cyan font-semibold inline-flex items-center gap-1 transition-colors hover:underline cursor-pointer"
                     >
                       Details &amp; Specs ➔
                     </button>

@@ -312,12 +312,12 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                     <span className="min-w-0">
                       {/* P26: mono index + role + company */}
                       <span className="flex items-baseline gap-2">
-                        <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-ink-faint">
+                        <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-accent-cyan">
                           {String(i + 1).padStart(2, "0")}
                         </span>
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{item.role}</h3>
+                        <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{item.role}</h3>
                       </span>
-                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-accent">{item.company}</p>
+                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-accent-strong">{item.company}</p>
                     </span>
                     <span className="flex flex-wrap items-center gap-2">
                       {/* Active pulse + achievements count (UX pass) */}

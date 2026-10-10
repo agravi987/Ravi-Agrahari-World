@@ -258,7 +258,7 @@ export default function Contact({
             </p>
           )}
 
-          <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-ink">
+          <h3 className="mt-4 font-display text-xl sm:text-2xl font-bold tracking-tight text-accent-strong">
             Prefer email?
           </h3>
           <p className="mt-1.5 text-base leading-relaxed text-ink-soft">
@@ -268,10 +268,10 @@ export default function Contact({
           <button
             type="button"
             onClick={copyEmail}
-            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-card-border bg-card px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="group mt-5 inline-flex w-full items-center justify-center gap-2.5 rounded-card border border-accent/30 bg-card/90 px-5 py-3.5 font-medium text-ink shadow-card transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-[0_0_15px_rgba(129,140,248,0.25)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {copied ? (
-              <Check className="h-4 w-4 text-accent" aria-hidden="true" />
+              <Check className="h-4 w-4 text-emerald-400" aria-hidden="true" />
             ) : (
               <Copy className="h-4 w-4 text-accent" aria-hidden="true" />
             )}

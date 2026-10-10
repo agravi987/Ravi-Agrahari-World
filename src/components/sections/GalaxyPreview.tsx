@@ -52,7 +52,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
         <Eyebrow label="learning-galaxy" />
         <h2
           id="galaxy-title"
-          className="mt-3 font-display text-3xl font-bold tracking-tight text-ink sm:text-4xl lg:text-5xl"
+          className="mt-3 font-display text-3xl font-bold tracking-tight heading-gradient-ai sm:text-4xl lg:text-5xl"
         >
           Learning Galaxy
         </h2>
@@ -68,7 +68,7 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
 
           {/* Description + CTA */}
           <div className="text-center lg:text-left">
-            <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">
+            <h3 className="font-display text-xl sm:text-2xl font-bold text-accent-strong">
               {profile.name}&apos;s solar system
             </h3>
             <p className="mt-3 text-base leading-relaxed text-ink-soft">

@@ -235,7 +235,7 @@ export default function Blog({ posts, fit, cue }: BlogProps) {
               </time>
               <span className="font-mono text-xs">{readTimeMinutes(post.contentMarkdown)} min read</span>
             </div>
-            <h3 className="mt-2.5 font-display text-xl sm:text-2xl font-bold text-ink transition-colors group-hover:text-accent">
+            <h3 className="mt-2.5 font-display text-xl sm:text-2xl font-bold text-ink transition-colors group-hover:text-cyan-200">
               {post.title}
             </h3>
             <p className="mt-2.5 line-clamp-3 text-base leading-relaxed text-ink-soft">{post.excerpt}</p>

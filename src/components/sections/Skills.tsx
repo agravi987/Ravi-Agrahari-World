@@ -412,7 +412,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-3">
-                          <h3 className="font-display text-xl sm:text-2xl font-bold text-ink">{s.name}</h3>
+                          <h3 className="font-display text-xl sm:text-2xl font-bold text-ink group-hover:text-cyan-200 transition-colors">{s.name}</h3>
                           <Tooltip label="1 = getting started · 5 = confident" side="left">
                             <LevelRing level={s.level} className={`shrink-0 ${barFor(s.icon).text}`} />
                           </Tooltip>
@@ -432,7 +432,7 @@ export default function Skills({ skills, galaxyPlanetSlugs, fit, cue, stats }: S
                           </div>
                           <LevelBar level={s.level} fillClass={barFor(s.icon).fill} />
                         </div>
-                        <Link href={skillGalaxyHref} className="mt-5 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent transition-colors hover:underline">
+                        <Link href={skillGalaxyHref} className="mt-5 inline-flex items-center gap-1.5 text-sm sm:text-base font-semibold text-accent hover:text-accent-cyan transition-colors hover:underline">
                           explore in galaxy <span aria-hidden="true">→</span>
                         </Link>
                       </div>
