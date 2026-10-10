@@ -46,8 +46,27 @@ export default function GalaxyPreview({ galaxy }: { galaxy: GalaxyData }) {
     <section
       id="galaxy"
       aria-labelledby="galaxy-title"
-      className="py-8 sm:py-10 lg:py-12"
+      className="relative py-10 sm:py-14 lg:py-16"
     >
+      {/* Stylish Luminous Multi-Layered Cosmic Separator */}
+      <div className="absolute top-0 inset-x-0 mx-auto max-w-5xl px-4 sm:px-6 pointer-events-none" aria-hidden="true">
+        <div className="relative flex items-center justify-center">
+          {/* Ambient Glow Aura */}
+          <div className="absolute h-4 w-4/5 bg-gradient-to-r from-transparent via-topic-ai/25 to-transparent blur-md" />
+          {/* Outer Base Line */}
+          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-card-border to-transparent" />
+          {/* Inner Radiant Gradient Core */}
+          <div className="absolute h-[2px] w-3/4 bg-gradient-to-r from-transparent via-topic-ai via-accent to-transparent opacity-85 shadow-[0_0_12px_rgba(192,132,252,0.7)]" />
+          {/* Center Stylish Cosmic Diamond & Rings */}
+          <div className="absolute flex items-center justify-center">
+            <span className="absolute h-5 w-5 rounded-full bg-topic-ai/20 blur-sm" />
+            <span className="h-2.5 w-2.5 rotate-45 rounded-[2px] border border-purple-200 bg-gradient-to-tr from-accent to-topic-ai shadow-[0_0_10px_rgba(192,132,252,0.9)]" />
+            <span className="absolute -left-6 h-1 w-1 rounded-full bg-topic-ai/60" />
+            <span className="absolute -right-6 h-1 w-1 rounded-full bg-topic-ai/60" />
+          </div>
+        </div>
+      </div>
+
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <Eyebrow label="learning-galaxy" />
         <h2

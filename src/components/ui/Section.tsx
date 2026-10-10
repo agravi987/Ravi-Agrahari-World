@@ -69,12 +69,11 @@ interface SectionProps {
   cue?: boolean;
 }
 
-/** Maps tone → eyebrow text color + title-sweep var (color pass P7). */
-/** Fluid padding presets — tightened to remove excessive gaps between sections */
+/** Fluid padding presets — medium, balanced spacing between sections */
 const SPACING: Record<NonNullable<SectionProps["spacing"]>, string> = {
-  tight: "pt-6 pb-5 sm:pt-8 sm:pb-7",
-  normal: "pt-10 pb-8 sm:pt-12 sm:pb-10 lg:pt-14 lg:pb-12",
-  roomy: "pt-14 pb-12 sm:pt-16 sm:pb-14 lg:pt-20 lg:pb-16",
+  tight: "py-6 sm:py-8",
+  normal: "py-10 sm:py-14 lg:py-16",
+  roomy: "py-14 sm:py-18 lg:py-20",
 };
 
 /** Maps tone → eyebrow text color + title-sweep var + chromatic heading gradient. */
@@ -185,23 +184,13 @@ export default function Section({
       ref={ref}
       id={id}
       aria-labelledby={`${id}-title`}
-      // Compact-but-consistent vertical rhythm: tighter than before so
-      // more content fits per screen without feeling cramped.
-      // html scroll-padding (5rem) clears the sticky header — an extra
-      // scroll-mt-24 here would stack and overshoot every anchor jump.
       className={clsx(
-        // Fluid vertical rhythm (see SPACING): scales continuously with
-        // the viewport instead of fixed steps that feel too airy on
-        // phones and too cramped on wide screens.
         SPACING[spacing],
         "section-reveal relative overflow-x-clip",
         inView && "is-in-view",
         band && "band-bg",
         className
       )}
-      // Phase 9 color: band sections carry a whisper of their topic hue
-      // (--band-tint) layered under the paper wash in globals.css.
-      // Snap-deck: --snap-trim feeds the .snap-current top rim colour.
       style={
         {
           ...(band
@@ -213,6 +202,25 @@ export default function Section({
         } as CSSProperties
       }
     >
+      {/* Stylish Luminous Multi-Layered Cosmic Separator */}
+      <div className="absolute top-0 inset-x-0 mx-auto max-w-5xl px-4 sm:px-6 pointer-events-none" aria-hidden="true">
+        <div className="relative flex items-center justify-center">
+          {/* Ambient Glow Aura */}
+          <div className="absolute h-4 w-4/5 bg-gradient-to-r from-transparent via-accent/25 to-transparent blur-md" />
+          {/* Outer Base Line */}
+          <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-card-border to-transparent" />
+          {/* Inner Radiant Gradient Core */}
+          <div className="absolute h-[2px] w-3/4 bg-gradient-to-r from-transparent via-accent-cyan via-accent to-transparent opacity-85 shadow-[0_0_12px_rgba(129,140,248,0.7)]" />
+          {/* Center Stylish Cosmic Diamond & Rings */}
+          <div className="absolute flex items-center justify-center">
+            <span className="absolute h-5 w-5 rounded-full bg-accent/20 blur-sm" />
+            <span className="h-2.5 w-2.5 rotate-45 rounded-[2px] border border-cyan-200 bg-gradient-to-tr from-accent to-accent-cyan shadow-[0_0_10px_rgba(34,211,238,0.9)]" />
+            <span className="absolute -left-6 h-1 w-1 rounded-full bg-accent-cyan/60" />
+            <span className="absolute -right-6 h-1 w-1 rounded-full bg-accent-cyan/60" />
+          </div>
+        </div>
+      </div>
+
       {mesh && <GradientMesh />}
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         <StaggerReveal staggerMs={60}>

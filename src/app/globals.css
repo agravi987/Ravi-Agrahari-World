@@ -1156,10 +1156,10 @@ body {
 
 .galaxy-stage {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 16 / 10;
   width: 100%;
   max-width: 960px;
-  height: clamp(380px, 58vh, 680px);
+  max-height: 440px;
   margin-left: auto;
   margin-right: auto;
   touch-action: pan-y;
@@ -1194,10 +1194,10 @@ body {
 /* T2 WebGL stage box — seamless borderless space viewport */
 .galaxy-stage-3d {
   position: relative;
-  aspect-ratio: 16 / 11;
+  aspect-ratio: 16 / 10;
   width: 100%;
   max-width: 960px;
-  height: clamp(380px, 58vh, 680px);
+  max-height: 440px;
   margin-left: auto;
   margin-right: auto;
   touch-action: none; /* drag-to-rotate lives on the canvas */
@@ -1832,26 +1832,31 @@ body {
   display: none;
 }
 
-/* Experience accordion expand (audit #114): the open role's detail
-   grows via grid-template-rows 0fr→1fr — a height animation without
-   measuring anything. .experience-body wraps the detail; the li owns
-   the grid so the row participates in the timeline layout. */
-.experience-item {
+/* Experience accordion expand: the collapse container is a CSS grid
+   animating grid-template-rows 0fr→1fr smoothly when toggled. */
+.experience-collapse {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.3s var(--ease-smooth);
+  transition: grid-template-rows 0.35s var(--ease-smooth);
 }
-.experience-item[data-open="true"] {
+.experience-item[data-open="true"] .experience-collapse,
+.experience-collapse.open {
   grid-template-rows: 1fr;
 }
-/* Keep the collapsible content out of tab order while collapsed. */
-.experience-item > .experience-collapse {
+.experience-collapse > .experience-detail {
   overflow: hidden;
   min-height: 0;
+  transition: opacity 0.3s ease-out;
 }
-.experience-item > .experience-collapse > .experience-detail {
-  animation: skill-swap-in 0.3s ease-out both;
-  animation-delay: 80ms; /* let the row open first */
+.experience-item[data-open="false"] .experience-collapse > .experience-detail,
+.experience-collapse:not(.open) > .experience-detail {
+  opacity: 0;
+  pointer-events: none;
+}
+.experience-item[data-open="true"] .experience-collapse > .experience-detail,
+.experience-collapse.open > .experience-detail {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 /* P12: first-visit controls hint — visible for ~6s, then fades out

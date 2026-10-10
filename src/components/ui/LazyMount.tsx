@@ -52,30 +52,13 @@ export default function LazyMount({
 
   return (
     <div ref={ref} className={className}>
-      {/* Placeholder: always rendered, fades out when real content is ready.
-          min-h ensures the container has height before real content appears. */}
-      {fallback && (
-        <div
-          className="transition-opacity duration-500 ease-out"
-          style={{
-            opacity: visible ? 0 : 1,
-            pointerEvents: visible ? "none" : "auto",
-          }}
-        >
-          {fallback}
-        </div>
+      {visible ? (
+        children
+      ) : fallback ? (
+        fallback
+      ) : (
+        children
       )}
-      {/* Real content: always rendered (takes up space from the start),
-          fades in when the intersection observer fires. */}
-      <div
-        className="transition-opacity duration-500 ease-out"
-        style={{
-          opacity: visible ? 1 : 0,
-          pointerEvents: visible ? "auto" : "none",
-        }}
-      >
-        {children}
-      </div>
     </div>
   );
 }

@@ -270,14 +270,8 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                     : `border-card-border ${DOT_HOVER[i % DOT_HOVER.length]}`
                 } ${isActive ? "dot-pulse avionics-beacon-pulse" : ""}`}
               />
-              <button
-                type="button"
-                onClick={() => setOpenIdx(open ? null : i)}
-                aria-expanded={open}
-                aria-controls={`experience-detail-${i}`}
-                aria-label={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
-                title={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
-                className={`block w-full cursor-pointer rounded-2xl p-4.5 sm:p-5 text-left transition-all duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent bg-gradient-to-br ${
+              <div
+                className={`relative overflow-hidden rounded-2xl transition-all duration-300 bg-gradient-to-br ${
                   ROW_GRADIENTS[i % ROW_GRADIENTS.length]
                 } ${
                   open
@@ -285,170 +279,188 @@ export default function Experience({ experience, surfaceCount, exploreHref, fit,
                     : "opacity-85 backdrop-blur-md hover:opacity-100 hover:shadow-card"
                 }`}
               >
-                <span className="flex items-start gap-3.5">
-                  {/* Company avatar — CMS logo when present, monogram
-                      otherwise (Phase 16 #2/#17). */}
-                  {item.companyLogo && !logoFailed.has(i) ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={item.companyLogo}
-                      alt={item.company}
-                      loading="lazy"
-                      decoding="async"
-                      title={item.company}
-                      onError={() =>
-                        // Broken CMS URL → swap to the monogram tile instead
-                        // of a broken-image glyph (audit #33).
-                        setLogoFailed((prev) => {
-                          if (prev.has(i)) return prev;
-                          const next = new Set(prev);
-                          next.add(i);
-                          return next;
-                        })
-                      }
-                      className="experience-logo h-11 w-11 shrink-0 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm object-contain p-1"
-                    />
-                  ) : (
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
-                        AVATAR_STYLES[i % AVATAR_STYLES.length]
-                      }`}
-                    >
-                      {initials(item.company) || "✦"}
-                    </span>
-                  )}
-                  <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 sm:gap-3">
-                    <span className="min-w-0">
-                      {/* P26: mono index + role + company */}
-                      <span className="flex items-baseline gap-2">
-                        <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-accent-cyan">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <h3 className="font-display text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors drop-shadow-sm">{item.role}</h3>
-                      </span>
-                      <p className="mt-0.5 text-base sm:text-lg font-semibold text-cyan-300">{item.company}</p>
-                    </span>
-                    <span className="flex flex-wrap items-center gap-2">
-                      {/* Active pulse + achievements count (UX pass) */}
-                      {isActive && (
-                        <span
-                          role="status"
-                          className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-3 py-1 font-mono text-xs font-semibold text-success"
-                        >
-                          <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
-                          active
-                        </span>
-                      )}
-                      {item.metrics.length > 0 && (
-                        <span
-                          title={`${item.metrics.length} achievements at ${item.company}`}
-                          className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft sm:inline-flex"
-                        >
-                          {item.metrics.length}
-                          <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                        </span>
-                      )}
-                      {/* Phase 16 (#13): auto-computed duration, when the
-                          period is parseable ("3 mo") */}
-                      {dur && (
-                        <span
-                          title={`Computed from the period — ${item.period}`}
-                          className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
-                        >
-                          {dur}
-                        </span>
-                      )}
-                      {/* P25 chip, P26: now on mobile too (smaller) — hidden
-                          when the period is empty (zero-data rule) */}
-                      {item.period && (
-                        <span className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft">
-                          {item.period}
-                        </span>
-                      )}
-                      <ChevronDown
-                        aria-hidden="true"
-                        className={`h-4 w-4 shrink-0 text-ink-faint transition-transform duration-300 ${
-                          open ? "rotate-180" : ""
-                        }`}
+                <button
+                  type="button"
+                  onClick={() => setOpenIdx((current) => (current === i ? null : i))}
+                  aria-expanded={open}
+                  aria-controls={`experience-detail-${i}`}
+                  aria-label={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
+                  title={`${open ? "Collapse" : "Expand"} ${item.role} at ${item.company}`}
+                  className="block w-full cursor-pointer p-4.5 sm:p-5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                >
+                  <span className="flex items-start gap-3.5">
+                    {/* Company avatar — CMS logo when present, monogram
+                        otherwise (Phase 16 #2/#17). */}
+                    {item.companyLogo && !logoFailed.has(i) ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.companyLogo}
+                        alt={item.company}
+                        loading="lazy"
+                        decoding="async"
+                        title={item.company}
+                        onError={() =>
+                          // Broken CMS URL → swap to the monogram tile instead
+                          // of a broken-image glyph (audit #33).
+                          setLogoFailed((prev) => {
+                            if (prev.has(i)) return prev;
+                            const next = new Set(prev);
+                            next.add(i);
+                            return next;
+                          })
+                        }
+                        className="experience-logo h-11 w-11 shrink-0 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm object-contain p-1"
                       />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl font-display text-base font-bold ${
+                          AVATAR_STYLES[i % AVATAR_STYLES.length]
+                        }`}
+                      >
+                        {initials(item.company) || "✦"}
+                      </span>
+                    )}
+                    <span className="flex min-w-0 flex-1 flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 sm:gap-3">
+                      <span className="min-w-0">
+                        {/* P26: mono index + role + company */}
+                        <span className="flex items-baseline gap-2">
+                          <span aria-hidden="true" className="font-mono text-xs sm:text-sm font-semibold text-accent-cyan">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <h3 className="font-display text-xl sm:text-2xl font-bold text-white group-hover:text-cyan-300 transition-colors drop-shadow-sm">{item.role}</h3>
+                        </span>
+                        <p className="mt-0.5 text-base sm:text-lg font-semibold text-cyan-300">{item.company}</p>
+                      </span>
+                      <span className="flex flex-wrap items-center gap-2">
+                        {/* Active pulse + achievements count (UX pass) */}
+                        {isActive && (
+                          <span
+                            role="status"
+                            className="inline-flex items-center gap-1.5 rounded-full border border-success/30 bg-success-soft px-3 py-1 font-mono text-xs font-semibold text-success"
+                          >
+                            <span aria-hidden="true" className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                            active
+                          </span>
+                        )}
+                        {item.metrics.length > 0 && (
+                          <span
+                            title={`${item.metrics.length} achievements at ${item.company}`}
+                            className="hidden items-center gap-1 rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft sm:inline-flex"
+                          >
+                            {item.metrics.length}
+                            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                          </span>
+                        )}
+                        {/* Phase 16 (#13): auto-computed duration, when the
+                            period is parseable ("3 mo") */}
+                        {dur && (
+                          <span
+                            title={`Computed from the period — ${item.period}`}
+                            className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
+                          >
+                            {dur}
+                          </span>
+                        )}
+                        {/* P25 chip, P26: now on mobile too (smaller) — hidden
+                            when the period is empty (zero-data rule) */}
+                        {item.period && (
+                          <span className="inline-block rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft">
+                            {item.period}
+                          </span>
+                        )}
+                        <ChevronDown
+                          aria-hidden="true"
+                          className={`h-4 w-4 shrink-0 text-ink-faint transition-transform duration-300 ${
+                            open ? "rotate-180" : ""
+                          }`}
+                        />
+                      </span>
                     </span>
                   </span>
-                </span>
-              </button>
+                </button>
 
-              {/* Detail stays MOUNTED (unlike the old conditional render)
-                  so the height can animate; inert keeps collapsed content
-                  out of the tab order and hidden from AT. */}
-              <div className="experience-collapse">
+                {/* Detail stays MOUNTED for smooth grid-template-rows expansion */}
                 <div
-                  id={`experience-detail-${i}`}
-                  className="experience-detail project-body px-4 pb-4"
-                  {...(open ? {} : ({ inert: true } as object))}
+                  className={`experience-collapse ${open ? "open" : ""}`}
+                  aria-hidden={!open}
                 >
-                  {item.description && (
-                    <p className="text-base leading-relaxed text-ink-soft">{item.description}</p>
-                  )}
-                  {item.metrics.length > 0 && (
-                    /* Phase 16 (#4): metrics stagger in when the row opens */
-                    <div className="mt-4 pt-3.5 border-t border-card-border/60">
-                      <div className="flex items-center gap-2 mb-2.5">
-                        <Activity className="h-4 w-4 text-accent" aria-hidden="true" />
-                        <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint">
-                          Key Impact &amp; Accomplishments
-                        </span>
-                      </div>
-                      <ul className="metric-stagger space-y-2.5">
-                        {item.metrics.map((m, mi) => (
-                          <li
-                            key={m}
-                            className="flex items-start gap-3 rounded-xl border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3.5 py-2.5 text-sm sm:text-base text-ink shadow-xs transition-colors hover:border-cyan-400/50 hover:bg-white/[0.14]"
-                            style={{ animationDelay: `${mi * 70}ms` }}
-                          >
-                            <span
-                              aria-hidden="true"
-                              className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-soft text-success ring-1 ring-success/20"
+                  <div
+                    id={`experience-detail-${i}`}
+                    className="experience-detail project-body px-5 pb-5 pt-1 border-t border-white/10"
+                    {...(open ? {} : ({ inert: "" } as object))}
+                  >
+                    {item.description && (
+                      <p className="text-base leading-relaxed text-ink-soft">{item.description}</p>
+                    )}
+                    {item.metrics.length > 0 && (
+                      /* Phase 16 (#4): metrics stagger in when the row opens */
+                      <div className="mt-4 pt-3.5 border-t border-card-border/60">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <Activity className="h-4 w-4 text-accent" aria-hidden="true" />
+                          <span className="font-mono text-xs font-semibold uppercase tracking-wider text-ink-faint">
+                            Key Impact &amp; Accomplishments
+                          </span>
+                        </div>
+                        <ul className="metric-stagger space-y-2.5">
+                          {item.metrics.map((m, mi) => (
+                            <li
+                              key={m}
+                              className="flex items-start gap-3 rounded-xl border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3.5 py-2.5 text-sm sm:text-base text-ink shadow-xs transition-colors hover:border-cyan-400/50 hover:bg-white/[0.14]"
+                              style={{ animationDelay: `${mi * 70}ms` }}
                             >
-                              <Check className="h-3 w-3" />
-                            </span>
-                            <span className="leading-snug">{m}</span>
-                          </li>
+                              <span
+                                aria-hidden="true"
+                                className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-success-soft text-success ring-1 ring-success/20"
+                              >
+                                <Check className="h-3 w-3" />
+                              </span>
+                              <span className="leading-snug">{m}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {/* Phase 16 (#19): tools used — chips, only when present */}
+                    {item.tools && item.tools.length > 0 && (
+                      <div className="mt-3.5 flex flex-wrap gap-2">
+                        {item.tools.map((t) => (
+                          <span
+                            key={t}
+                            className="rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
+                          >
+                            {t}
+                          </span>
                         ))}
-                      </ul>
-                    </div>
-                  )}
-                  {/* Phase 16 (#19): tools used — chips, only when present */}
-                  {item.tools && item.tools.length > 0 && (
-                    <div className="mt-3.5 flex flex-wrap gap-2">
-                      {item.tools.map((t) => (
-                        <span
-                          key={t}
-                          className="rounded-full border border-white/20 bg-white/[0.08] backdrop-blur-sm px-3 py-1 font-mono text-xs font-medium text-ink-soft"
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                  {/* Phase 16 (#15/#20): copy the summary / deep-link */}
-                  <div className="mt-4 flex flex-wrap items-center gap-4">
-                    <button
-                      type="button"
-                      onClick={() => void copySummary(item)}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
-                    >
-                      <Copy className="h-3 w-3" aria-hidden="true" />
-                      copy summary
-                    </button>
-                    {item.slug && (
+                      </div>
+                    )}
+                    {/* Phase 16 (#15/#20): copy the summary / deep-link */}
+                    <div className="mt-4 flex flex-wrap items-center gap-4">
                       <button
                         type="button"
-                        onClick={() => void copyLink(item.slug!)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void copySummary(item);
+                        }}
                         className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
-                      >                      <Link2 className="h-3 w-3" aria-hidden="true" />
-                      copy link
-                    </button>
-                    )}
+                      >
+                        <Copy className="h-3 w-3" aria-hidden="true" />
+                        copy summary
+                      </button>
+                      {item.slug && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void copyLink(item.slug!);
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-medium text-ink-faint transition-colors hover:text-accent"
+                        >
+                          <Link2 className="h-3 w-3" aria-hidden="true" />
+                          copy link
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

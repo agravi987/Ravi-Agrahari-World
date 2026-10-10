@@ -17,6 +17,7 @@ import ScrollProgressBar from "@/components/ui/ScrollProgressBar";
 import SectionRail from "@/components/ui/SectionRail";
 import PageReveal from "@/components/ui/PageReveal";
 import Shortcuts from "@/components/ui/Shortcuts";
+import CosmicDock from "@/components/ui/CosmicDock";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Toaster from "@/components/ui/Toast";
@@ -123,6 +124,9 @@ export default async function RootLayout({
 
         {/* Page-load reveal curtain — fires once per session */}
         <PageReveal />
+
+        {/* Minimalist Cosmic & Galaxy Planetary Dock (Bottom-Floating) */}
+        <CosmicDock sectionsEnabled={config.sectionsEnabled} />
 
         <main id="main" className="flex-1">
           {children}

@@ -471,7 +471,7 @@ export default function Hero({
     <section
       id="hero"
       aria-labelledby="hero-title"
-      className="relative flex items-center overflow-hidden px-4 sm:px-6 py-12 sm:py-16 lg:py-20"
+      className="relative flex items-center overflow-hidden px-4 sm:px-6 py-10 sm:py-14 lg:py-16"
       style={{ willChange: "transform", transformOrigin: "top center" }}
     >
       {/* P32 cosmic scene — the full decorative cosmos (nebula wash,
