@@ -74,13 +74,6 @@ export default function System2D({
       data-labels={labels ? undefined : "false"}
       style={{ ...sunStyle(96), "--galaxy-zoom": zoom } as CSSProperties}
     >
-      {/* Ambient backdrop at STAGE level (not world): stars/nebula stay
-          fixed in screen space while the system zooms. */}
-      <GalaxyBackground
-        showStars={stars}
-        density={settings.starDensity}
-        nebula={settings.nebulaVisible}
-      />
       <div
         ref={worldRef}
         className="galaxy-world"

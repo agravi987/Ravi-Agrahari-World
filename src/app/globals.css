@@ -1167,14 +1167,10 @@ body {
   position: relative;
   aspect-ratio: 1 / 1;
   touch-action: pan-y;
-  /* The spinning orbit-ring is a square div whose rotated AABB pokes
-     past the stage box — clip it so mobile never gets horizontal
-     page overflow (everything visible lives inside the circle). */
-  overflow: hidden;
   /* Container for the scaling world below (container-query units). */
   container-type: inline-size;
-  /* Borderless celestial horizon: zero box containers, transparent backdrop */
-  border-radius: 9999px;
+  /* Pure floating celestial field: no box, no circle frame, no background */
+  border-radius: 0;
   border: none;
   background: transparent;
 }
@@ -1202,8 +1198,7 @@ body {
   position: relative;
   aspect-ratio: 1 / 1;
   touch-action: none; /* drag-to-rotate lives on the canvas */
-  overflow: hidden;
-  border-radius: 9999px;
+  border-radius: 0;
   border: none;
   background: transparent;
 }

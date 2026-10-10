@@ -24,11 +24,6 @@ export default function GalaxyStage2D({ galaxy }: { galaxy: GalaxyData }) {
       data-static={staticLayout || undefined}
       aria-label="Learning galaxy preview"
     >
-      <GalaxyBackground
-        showStars={settings.showStars}
-        density={settings.starDensity}
-        nebula={settings.nebulaVisible}
-      />
       <div className="galaxy-world" style={worldStyle(world)}>
         <Sun profile={profile} size={72} />
         {/* Comets revolve the sun on fixed elliptical orbits —
