@@ -60,118 +60,106 @@ export default async function DetailedGalaxyPage() {
   const log = recentMoons(galaxy);
 
   return (
-    <div className="relative min-h-screen bg-[#07080f] text-slate-100 overflow-x-hidden">
-      {/* Ambient Cosmic Observatory Starlight Background */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.25),rgba(255,255,255,0))]"
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-40 bg-[radial-gradient(circle_at_bottom_left,rgba(6,182,212,0.15),transparent_40%)]"
-        aria-hidden="true"
-      />
-
-      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Top Observatory HUD Strip */}
-        <header className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end md:justify-between">
-          <div>
-            <Breadcrumbs
-              items={[
-                { label: "Portfolio", href: "/" },
-                { label: "Cosmic Observatory" },
-              ]}
-            />
-            <div className="mt-2">
-              <Eyebrow label="deep-space-telemetry" cursor />
-            </div>
-            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
-              Learning Galaxy Observatory
-            </h1>
-            <p className="mt-2 max-w-2xl text-sm text-slate-400">
-              Interactive Solar System: planets represent core skill domains, moons represent live
-              repos, labs, and projects. Click or hover any celestial body to inspect telemetry.
-            </p>
+    <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Top Observatory HUD Strip */}
+      <header className="mb-6 flex flex-col gap-4 border-b border-card-border pb-6 md:flex-row md:items-end md:justify-between">
+        <div>
+          <Breadcrumbs
+            items={[
+              { label: "Portfolio", href: "/" },
+              { label: "Learning Galaxy" },
+            ]}
+          />
+          <div className="mt-2">
+            <Eyebrow label="learning-galaxy" cursor />
           </div>
-
-          {/* Quick HUD Metrics */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-indigo-300">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
-              {galaxy.planets.length} Planetary Systems
-            </span>
-            {(() => {
-              const moons = galaxy.planets.reduce((n, p) => n + p.moons.length, 0);
-              return moons > 0 ? (
-                <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-cyan-300">
-                  <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-400" />
-                  {moons} Orbiting Moons
-                </span>
-              ) : null;
-            })()}
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-emerald-300">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
-              Locked Zero-Overlap
-            </span>
-          </div>
-        </header>
-
-        {/* The Solar System Canvas — Pure Borderless Cosmic Viewport */}
-        {galaxy.planets.length > 0 ? (
-          <div className="relative w-full py-4 sm:py-8">
-            <GalaxySystem galaxy={galaxy} />
-          </div>
-        ) : (
-          <p className="mt-10 py-6 text-center text-sm text-slate-500">
-            The galaxy is currently forming — please check back soon.
+          <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight text-ink sm:text-5xl">
+            Learning Galaxy
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-ink-soft">
+            Interactive Solar System: planets represent core skill domains, moons represent live
+            repos, labs, and projects. Click or hover any celestial body to inspect telemetry.
           </p>
-        )}
+        </div>
 
-        {/* Mission Log (Recently Shipped Learning Moons) — Sleek Glass Telemetry, Zero Chunky Boxes */}
-        {log.length > 0 && (
-          <section
-            aria-labelledby="mission-log-heading"
-            className="mt-16 border-t border-white/10 pt-8"
-          >
-            <div className="flex flex-wrap items-baseline justify-between gap-2 pb-4">
-              <h2 id="mission-log-heading" className="font-display text-base font-semibold uppercase tracking-wider text-white/90">
-                Mission Log · Telemetry Feed
-              </h2>
-              <span className="font-mono text-xs text-slate-500">continuous telemetry</span>
-            </div>
-            <ol className="mt-2 divide-y divide-white/5">
-              {log.map(({ moon, planetName }) => (
-                <li
-                  key={moon.slug}
-                  className="flex items-center gap-3 py-3.5 transition-colors hover:bg-white/[0.02] px-2 rounded-lg"
+        {/* Quick HUD Metrics */}
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-full border border-topic-mars/40 bg-topic-mars/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-mars-deep">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-mars animate-pulse" />
+            {galaxy.planets.length} Planetary Systems
+          </span>
+          {(() => {
+            const moons = galaxy.planets.reduce((n, p) => n + p.moons.length, 0);
+            return moons > 0 ? (
+              <span className="inline-flex items-center gap-2 rounded-full border border-topic-ice/40 bg-topic-ice/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-ice-deep">
+                <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-ice" />
+                {moons} Orbiting Moons
+              </span>
+            ) : null;
+          })()}
+          <span className="inline-flex items-center gap-2 rounded-full border border-topic-ai/40 bg-topic-ai/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-ai-deep">
+            <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-ai" />
+            Zero-Overlap Standard
+          </span>
+        </div>
+      </header>
+
+      {/* The Solar System Canvas — Pure Borderless Celestial Stage */}
+      {galaxy.planets.length > 0 ? (
+        <div className="relative w-full py-4 sm:py-8">
+          <GalaxySystem galaxy={galaxy} />
+        </div>
+      ) : (
+        <p className="mt-10 py-6 text-center text-sm text-ink-faint">
+          The galaxy is currently forming — please check back soon.
+        </p>
+      )}
+
+      {/* Mission Log (Recently Shipped Learning Moons) */}
+      {log.length > 0 && (
+        <section
+          aria-labelledby="mission-log-heading"
+          className="mt-16 border-t border-card-border pt-8"
+        >
+          <div className="flex flex-wrap items-baseline justify-between gap-2 pb-4">
+            <h2 id="mission-log-heading" className="font-display text-base font-semibold uppercase tracking-wider text-ink">
+              Mission Log · Telemetry Feed
+            </h2>
+            <span className="font-mono text-xs text-ink-faint">continuous telemetry</span>
+          </div>
+          <ol className="mt-2 divide-y divide-card-border">
+            {log.map(({ moon, planetName }) => (
+              <li
+                key={moon.slug}
+                className="flex items-center gap-3 py-3.5 transition-colors hover:bg-paper-deep/60 px-2 rounded-lg"
+              >
+                <span
+                  aria-hidden="true"
+                  className="h-2 w-2 shrink-0 rounded-full"
+                  style={{ background: moonTypeColor(moon.type) }}
+                />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
+                  {moon.icon && (
+                    <span aria-hidden="true" className="mr-2">
+                      {moon.icon}
+                    </span>
+                  )}
+                  {moon.name}
+                </span>
+                <span className="hidden shrink-0 font-mono text-xs text-ink-soft sm:inline">
+                  {planetName} · {moon.type}
+                </span>
+                <time
+                  dateTime={moon.lastUpdated}
+                  className="shrink-0 font-mono text-xs text-ink-faint"
                 >
-                  <span
-                    aria-hidden="true"
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ background: moonTypeColor(moon.type) }}
-                  />
-                  <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-200">
-                    {moon.icon && (
-                      <span aria-hidden="true" className="mr-2">
-                        {moon.icon}
-                      </span>
-                    )}
-                    {moon.name}
-                  </span>
-                  <span className="hidden shrink-0 font-mono text-xs text-slate-400 sm:inline">
-                    {planetName} · {moon.type}
-                  </span>
-                  <time
-                    dateTime={moon.lastUpdated}
-                    className="shrink-0 font-mono text-xs text-slate-500"
-                  >
-                    {timeAgo(moon.lastUpdated)}
-                  </time>
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
-      </div>
+                  {timeAgo(moon.lastUpdated)}
+                </time>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
     </div>
   );
 }

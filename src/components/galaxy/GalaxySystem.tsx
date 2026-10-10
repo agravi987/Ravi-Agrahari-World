@@ -342,7 +342,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
   return (
     <div className="relative w-full">
       {/* ---------- Floating Seamless Space HUD Controls (Zero box cards) ---------- */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-white/5">
+      <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-card-border">
         <FilterChips moonTypes={settings.moonTypes} filter={filter} onChange={setFilter} />
         <div className="flex flex-wrap items-center gap-2">
           {/* Index toggle — Sleek minimalist glass button */}
@@ -354,8 +354,8 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
             aria-controls="galaxy-index-panel"
             className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all ${
               indexOpen
-                ? "border-accent bg-accent/20 text-accent"
-                : "border-white/10 bg-white/5 text-slate-300 hover:border-white/20 hover:text-white"
+                ? "border-accent bg-accent/15 text-accent"
+                : "border-card-border bg-card text-ink-soft hover:border-accent/40 hover:text-ink"
             }`}
           >
             {indexOpen ? "✕ Close Drawer" : "🪐 Planet Directory"}
@@ -365,7 +365,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
               type="button"
               data-compact-touch
               onClick={() => setMode("2d")}
-              className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors hover:text-white hover:border-white/20"
+              className="rounded-full border border-card-border bg-card px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:text-ink hover:border-accent/40"
             >
               ⌾ 3D View · Switch 2D
             </button>
@@ -373,7 +373,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
           {/* Per-session view toggles */}
           {mode === "2d" && (
             <div
-              className="flex items-center gap-0.5 rounded-full border border-white/10 bg-white/5 p-0.5"
+              className="flex items-center gap-0.5 rounded-full border border-card-border bg-card p-0.5"
               role="group"
               aria-label="View toggles"
             >
@@ -394,8 +394,8 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                   aria-pressed={on}
                   className={`rounded-full px-2.5 py-1 font-mono text-[10px] font-medium transition-colors ${
                     on
-                      ? "bg-accent/30 text-accent"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-accent-soft text-accent"
+                      : "text-ink-faint hover:text-ink"
                   }`}
                 >
                   {key}
@@ -512,7 +512,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
 
         {/* ---------- Sliding Planet Directory Drawer (Zero clunky boxes) ---------- */}
         {indexOpen && (
-          <div className="w-full lg:w-80 shrink-0 rounded-2xl border border-white/10 bg-slate-900/80 p-5 shadow-2xl backdrop-blur-2xl">
+          <div className="w-full lg:w-80 shrink-0 rounded-2xl border border-card-border bg-card/90 p-5 shadow-card backdrop-blur-xl">
             <IndexPanel
               id="galaxy-index-panel"
               planets={planets}
