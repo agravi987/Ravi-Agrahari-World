@@ -277,14 +277,32 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
       });
       return () => cancelAnimationFrame(raf);
     }
-    const el = triggerRefs.current.get(activeId);
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    let x = r.left + r.width / 2 - CARD_W / 2;
-    let y = r.top - CARD_H - 14;
-    x = Math.min(Math.max(8, x), window.innerWidth - CARD_W - 8);
-    if (y < 8) y = r.bottom + 14;
-    setCardPos({ x, y });
+
+    if (!isMobile) {
+      const place2D = () => {
+        const el = triggerRefs.current.get(activeId);
+        const cardEl = cardRef.current;
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        let x = r.left + r.width / 2 - CARD_W / 2;
+        let y = r.top - CARD_H - 14;
+        x = Math.min(Math.max(8, x), window.innerWidth - CARD_W - 8);
+        if (y < 8) y = r.bottom + 14;
+        if (cardEl) {
+          cardEl.style.left = `${x}px`;
+          cardEl.style.top = `${y}px`;
+        } else {
+          setCardPos({ x, y });
+        }
+      };
+
+      place2D();
+      let raf2 = requestAnimationFrame(function tick2() {
+        place2D();
+        raf2 = requestAnimationFrame(tick2);
+      });
+      return () => cancelAnimationFrame(raf2);
+    }
   }, [activeId, mode, isMobile]);
 
   const showCard = Boolean(activePlanet || activeMoon);
@@ -463,6 +481,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
                 galaxy={galaxy}
                 filter={filter}
                 activeId={activeId}
+                triggerHandlers={triggerHandlers}
                 registerProjector={registerProjector}
                 registerFocus={registerFocus}
                 onRigReady={registerRig}
