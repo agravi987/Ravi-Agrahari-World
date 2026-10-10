@@ -89,7 +89,7 @@ export default function Galaxy3D({
   const stageCls = useMemo(
     () =>
       `galaxy-stage-3d relative mx-auto aspect-square w-full ${
-        stageClassName ?? "max-w-[720px]"
+        stageClassName ?? "max-w-[920px]"
       }`,
     [stageClassName]
   );

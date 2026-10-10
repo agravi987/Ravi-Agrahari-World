@@ -1213,6 +1213,63 @@ export default function CollectionForm({
         ))}
       </div>
 
+      {/* Live Planet Visual Preview Card (zero guess-work: what you see is what appears in the galaxy) */}
+      {collection === "galaxyPlanet" && (
+        <div className="rounded-card border border-card-border bg-card shadow-card p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-card-border pb-3">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              <p className="font-mono text-xs font-medium text-ink">
+                Live Planet Preview · Visual Simulation
+              </p>
+            </div>
+            <span className="font-mono text-[10px] text-ink-faint">
+              renders exactly as shown in 2D & 3D
+            </span>
+          </div>
+          <div className="mt-6 flex flex-col sm:flex-row items-center gap-6 justify-center">
+            {/* Visual Planet Sphere */}
+            <div className="relative flex items-center justify-center">
+              <div
+                className="relative grid place-items-center rounded-full text-white shadow-lg transition-all duration-300"
+                style={{
+                  width: `${Math.max(44, Number(form.size) || 56)}px`,
+                  height: `${Math.max(44, Number(form.size) || 56)}px`,
+                  backgroundColor: String(form.color || "#4f46e5"),
+                  boxShadow: `0 0 24px ${String(form.color || "#4f46e5")}55`,
+                }}
+              >
+                <span className="text-xl select-none">{String(form.icon || "🪐")}</span>
+              </div>
+            </div>
+
+            {/* Spec readout */}
+            <div className="space-y-1 text-center sm:text-left">
+              <h4 className="font-display text-base font-semibold text-ink">
+                {String(form.name || "Untitled Planet")}
+              </h4>
+              <p className="font-mono text-xs text-ink-soft">
+                Slug: <span className="text-accent">#{String(form.slug || "new-planet")}</span>
+              </p>
+              <p className="text-xs text-ink-faint max-w-sm">
+                {String(form.description || "No description provided yet.")}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2 justify-center sm:justify-start">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-paper-deep px-2.5 py-0.5 font-mono text-[10px] text-ink-soft">
+                  Size: {String(form.size || 56)}px
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-card-border bg-paper-deep px-2.5 py-0.5 font-mono text-[10px] text-ink-soft">
+                  Color: {String(form.color || "#4f46e5")}
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-0.5 font-mono text-[10px] text-emerald-600">
+                  Auto Zero-Overlap Physics ✓
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Phase 12: full post-shell live preview — title, date, tags and
           rendered markdown update as you type, mirroring /blog/[slug]. */}
       {collection === "post" && (

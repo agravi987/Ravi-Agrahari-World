@@ -60,113 +60,118 @@ export default async function DetailedGalaxyPage() {
   const log = recentMoons(galaxy);
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12">
-      {/* Breadcrumbs — hierarchy navigation for deep pages */}
-      <Breadcrumbs
-        items={[
-          { label: "Portfolio", href: "/" },
-          { label: "Learning Galaxy" },
-        ]}
+    <div className="relative min-h-screen bg-[#07080f] text-slate-100 overflow-x-hidden">
+      {/* Ambient Cosmic Observatory Starlight Background */}
+      <div
+        className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(99,102,241,0.25),rgba(255,255,255,0))]"
+        aria-hidden="true"
       />
-      <Eyebrow label="learning-galaxy" cursor />
-      <h1 className="mt-3 font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-        Learning Galaxy
-      </h1>
-      <p className="mt-3 max-w-2xl text-ink-soft">
-        Every planet is a skill I&apos;m exploring. Every moon is a project, lab or note that
-        proves it. Hover a planet to explore — the cards stay open so you can actually click
-        through to the repos. Or use the index to jump straight to a skill.
-      </p>
+      <div
+        className="pointer-events-none absolute inset-0 z-0 opacity-40 bg-[radial-gradient(circle_at_bottom_left,rgba(6,182,212,0.15),transparent_40%)]"
+        aria-hidden="true"
+      />
 
-      {/* P25: at-a-glance scale — data-driven counts */}
-      <p className="mt-4 font-mono text-xs text-ink-faint">
-        {galaxy.planets.length} planet{galaxy.planets.length === 1 ? "" : "s"} ·{" "}
-        {galaxy.planets.reduce((n, p) => n + p.moons.length, 0)} moon
-        {galaxy.planets.reduce((n, p) => n + p.moons.length, 0) === 1 ? "" : "s"} — deep-link to a
-        planet with #planet-&lt;slug&gt; in the URL
-      </p>
-
-      {/* Colorful mini-stats readout — topic-hued chips. Zero-data: the
-          moons chip hides when there are none (plan §5). */}
-      <div className="mt-6 flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-topic-mars/40 bg-topic-mars/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-mars-deep">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-mars" />
-          {galaxy.planets.length} planet{galaxy.planets.length === 1 ? "" : "s"}
-        </span>
-        {(() => {
-          const moons = galaxy.planets.reduce((n, p) => n + p.moons.length, 0);
-          return moons > 0 ? (
-            <span className="inline-flex items-center gap-2 rounded-full border border-topic-ice/40 bg-topic-ice/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-ice-deep">
-              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-ice" />
-              {moons} moon{moons === 1 ? "" : "s"}
-            </span>
-          ) : null;
-        })()}
-        <span className="inline-flex items-center gap-2 rounded-full border border-topic-ai/40 bg-topic-ai/10 px-3.5 py-1.5 font-mono text-xs font-medium text-topic-ai-deep">
-          <span aria-hidden="true" className="h-2 w-2 rounded-full bg-topic-ai" />
-          {galaxy.settings.moonTypes.length} moon type
-          {galaxy.settings.moonTypes.length === 1 ? "" : "s"}
-        </span>
-      </div>
-
-      {galaxy.planets.length > 0 ? (
-        <div className="mt-10">
-          <GalaxySystem galaxy={galaxy} />
-        </div>
-      ) : (
-        <p className="mt-10 rounded-card border border-card-border bg-card p-6 text-sm text-ink-soft">
-          The galaxy is still forming — check back soon.
-        </p>
-      )}
-
-      {/* Phase 15 (#10): mission log — the newest artifacts across all
-          planets, newest first. Only when timestamps exist (§5). */}
-      {log.length > 0 && (
-        <section
-          aria-labelledby="mission-log-heading"
-          className="mt-12 rounded-card border border-card-border bg-card p-6 shadow-card"
-        >
-          <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <h2 id="mission-log-heading" className="font-display text-lg font-semibold text-ink">
-              Mission log
-            </h2>
-            <span className="font-mono text-[10px] text-ink-faint">recently shipped</span>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Top Observatory HUD Strip */}
+        <header className="mb-6 flex flex-col gap-4 border-b border-white/10 pb-6 md:flex-row md:items-end md:justify-between">
+          <div>
+            <Breadcrumbs
+              items={[
+                { label: "Portfolio", href: "/" },
+                { label: "Cosmic Observatory" },
+              ]}
+            />
+            <div className="mt-2">
+              <Eyebrow label="deep-space-telemetry" cursor />
+            </div>
+            <h1 className="mt-2 font-display text-3xl font-bold tracking-tight text-white sm:text-5xl">
+              Learning Galaxy Observatory
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm text-slate-400">
+              Interactive Solar System: planets represent core skill domains, moons represent live
+              repos, labs, and projects. Click or hover any celestial body to inspect telemetry.
+            </p>
           </div>
-          <ol className="mt-4 space-y-0">
-            {log.map(({ moon, planetName }, i) => (
-              <li
-                key={moon.slug}
-                className={`flex items-center gap-3 py-2.5 ${
-                  i > 0 ? "border-t border-card-border" : ""
-                }`}
-              >
-                <span
-                  aria-hidden="true"
-                  className="h-2 w-2 shrink-0 rounded-full"
-                  style={{ background: moonTypeColor(moon.type) }}
-                />
-                <span className="min-w-0 flex-1 truncate text-sm text-ink">
-                  {moon.icon && (
-                    <span aria-hidden="true" className="mr-1">
-                      {moon.icon}{" "}
-                    </span>
-                  )}
-                  {moon.name}
+
+          {/* Quick HUD Metrics */}
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-indigo-300">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+              {galaxy.planets.length} Planetary Systems
+            </span>
+            {(() => {
+              const moons = galaxy.planets.reduce((n, p) => n + p.moons.length, 0);
+              return moons > 0 ? (
+                <span className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-cyan-300">
+                  <span aria-hidden="true" className="h-2 w-2 rounded-full bg-cyan-400" />
+                  {moons} Orbiting Moons
                 </span>
-                <span className="hidden shrink-0 font-mono text-[10px] text-ink-faint sm:inline">
-                  {planetName} · {moon.type}
-                </span>
-                <time
-                  dateTime={moon.lastUpdated}
-                  className="shrink-0 font-mono text-[10px] text-ink-faint"
+              ) : null;
+            })()}
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 font-mono text-xs font-medium text-emerald-300">
+              <span aria-hidden="true" className="h-2 w-2 rounded-full bg-emerald-400" />
+              Locked Zero-Overlap
+            </span>
+          </div>
+        </header>
+
+        {/* The Solar System Canvas Component */}
+        {galaxy.planets.length > 0 ? (
+          <div className="relative rounded-3xl border border-white/10 bg-slate-950/60 p-4 shadow-2xl backdrop-blur-xl sm:p-8">
+            <GalaxySystem galaxy={galaxy} />
+          </div>
+        ) : (
+          <p className="mt-10 rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-slate-400">
+            The galaxy is currently forming — please check back soon.
+          </p>
+        )}
+
+        {/* Mission Log (Recently Shipped Learning Moons) */}
+        {log.length > 0 && (
+          <section
+            aria-labelledby="mission-log-heading"
+            className="mt-12 rounded-3xl border border-white/10 bg-slate-950/40 p-6 shadow-xl backdrop-blur-md"
+          >
+            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-white/10 pb-4">
+              <h2 id="mission-log-heading" className="font-display text-lg font-semibold text-white">
+                Mission Log · Recent Artifacts
+              </h2>
+              <span className="font-mono text-xs text-slate-500">continuous telemetry</span>
+            </div>
+            <ol className="mt-4 divide-y divide-white/5">
+              {log.map(({ moon, planetName }) => (
+                <li
+                  key={moon.slug}
+                  className="flex items-center gap-3 py-3"
                 >
-                  {timeAgo(moon.lastUpdated)}
-                </time>
-              </li>
-            ))}
-          </ol>
-        </section>
-      )}
+                  <span
+                    aria-hidden="true"
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ background: moonTypeColor(moon.type) }}
+                  />
+                  <span className="min-w-0 flex-1 truncate text-sm text-slate-200">
+                    {moon.icon && (
+                      <span aria-hidden="true" className="mr-1.5">
+                        {moon.icon}
+                      </span>
+                    )}
+                    {moon.name}
+                  </span>
+                  <span className="hidden shrink-0 font-mono text-xs text-slate-400 sm:inline">
+                    {planetName} · {moon.type}
+                  </span>
+                  <time
+                    dateTime={moon.lastUpdated}
+                    className="shrink-0 font-mono text-xs text-slate-500"
+                  >
+                    {timeAgo(moon.lastUpdated)}
+                  </time>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+      </div>
     </div>
   );
 }

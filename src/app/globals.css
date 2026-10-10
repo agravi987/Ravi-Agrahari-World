@@ -1348,8 +1348,35 @@ html[data-theme="rose"] {
   transform: scale(calc((100cqw / (var(--galaxy-world) * 1px)) * var(--galaxy-zoom, 1)));
 }
 
-/* T2 WebGL stage box — square, canvas fills it, the 3D sun body sits at
-   the origin (the camera always looks at the origin while zoomed out). */
+/* ============================================================
+   Learning Galaxy: Immersive Full-Screen Cosmic Observatory
+   ============================================================ */
+.galaxy-observatory-wrapper {
+  position: relative;
+  width: 100vw;
+  margin-left: calc(-50vw + 50%);
+  margin-right: calc(-50vw + 50%);
+  background: radial-gradient(circle at 50% 30%, #0d0e1b 0%, #06070c 60%, #020205 100%);
+  color: #f1f5f9;
+  overflow: hidden;
+}
+
+.galaxy-observatory-hud {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: rgba(10, 12, 24, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.galaxy-stage-observatory {
+  width: 100%;
+  max-width: 980px;
+  aspect-ratio: 1 / 1;
+  margin: 0 auto;
+  border-radius: 2rem;
+  background: radial-gradient(circle at 50% 50%, rgba(30, 27, 75, 0.25) 0%, transparent 70%);
+}
+
 .galaxy-stage-3d {
   position: relative;
   aspect-ratio: 1 / 1;

@@ -8,7 +8,7 @@
 import * as THREE from "three";
 
 const EMOJI_FONT =
-  '"Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+  '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Segoe UI Symbol","Twemoji Mozilla",sans-serif';
 
 export function planetTexture(color: string, icon: string, size = 256): THREE.CanvasTexture {
   const c = document.createElement("canvas");
@@ -35,12 +35,19 @@ export function planetTexture(color: string, icon: string, size = 256): THREE.Ca
   ctx.fillStyle = g;
   ctx.fill();
 
-  // icon (emoji) centered on the face
-  if (icon) {
-    ctx.font = `${Math.round(size * 0.44)}px ${EMOJI_FONT}`;
+  // icon (emoji or short symbol) centered on the face
+  const rawIcon = (icon || "").trim();
+  if (rawIcon) {
+    // If it's a long string (e.g. lucide key like "Cloud"), take first 2 chars or abbreviate
+    const isEmoji = /\p{Emoji}/u.test(rawIcon);
+    const displayText = isEmoji ? rawIcon : rawIcon.length <= 3 ? rawIcon : rawIcon.slice(0, 2).toUpperCase();
+    const fontSize = isEmoji ? Math.round(size * 0.46) : Math.round(size * 0.38);
+
+    ctx.font = `${fontSize}px ${EMOJI_FONT}`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText(icon, cx, cy + size * 0.02);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(displayText, cx, cy + size * 0.02);
   }
 
   const tex = new THREE.CanvasTexture(c);

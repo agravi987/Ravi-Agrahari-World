@@ -20,11 +20,23 @@ export interface GalaxyLayoutResult {
   warnings: string[];
 }
 
+export const PLANET_SIZE_PRESETS = {
+  small: { label: "Small (Compact)", size: 44 },
+  medium: { label: "Standard (Recommended)", size: 56 },
+  large: { label: "Major Skill (Prominent)", size: 72 },
+} as const;
+
+export const MOON_SIZE_PRESETS = {
+  small: { label: "Small (Quick note)", size: 10 },
+  medium: { label: "Medium (Standard repo)", size: 14 },
+  large: { label: "Large (Featured project)", size: 18 },
+} as const;
+
 export const GALAXY_CONSTRAINTS = {
   /** Sun (profile avatar) radius, px. */
   sunRadius: 44,
   /** Extra clearance between bodies, px. */
-  gap: 10,
+  gap: 12,
   /** Sanity cap on how far a moon may sweep around its planet, px. */
   moonSweepMax: 60,
   /** Hard cap on moons per planet (keeps lanes small + view clean). */
@@ -33,22 +45,18 @@ export const GALAXY_CONSTRAINTS = {
   planetMaxSize: 96,
   moonMinSize: 8,
   moonMaxSize: 24,
-  orbitRadiusMin: 100,
+  orbitRadiusMin: 120,
   orbitRadiusMax: 2000,
   orbitSpeedMin: 20,
   orbitSpeedMax: 120,
   /**
    * Auto-arrange band (px). Kept well under the validation max
-   * (orbitRadiusMax) so the whole system fits the ~720px stage without
-   * far-flung planets. A freshly added planet lands inside THIS band,
-   * never out at the rim. 720 = "medium" solar-system spacing (12 seed
-   * planets span ~140→627px, ~45px average lane gap) — a visible step
-   * up from the old cramped 480px band, but nowhere near the original
-   * 2000px "planets too far" uniform spread.
+   * (orbitRadiusMax) so the whole system fits comfortably without
+   * far-flung planets.
    */
-  autoRadiusMax: 720,
+  autoRadiusMax: 760,
   /** Smallest radial gap between neighbouring planets during auto-arrange, px. */
-  autoMinStep: 32,
+  autoMinStep: 36,
 } as const;
 
 const num = (v: unknown, d: number): number =>

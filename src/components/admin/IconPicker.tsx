@@ -17,6 +17,27 @@ import { icons as lucideIcons, type LucideIcon } from "lucide-react";
 import { Search, X } from "lucide-react";
 
 /* ------------------------------------------------------------------ */
+/*  Curated 1-click popular tech emoji presets for planets & moons.   */
+/* ------------------------------------------------------------------ */
+export const TECH_EMOJI_PRESETS = [
+  { emoji: "☁️", label: "Cloud / AWS / GCP" },
+  { emoji: "🐳", label: "Docker / Containers" },
+  { emoji: "☸️", label: "Kubernetes / Orchestration" },
+  { emoji: "🚀", label: "DevOps / CI/CD" },
+  { emoji: "⚛️", label: "React / Frontend" },
+  { emoji: "🐍", label: "Python / Data" },
+  { emoji: "⚙️", label: "Systems / Backend" },
+  { emoji: "🔒", label: "Security / IAM" },
+  { emoji: "🤖", label: "AI / Machine Learning" },
+  { emoji: "📊", label: "Analytics / Monitoring" },
+  { emoji: "🌐", label: "Networking / APIs" },
+  { emoji: "⚡", label: "Serverless / Lambda" },
+  { emoji: "💾", label: "Databases / Storage" },
+  { emoji: "🛠️", label: "Tools / Architecture" },
+  { emoji: "📝", label: "Docs / Learning Notes" },
+] as const;
+
+/* ------------------------------------------------------------------ */
 /*  Curated icon set — ~120 icons most relevant for a portfolio site.  */
 /*  The full set is searchable via the search input.                   */
 /* ------------------------------------------------------------------ */
@@ -157,7 +178,7 @@ export default function IconPicker({
       <div className="flex items-stretch gap-2">
         {/* Live preview pill */}
         <span
-          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-card border border-card-border bg-paper-deep text-lg"
+          className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-card border border-card-border bg-paper-deep text-lg shadow-xs"
           aria-hidden="true"
         >
           {LucidePreview ? (
@@ -176,21 +197,46 @@ export default function IconPicker({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className={`${inputClasses} flex-1`}
-          placeholder={mode === "emoji" ? "☁️ or cloud" : "cloud"}
+          className={`${inputClasses} flex-1 font-mono`}
+          placeholder={mode === "emoji" ? "☁️ or Cloud" : "Cloud"}
         />
 
         {/* Browse button */}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="flex h-[42px] shrink-0 items-center gap-1.5 rounded-card border border-card-border bg-card px-3 text-xs font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-accent"
-          title="Browse icons"
+          className="flex h-[42px] shrink-0 items-center gap-1.5 rounded-card border border-card-border bg-card px-3 text-xs font-medium text-ink-soft transition-colors hover:border-accent/40 hover:text-accent shadow-xs"
+          title="Browse icons & presets"
         >
           <Search className="h-3.5 w-3.5" aria-hidden="true" />
           Browse
         </button>
       </div>
+
+      {/* 1-click quick presets bar for fast selection */}
+      {mode === "emoji" && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="font-mono text-[10px] text-ink-faint">Presets:</span>
+          {TECH_EMOJI_PRESETS.slice(0, 8).map((p) => {
+            const isSelected = value.trim() === p.emoji;
+            return (
+              <button
+                key={p.emoji}
+                type="button"
+                onClick={() => onChange(p.emoji)}
+                title={p.label}
+                className={`inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-xs transition-colors ${
+                  isSelected
+                    ? "border-accent bg-accent-soft text-accent ring-1 ring-accent"
+                    : "border-card-border bg-paper-deep/60 text-ink-soft hover:border-accent/40 hover:text-ink"
+                }`}
+              >
+                <span>{p.emoji}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Browse popover */}
       {open && (
@@ -198,7 +244,7 @@ export default function IconPicker({
           ref={popoverRef}
           className="absolute left-0 right-0 top-full z-50 mt-2 rounded-card border border-card-border bg-card shadow-pop"
           role="dialog"
-          aria-label="Browse icons"
+          aria-label="Browse icons and presets"
         >
           {/* Search header */}
           <div className="flex items-center gap-2 border-b border-card-border px-3 py-2">
@@ -222,8 +268,32 @@ export default function IconPicker({
             )}
           </div>
 
+          {/* Preset emoji block when in emoji mode */}
+          {mode === "emoji" && !query && (
+            <div className="border-b border-card-border bg-paper-deep/30 p-2.5">
+              <p className="mb-2 font-mono text-[10px] font-medium uppercase tracking-wider text-ink-faint">
+                Recommended Tech Emojis
+              </p>
+              <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                {TECH_EMOJI_PRESETS.map((p) => (
+                  <button
+                    key={p.emoji}
+                    type="button"
+                    onClick={() => handlePick(p.emoji)}
+                    className="flex items-center gap-1.5 rounded-lg border border-card-border/60 bg-card p-1.5 text-left text-xs text-ink transition-colors hover:border-accent/50 hover:bg-accent-soft/30"
+                  >
+                    <span className="text-base">{p.emoji}</span>
+                    <span className="min-w-0 flex-1 truncate text-[10px] text-ink-soft">
+                      {p.label.split("/")[0].trim()}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Icon grid */}
-          <div className="max-h-72 overflow-y-auto p-3">
+          <div className="max-h-64 overflow-y-auto p-3">
             {filtered.length === 0 ? (
               <p className="py-4 text-center text-sm text-ink-faint">
                 No icons match &ldquo;{query}&rdquo;
@@ -260,7 +330,7 @@ export default function IconPicker({
           <div className="border-t border-card-border px-3 py-2">
             <p className="text-[10px] text-ink-faint">
               {mode === "emoji"
-                ? "Type an emoji or a Lucide icon key. All 1,700+ Lucide icons are supported."
+                ? "Click any tech emoji above, type your own emoji, or pick a Lucide icon. All render cleanly in 2D & 3D."
                 : "Type any Lucide icon key. Click to select, or keep typing."}
             </p>
           </div>

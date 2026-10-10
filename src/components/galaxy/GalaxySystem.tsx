@@ -434,7 +434,7 @@ export default function GalaxySystem({ galaxy }: { galaxy: GalaxyData }) {
           </div>
         </div>
 
-        <div ref={stageWrapRef} className="relative mx-auto mt-8 w-full max-w-[720px]">
+        <div ref={stageWrapRef} className="relative mx-auto mt-8 w-full max-w-[920px]">
           {mode === "3d" ? (
             <GalaxyErrorBoundary
               fallback={
